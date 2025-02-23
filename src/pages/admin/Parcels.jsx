@@ -1,7 +1,11 @@
+import Hello from "../../components/Hello"
 
 const Parcels = () => {
   return (
-    <div>Parcels</div>
+    <div>Parcels
+      <Hello/>
+    
+    </div>
   )
 }
 

@@ -3,21 +3,23 @@ import { useState, useEffect } from "react";
 import axios from "axios";
 import Cookies from 'js-cookie'
 
+
 const Dashboard = () => {
   const [adminData, setAdminData] = useState([]); // Store an array of admins
-
+  
+  const fetchData = async () => {
+    try {
+      const token =Cookies.get('AdminToken');
+      console.log(token);
+      const response = await axios.get("http://localhost:8000/admin/all",{withCredentials:true});
+      console.log("API Response:", response.data.admins);
+      setAdminData(response.data.admins); // Set entire admins array
+    } catch (error) {
+      console.error("Error fetching data", error);
+    }
+  };
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const token =Cookies.get('AdminToken');
-        console.log(token);
-        const response = await axios.get("http://localhost:8000/admin/all",{withCredentials:true});
-        console.log("API Response:", response.data.admins);
-        setAdminData(response.data.admins); // Set entire admins array
-      } catch (error) {
-        console.error("Error fetching data", error);
-      }
-    };
+    
 
     fetchData();
   }, []);
@@ -43,6 +45,8 @@ const Dashboard = () => {
               )}
             </div>
           ))}
+
+          
         </div>
       ) : (
         <p>Loading admins...</p>
