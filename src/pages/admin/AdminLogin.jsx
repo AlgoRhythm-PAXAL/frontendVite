@@ -33,7 +33,8 @@ const AdminLogin = () => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
     }
   return (
-    <div>
+    <div className="flex flex-col items-center justify-center">
+        <div className=" w-1/2">
         <SectionTitle title="Admin Login"/>
         <form onSubmit={handleSubmit}>
             <FormField label="Email :" type="text" name="email" value={formData.email} onChange={handleChange}/>
@@ -43,6 +44,8 @@ const AdminLogin = () => {
             </button>
         </form>
     </div>
+    </div>
+    
   )
 }
 

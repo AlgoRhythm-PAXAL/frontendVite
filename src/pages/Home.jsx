@@ -9,6 +9,8 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
+import { PieChartTest } from "./PieChartTest";
+
 
 
 const Home = () => {
@@ -141,11 +143,16 @@ const Home = () => {
       </TableFooter>
     </Table>
       </div>
+      <div className="">
+        <PieChartTest/>
+      </div>
     </div>
   )
 }
 
 export default Home
+
+
 
 
 
