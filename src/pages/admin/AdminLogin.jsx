@@ -2,11 +2,11 @@ import SectionTitle from '../../components/admin/SectionTitle'
 import FormField from '../../components/admin/FormField'
 import axios from 'axios';
 import {useState} from 'react'
-import Cookies from 'js-cookie'
+
 import { useNavigate } from "react-router-dom"
 
 const AdminLogin = () => {
-
+    
     const [formData,setFormData]=useState({email:'',password:''});
     const navigate=useNavigate();
 
@@ -16,9 +16,7 @@ const AdminLogin = () => {
     
         try {
             const response = await axios.post('http://localhost:8000/admin/login', formData,{withCredentials:true});
-            Cookies.set("AdminToken", response.data.token, { expires: 1, secure: true });
-            console.log("Token = "+Cookies.get('AdminToken'));
-
+            console.log(response.data);
             console.log("Login successful, token stored in cookie.");
             alert(response.data.message); // Show success message
             

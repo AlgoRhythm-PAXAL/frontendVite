@@ -2,16 +2,29 @@ import { Link, useLocation } from "react-router-dom";
 import NavItem from "./NavItem";
 import LOGO from "../../assets/Velox-Logo.png"
 import { faTachometerAlt, faUser, faBox, faTruck, faDollarSign, faQuestionCircle, faBuilding, faCar, faSignOutAlt, faUserCircle } from "@fortawesome/free-solid-svg-icons";
-import Cookies from "js-cookie";
 import { useNavigate } from "react-router-dom";
+import axios from 'axios'
 
 
 export default function Sidebar() {
   const location = useLocation(); // Get the current route
   const navigate = useNavigate();
   const handleLogout = () => {
-    Cookies.remove("AdminToken");
-    navigate("/admin/login");
+    try{
+      const response = axios.post("http://localhost:8000/admin/logout",{},{withCredentials:true});
+      console.log(response);
+      if(response.status !== 200){
+        console.log("Logged out successfully");
+        navigate("/admin/login");
+      }
+      else{
+        console.error("Logout failed")
+      }
+    }
+    catch(error){
+      console.error("Error logging out:", error);
+    }
+    
 };
   return (
     <div className="w-full h-screen bg-white flex flex-col items-center justify-center py-6">
