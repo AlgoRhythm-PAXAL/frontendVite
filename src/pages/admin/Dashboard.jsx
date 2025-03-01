@@ -1,7 +1,7 @@
 import SectionTitle from "../../components/admin/SectionTitle";
 import { useState, useEffect } from "react";
 import axios from "axios";
-import Cookies from 'js-cookie'
+
 
 
 const Dashboard = () => {
@@ -9,8 +9,6 @@ const Dashboard = () => {
   
   const fetchData = async () => {
     try {
-      const token =Cookies.get('AdminToken');
-      console.log(token);
       const response = await axios.get("http://localhost:8000/admin/all",{withCredentials:true});
       console.log("API Response:", response.data.admins);
       setAdminData(response.data.admins); // Set entire admins array
