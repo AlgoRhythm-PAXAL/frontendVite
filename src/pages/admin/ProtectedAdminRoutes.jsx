@@ -21,7 +21,6 @@ const ProtectedAdminRoute = () => {
   }, []);
 
   if (isAuthenticated === null) return <div>Loading...</div>;
-  console.log("Authenticated: ",isAuthenticated);
   isAuthenticated?console.log("Authenticated!"):console.log("Not verified");
 
   return isAuthenticated ? <Outlet /> : <Navigate to="/admin/login" />;
