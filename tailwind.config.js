@@ -28,6 +28,8 @@ export default {
   			sm: 'calc(var(--radius) - 4px)'
   		},
   		colors: {
+			Background: '#F4F4F9',
+			Primary: '#1f818c',
   			background: 'hsl(var(--background))',
   			foreground: 'hsl(var(--foreground))',
   			card: {
