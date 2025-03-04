@@ -1,8 +1,9 @@
-"use client"
-
 import * as React from "react"
 import { TrendingUp } from "lucide-react"
 import { Label, Pie, PieChart } from "recharts"
+import {useEffect} from 'react' 
+import axios from 'axios'
+
 
 import {
   Card,
@@ -52,15 +53,30 @@ const chartConfig = {
   },
 };
 
-export function PieChartTest() {
+
+
+export function PieChartCard() {
   const totalVisitors = React.useMemo(() => {
     return chartData.reduce((acc, curr) => acc + curr.visitors, 0)
   }, [])
 
+  useEffect(()=>{
+    const fetchChartData=async()=>{
+      try{
+        const response=await axios.get('http://localhost:8000/admin/chart/data',{withCredentials:true});
+        console.log(response.data);
+      }
+      catch(error){
+        console.log("error:",error);
+      }
+    }
+    fetchChartData();
+  },[])
+
   return (
-    <Card className="flex flex-col">
+    <Card className="flex flex-col w-1/4 my-5">
       <CardHeader className="items-center pb-0">
-        <CardTitle>Pie Chart - Donut with Text</CardTitle>
+        <CardTitle>PMS Data</CardTitle>
         <CardDescription>January - June 2024</CardDescription>
       </CardHeader>
       <CardContent className="flex-1 pb-0">
