@@ -1,12 +1,12 @@
-const FormField = ({label,type,name,value,onChange,options}) => {
+const FormField = ({label,type,name,value,onChange,options,placeholder,required}) => {
   return (
-    <div>
+    <div className="flex flex-col gap-2 w-full">
       <label className="block text-base font-medium font-mulish text-black mb-1">
         {label}
       </label>
 
       {type === "textarea" ? (
-        <textarea name={name} value={value} onChange={onChange} className="w-full border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring focus:ring-blue-300" />
+        <textarea name={name} value={value} onChange={onChange} className="w-full border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring focus:ring-blue-300" placeholder={placeholder} required={required} />
       ) : type === "select" ? (
         <select name={name} value={value} onChange={onChange} className="w-full border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring focus:ring-blue-300" >
           {options?.map((option, index) => (
@@ -14,7 +14,7 @@ const FormField = ({label,type,name,value,onChange,options}) => {
           ))}
         </select>
       ) : (
-        <input type={type} name={name} value={value} onChange={onChange} className="w-full border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring focus:ring-blue-300" />
+        <input type={type} name={name} value={value} onChange={onChange} className="w-full border border-gray-300 rounded-lg p-2  " placeholder={placeholder}  required={required}/>
       )}
     </div>
   )
@@ -22,13 +22,4 @@ const FormField = ({label,type,name,value,onChange,options}) => {
 
 export default FormField
 
-// {/* <FormField label="Username" name="username" type="text" value={username} onChange={handleChange} />
-// <FormField label="Bio" name="bio" type="textarea" value={bio} onChange={handleChange} />
-// <FormField 
-//   label="Country" 
-//   name="country" 
-//   type="select" 
-//   value={country} 
-//   onChange={handleChange} 
-//   options={[{ label: "USA", value: "us" }, { label: "India", value: "in" }]}
-// /> */}
+
