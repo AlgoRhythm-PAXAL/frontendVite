@@ -15,10 +15,10 @@ const AdminForgotPassword = () => {
         e.preventDefault(); // Prevents form from reloading
 
         try {
-            const response = await axios.post('http://localhost:8000/admin/resetPassword', formData);
+            const response = await axios.post('http://localhost:8000/admin/forgotPassword', formData);
             console.log("OTP sent to email:", response.data);
             // alert("Verification code sent to your email."); // Show success message
-            navigate("/admin/reset-password");
+            navigate("/admin/verify-OTP",{ state: { email: formData.email }});
           
 
             

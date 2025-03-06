@@ -10,6 +10,7 @@ import Home from "./pages/Home";
 import ProtectedAdminRoute from "./pages/admin/ProtectedAdminRoutes"; // Import the protected route
 import AdminForgotPassword from "./pages/admin/AdminForgotPassword";
 import AdminVerifyCode from "./pages/admin/AdminVerifyCode";
+import AdminResetPassword from "./pages/admin/AdminResetPassword";
 
 const App = () => {
   return (
@@ -18,7 +19,8 @@ const App = () => {
         <Route path="/" element={<Home />} />
         <Route path="/admin/login" element={<AdminLogin />} />
         <Route path="/admin/forgotPassword" element={<AdminForgotPassword />} />
-        <Route path="/admin/reset-password" element={<AdminVerifyCode />} />
+        <Route path="/admin/verify-OTP" element={<AdminVerifyCode />} />
+        <Route path="/admin/reset-password" element={<AdminResetPassword/>}/>
         {/* Protected Admin Routes */}
         <Route path="/admin" element={<ProtectedAdminRoute />}>
           <Route path="/admin"  element={<AdminLayout />}>
