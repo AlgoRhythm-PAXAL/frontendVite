@@ -2,7 +2,7 @@ import SectionTitle from "../../components/admin/SectionTitle";
 import { useState, useEffect } from "react";
 import axios from "axios";
 import { PieChartCard } from "./PieChartCard";
-import NumberShowingCard from "../../components/admin/NUmberShowingCard";
+
 
 
 
@@ -23,15 +23,10 @@ const Dashboard = () => {
   }, []);
 
   return (
-    <div className="flex flex-col">
+    <div className="flex flex-col mx-5">
       <SectionTitle title="Dashboard" />
 
-      <div className="flex flex-grow">
-        <NumberShowingCard title="Total Customers" number="1000" since="last year" type="customers" />
-        <NumberShowingCard title="Total Drivers" number="1000" since="last year" type="drivers" />
-        <NumberShowingCard title="Total Admins" number="1000" since="last year" type="admins" />
-        <NumberShowingCard title="Total Staffs" number="1000" since="last year" type="staff" />
-      </div>
+      
 
 
 
@@ -45,7 +40,7 @@ const Dashboard = () => {
       {adminData.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {adminData.map((admin, index) => (
-            <div key={index} className="border p-4 rounded-lg shadow-lg">
+            <div key={index} className="border p-4 rounded-lg shadow-lg bg-white">
               <p><strong>Name:</strong> {admin.name}</p>
               <p><strong>Email:</strong> {admin.email}</p>
               <p><strong>NIC:</strong> {admin.nic}</p>

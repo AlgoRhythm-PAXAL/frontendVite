@@ -27,7 +27,7 @@ export default function Sidebar() {
     
 };
   return (
-    <div className="w-full h-screen bg-white flex flex-col items-center justify-center py-6">
+    <div className="w-full h-screen bg-white flex flex-col items-center justify-center py-6 rounded-xl">
       {/* Logo and Title */}
       <div className="flex flex-col items-center mb-3">
         <img src={LOGO} alt="Logo" width={80} height={80} />
