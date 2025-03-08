@@ -8,7 +8,7 @@ const FormField = ({label,type,name,value,onChange,options,placeholder,required}
       {type === "textarea" ? (
         <textarea name={name} value={value} onChange={onChange} className="w-full border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring focus:ring-blue-300" placeholder={placeholder} required={required} />
       ) : type === "select" ? (
-        <select name={name} value={value} onChange={onChange} className="w-full border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring focus:ring-blue-300" >
+        <select name={name} value={value} onChange={onChange} className="w-full border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring focus:ring-blue-300" placeholder={placeholder} >
           {options?.map((option, index) => (
             <option key={index} value={option.value}> {option.label} </option>
           ))}
