@@ -12,6 +12,7 @@ const UserAccounts = () => {
       <div className="flex gap-5 w-full justify-center">
         <UserRegistrationForm/>
         
+        
         <div className="flex flex-wrap justify-center items-stretch gap-2 w-5/12">
           <NumberShowingCard title="Total Customers" number="1000" since="last year" type="Customer" />
           <NumberShowingCard title="Total Drivers" number="1000" since="last year" type="Driver" />
