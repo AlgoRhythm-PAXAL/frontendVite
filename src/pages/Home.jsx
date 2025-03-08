@@ -1,4 +1,4 @@
-import { Button } from "@/components/ui/button"
+// src/pages/Home.jsx
 import {
   Table,
   TableBody,
@@ -9,7 +9,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-import { PieChartTest } from "./PieChartTest";
+
 
 
 
@@ -107,7 +107,7 @@ const Home = () => {
   
   return (
     <div>
-      <Button>Click me</Button>
+      
       <div className="w-6/12">
       <Table>
       <TableCaption>A list of your recent invoices.</TableCaption>
@@ -143,9 +143,7 @@ const Home = () => {
       </TableFooter>
     </Table>
       </div>
-      <div className="">
-        <PieChartTest/>
-      </div>
+      
     </div>
   )
 }
