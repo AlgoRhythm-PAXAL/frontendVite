@@ -178,7 +178,7 @@
 
 // export { AdminRegistrationForm, DriverRegistrationForm, StaffRegistrationForm };
 
-import FormField from "../../components/admin/FormField";
+import FormField from "./FormField";
 import { useState, useEffect } from "react";
 import axios from "axios";
 

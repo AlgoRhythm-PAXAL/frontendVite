@@ -7,7 +7,7 @@ import Parcels from "./pages/admin/Parcels";
 import Shipments from "./pages/admin/Shipments";
 import AdminLogin from "./pages/admin/AdminLogin";
 import Home from "./pages/Home";
-import ProtectedAdminRoute from "./pages/admin/ProtectedAdminRoutes"; // Import the protected route
+import ProtectedAdminRoute from "./components/admin/ProtectedAdminRoutes"; // Import the protected route
 import AdminForgotPassword from "./pages/admin/AdminForgotPassword";
 import AdminVerifyCode from "./pages/admin/AdminVerifyCode";
 import AdminResetPassword from "./pages/admin/AdminResetPassword";
