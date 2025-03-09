@@ -11,7 +11,7 @@ import {
     TableHead,
 } from "@/components/ui/table";
 
-const DataTable = ({ title, apiEndpoint }) => {
+const AdminTable = ({ title, apiEndpoint }) => {
     const [data, setData] = useState([]);
 
     useEffect(() => {
@@ -41,35 +41,38 @@ const DataTable = ({ title, apiEndpoint }) => {
     const headers = data.length > 0 ? Object.keys(data[0]) : [];
 
     return (
-        <div className="w-full mx-auto my-8 bg-white rounded-2xl border border-gray-300 shadow-lg">
-            <Table>
-                <TableCaption>A list of {title}</TableCaption>
-                <TableHeader>
-                    <TableRow>
-                        {headers.map((header, index) => (
-                            <TableHead key={index} className="uppercase">
-                                {header}
-                            </TableHead>
-                        ))}
-                    </TableRow>
-                </TableHeader>
-                <TableBody>
-                    {data.map((item, rowIndex) => (
-                        <TableRow key={rowIndex}>
-                            {headers.map((header, colIndex) => (
-                                <TableCell key={colIndex}>{item[header]}</TableCell>
+        <div className="w-full flex flex-col justify-center  p-2  bg-white rounded-2xl border border-gray-300 shadow-lg">
+            <h1>Admin Details</h1>
+            <div className="w-full mx-auto my-8">
+                <Table>
+                    <TableCaption>A list of {title}</TableCaption>
+                    <TableHeader>
+                        <TableRow>
+                            {headers.map((header, index) => (
+                                <TableHead key={index} className="uppercase">
+                                    {header}
+                                </TableHead>
                             ))}
                         </TableRow>
-                    ))}
-                </TableBody>
-                <TableFooter>
-                    <TableRow>
-                        <TableCell colSpan={headers.length}>Total {title}: {data.length}</TableCell>
-                    </TableRow>
-                </TableFooter>
-            </Table>
+                    </TableHeader>
+                    <TableBody>
+                        {data.map((item, rowIndex) => (
+                            <TableRow key={rowIndex}>
+                                {headers.map((header, colIndex) => (
+                                    <TableCell key={colIndex}>{item[header]}</TableCell>
+                                ))}
+                            </TableRow>
+                        ))}
+                    </TableBody>
+                    <TableFooter>
+                        <TableRow>
+                            <TableCell colSpan={headers.length}>Total {title}: {data.length}</TableCell>
+                        </TableRow>
+                    </TableFooter>
+                </Table>
+            </div>
         </div>
     );
 };
 
-export default DataTable;
+export default AdminTable;
