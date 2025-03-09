@@ -1,7 +1,9 @@
 import SectionTitle from '../../components/admin/SectionTitle';
 import NumberShowingCard from "../../components/admin/NUmberShowingCard";
 import UserRegistrationForm from '../../components/admin/UserRegistrationForm';
-import DataTable from '../../components/admin/AdminTable';
+import AdminTable from '../../components/admin/AdminTable';
+import DriverTable from '../../components/admin/DriverTable';
+import StaffTable from '../../components/admin/StaffTable';
 
 const UserAccounts = () => {
 
@@ -21,9 +23,9 @@ const UserAccounts = () => {
           <NumberShowingCard title="Total Staffs" number="1000" since="last year" type="Staff" />
         </div>
       </div>
-      <DataTable title="Admins" apiEndpoint="http://localhost:8000/admin/all" />
-      <DataTable title="Staff" apiEndpoint="http://localhost:8000/staff/all" />
-      <DataTable title="Drivers" apiEndpoint="http://localhost:8000/driver/all" />
+      <AdminTable title="Admins" apiEndpoint="http://localhost:8000/admin/all" />
+      <StaffTable title="Staff" apiEndpoint="http://localhost:8000/admin/staff/all" />
+      <DriverTable title="Drivers" apiEndpoint="http://localhost:8000/admin/driver/all" />
     </div>
   );
 };
