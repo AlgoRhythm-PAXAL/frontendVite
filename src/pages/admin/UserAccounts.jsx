@@ -4,6 +4,7 @@ import UserRegistrationForm from '../../components/admin/UserRegistrationForm';
 import AdminTable from '../../components/admin/AdminTable';
 import DriverTable from '../../components/admin/DriverTable';
 import StaffTable from '../../components/admin/StaffTable';
+import UserDataTable from '../../components/admin/UserDataTable';
 
 const UserAccounts = () => {
 
@@ -23,9 +24,8 @@ const UserAccounts = () => {
           <NumberShowingCard title="Total Staffs" number="1000" since="last year" type="Staff" />
         </div>
       </div>
-      <AdminTable title="Admins" apiEndpoint="http://localhost:8000/admin/all" />
-      <StaffTable title="Staff" apiEndpoint="http://localhost:8000/admin/staff/all" />
-      <DriverTable title="Drivers" apiEndpoint="http://localhost:8000/admin/driver/all" />
+      <UserDataTable/>
+      
     </div>
   );
 };

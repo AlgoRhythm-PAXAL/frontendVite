@@ -11,6 +11,8 @@ import ProtectedAdminRoute from "./components/admin/ProtectedAdminRoutes"; // Im
 import AdminForgotPassword from "./pages/admin/AdminForgotPassword";
 import AdminVerifyCode from "./pages/admin/AdminVerifyCode";
 import AdminResetPassword from "./pages/admin/AdminResetPassword";
+import Branches from "./pages/admin/Branches";
+import AdminProfile from "./pages/admin/AdminProfile";
 
 const App = () => {
   return (
@@ -28,6 +30,8 @@ const App = () => {
             <Route path="userAccounts" element={<UserAccounts />} />
             <Route path="parcels" element={<Parcels />} />
             <Route path="shipments" element={<Shipments />} />
+            <Route path="branches" element={<Branches/>}/>
+            <Route path="profile" element={<AdminProfile/>}/>
           </Route>
         </Route>
       </Routes>

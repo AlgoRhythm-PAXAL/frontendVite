@@ -10,6 +10,7 @@ import {
     TableRow,
     TableHead,
 } from "@/components/ui/table";
+import StickyHeadTable from "./MUITable";
 
 const AdminTable = ({ title, apiEndpoint }) => {
     const [data, setData] = useState([]);
@@ -35,8 +36,9 @@ const AdminTable = ({ title, apiEndpoint }) => {
     const headers = data.length > 0 ? Object.keys(data[0]) : [];
 
     return (
-        <div className="w-full mx-auto my-8 bg-white rounded-2xl border border-gray-300 shadow-lg">
-            <Table>
+        <div className="w-full flex flex-col justify-center  p-2  bg-white rounded-2xl border border-gray-300 shadow-lg">
+            <h1>Driver table</h1>
+            {/* <Table>
                 <TableCaption>A list of {title}</TableCaption>
                 <TableHeader>
                     <TableRow>
@@ -61,8 +63,13 @@ const AdminTable = ({ title, apiEndpoint }) => {
                         <TableCell colSpan={headers.length}>Total {title}: {data.length}</TableCell>
                     </TableRow>
                 </TableFooter>
-            </Table>
+            </Table> */}
+
+           
+            <StickyHeadTable data={data} headers={headers}/>
+            
         </div>
+        
     );
 };
 
