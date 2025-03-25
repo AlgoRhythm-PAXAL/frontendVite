@@ -34,6 +34,8 @@ const Home = () => {
         </button>
       </section>
 
+      
+
       {/* Features */}
       <div className="space-y-12 py-12 px-6">
         {[
