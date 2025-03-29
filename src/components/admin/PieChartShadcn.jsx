@@ -19,13 +19,7 @@ import {
   ChartTooltip,
   ChartTooltipContent,
 } from "@/components/ui/chart"
-// const chartData = [
-//   { browser: "chrome", visitors: 275, fill: "var(--color-chrome)" },
-//   { browser: "safari", visitors: 200, fill: "var(--color-safari)" },
-//   { browser: "firefox", visitors: 287, fill: "var(--color-firefox)" },
-//   { browser: "edge", visitors: 173, fill: "var(--color-edge)" },
-//   { browser: "other", visitors: 190, fill: "var(--color-other)" },
-// ]
+
 
 
 const parcelStatusColors = [
@@ -71,7 +65,7 @@ const chartConfig = {
 
 
 
-export function PieChartCard({ title }) {
+export default function PieChartShadcn({ title }) {
   const [chartData, setChartData] = useState([]); // Use empty array
 
   const totalVisitors = React.useMemo(() => {
@@ -98,9 +92,7 @@ export function PieChartCard({ title }) {
     fetchChartData();
   }, []);
 
-  useEffect(() => {
-    console.log("Chart Data:", chartData); // Use chartData instead of undefined variable `data`
-  }, [chartData]); // Only run when chartData updates
+
 
   return (
     <Card className="flex flex-col w-1/4 my-5">
