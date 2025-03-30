@@ -45,7 +45,7 @@ const NumberShowingCard = ({ title, type }) => {
     }, [type]); // Re-run effect when `type` changes
 
     return (
-        <div className="flex items-center gap-6 p-5 w-80 bg-white rounded-2xl border border-gray-300 shadow-lg">
+        <div className="flex items-center gap-6 p-5 w-64 bg-white rounded-2xl border border-gray-300 shadow-lg">
             {/* Icon Section */}
             <div className="w-12 h-12 flex items-center justify-center bg-gray-100 rounded-full">
                 <FontAwesomeIcon icon={getIcon(type)} className="text-gray-700 text-2xl" />
