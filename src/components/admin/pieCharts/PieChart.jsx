@@ -234,7 +234,7 @@ const PieChart = ({ labels, data, total, groupName }) => {
               data,
               backgroundColor: colors.slice(0, labels.length),
               borderRadius: 10,
-              spacing: 3,
+              spacing: 1,
             }],
             hoverOffset: 4
           }}
