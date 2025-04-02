@@ -13,6 +13,10 @@ import AdminVerifyCode from "./pages/admin/AdminVerifyCode";
 import AdminResetPassword from "./pages/admin/AdminResetPassword";
 import Branches from "./pages/admin/Branches";
 import AdminProfile from "./pages/admin/AdminProfile";
+import StaffLogin from "./pages/staff/StaffLogin";
+import ForgotPasswordEmail from "./pages/staff/ForgotPasswordEmail";
+import ForgotPasswordCode from "./pages/staff/ForgotPasswordCode";
+import ResetPassword from "./pages/staff/ResetPassword";
 
 const App = () => {
   return (
@@ -34,6 +38,12 @@ const App = () => {
             <Route path="profile" element={<AdminProfile/>}/>
           </Route>
         </Route>
+
+        {/* Staff Routes */}
+        <Route path="staff/login" element={<StaffLogin/>}/>
+        <Route path="staff/forgot-password" element={<ForgotPasswordEmail/>}/>
+        <Route path="staff/forgot-password-code" element={<ForgotPasswordCode/>}/>
+        <Route path="staff/reset-password" element={<ResetPassword/>}/>
       </Routes>
     </Router>
   );
