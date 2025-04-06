@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import axios from "axios";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faUserSlash } from "@fortawesome/free-solid-svg-icons"; // Changed icon for variety
+import ProfilePicture from './ImageUpload/ProfilePicture'
 
 const AdminList = () => {
     const [adminData, setAdminData] = useState([]); // Store an array of admins
@@ -20,6 +21,8 @@ const AdminList = () => {
       fetchData();
 
     }, []);
+
+
 
   const handleDelete = async (adminId) => {
     console.log(adminId);
@@ -43,11 +46,12 @@ const AdminList = () => {
               <p><strong>NIC:</strong> {admin.nic}</p>
               <p><strong>Contact No:</strong> {admin.contactNo}</p>
               {admin.profilePicLink && (
-                <img
-                  src={admin.profilePicLink}
-                  alt="Profile"
-                  className="w-32 h-32 rounded-full mt-2"
-                />
+                // <img
+                //   src={ `${admin.profilePicLink}?w=300&h=800&c_fill,g_face`}
+                //   alt="Profile"
+                //   className="w-32 h-32 rounded-full mt-2"
+                // />
+                <ProfilePicture publicId={admin.profilePicLink}/>
               )}
               <button 
                 onClick={() => handleDelete(admin.adminId)} 
