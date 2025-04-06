@@ -12,7 +12,7 @@ const AdminProfile = () => {
 
   return (
     <div className="mx-8">
-        <SectionTitle title="Hello Thanuka"/>
+        <SectionTitle title="Profile"/>
     </div>
   )
 }

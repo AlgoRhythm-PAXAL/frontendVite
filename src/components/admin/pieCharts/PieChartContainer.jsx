@@ -46,7 +46,7 @@ const processGroupData = (group) => ({
 
   return (
     // <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 p-6">
-    <div className="flex flex-wrap flex-2 gap-3 justify-center items-center">
+    <div className="flex w-full justify-between items-center">
       {chartData.map((group, index) => {
         const processedData = processGroupData(group);
         return (
