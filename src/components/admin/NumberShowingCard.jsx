@@ -74,6 +74,7 @@ import {
   faUserShield, // Admins
   faUsers,      // Staff
 } from "@fortawesome/free-solid-svg-icons";
+import {toast} from 'sonner'
 
 const NumberShowingCard = ({ title, type }) => {
   const [data, setData] = useState({ count: 0, since: '' });
@@ -113,10 +114,10 @@ const NumberShowingCard = ({ title, type }) => {
 
   useEffect(() => {
     const fetchUserCount = async () => {
+      const backendUrl=import.meta.env.VITE_BACKEND_URL;
       try {
-        const response = await axios.get('http://localhost:8000/admin/user/count', {
-          params: { user: type }
-        });
+        const response = await axios.get(`${backendUrl}/admin/user/count`,{withCredentials:true,params: { user: type }});
+      
         
         setData({
           count: response.data.count,
@@ -127,7 +128,11 @@ const NumberShowingCard = ({ title, type }) => {
           })
         });
       } catch (error) {
+        const errorMessage=error.message;
         console.error(`Error fetching ${type} count:`, error);
+        toast.error(`Fetching data went fishing 🎣. No luck yet. ${type}`,{
+          description:errorMessage,
+        })
       } finally {
         setLoading(false);
       }

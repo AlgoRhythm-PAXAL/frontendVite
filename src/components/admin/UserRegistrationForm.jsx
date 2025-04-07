@@ -306,6 +306,7 @@
 import FormField from "./FormField";
 import { useState, useEffect } from "react";
 import axios from "axios";
+import { toast } from 'sonner'
 
 const UserRegistrationForm = () => {
     const [formData, setFormData] = useState({
@@ -325,12 +326,18 @@ const UserRegistrationForm = () => {
 
     useEffect(() => {
         const fetchBranches = async () => {
+
+            const backendUrl = import.meta.env.VITE_BACKEND_URL;
             try {
-                const response = await axios.get("http://localhost:8000/branches");
+                const response = await axios.get(`${backendUrl}/admin/get/branches`, { withCredentials: true, timeout: 10000 });
                 setBranches(response.data.branches);
+
             } catch (error) {
+                const errorMessage = error.response?.data?.message || error.message;
                 console.error("Error fetching branches:", error);
-                alert("Failed to load branch data. Please refresh the page.");
+                toast.error('Failed to load branches', {
+                    description: errorMessage
+                })
             } finally {
                 setIsLoading(false);
             }
@@ -345,10 +352,20 @@ const UserRegistrationForm = () => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        const toast1=toast.loading('Processing registration...');
         setIsSubmitting(true);
 
         try {
-            let apiURL="";
+
+            if (!formData.userType) {
+                throw new Error('Please select a user type');
+            }
+
+            if (formData.userType === 'driver' && !formData.licenseId) {
+                throw new Error('License ID is required for drivers');
+            }
+
+            let apiURL = "";
             if (formData.userType === "driver" || formData.userType === "staff") {
                 apiURL = `http://localhost:8000/admin/${formData.userType}/register`;
             }
@@ -358,14 +375,35 @@ const UserRegistrationForm = () => {
             const response = await axios.post(
                 apiURL,
                 formData,
-                { withCredentials: true }
+                { withCredentials: true, timeout: 15000 }
             );
+            toast.success(response.data.message || 'Registration successful!', {
+                id:toast1,
+                action: {
+                    label: 'Reload',
+                    onClick: () => window.location.reload()
+                }
+            });
+            setTimeout(() => window.location.reload(), 1000);
 
-            alert(response.data.message);
-            window.location.reload();
+            
         } catch (error) {
-            const errorMessage = error.response?.data?.message || "Registration failed. Please try again.";
-            alert(errorMessage);
+            const errorData = error.response?.data;
+            const errorMessage = errorData?.message ||
+                errorData?.error ||
+                error.message ||
+                'Registration failed';
+            toast.error('Registration Error', {
+                id:toast1,
+                description: errorMessage,
+                ...(error.response?.status === 401 && {
+                    action: {
+                        label: 'Login',
+                        onClick: () => window.location.href = '/admin/login'
+                    }
+                })
+            });
+            console.error("Registration error:", error);
         } finally {
             setIsSubmitting(false);
         }

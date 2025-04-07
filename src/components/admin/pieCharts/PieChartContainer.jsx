@@ -12,12 +12,20 @@ const PieChartContainer = () => {
     const fetchData = async () => {
       try {
         const response = await axios.get(
-          'http://localhost:8000/admin/pieChart/data',
+          `${import.meta.env.VITE_BACKEND_URL}/admin/pieChart/data`,
           { withCredentials: true }
         );
         setChartData(response.data);
         setLoading(false);
       } catch (err) {
+        const errorMessage=error.response?.data.message||'Failed to load chart data';
+        TransformStream.error('Data loading error',{
+          description:errorMessage,
+          action:{
+            label:'Retry',
+            onClick:() => fetchData()
+          }
+        });
         setError(err.message);
         setLoading(false);
       }

@@ -4,28 +4,63 @@ import LOGO from "../../assets/Velox-Logo.png"
 import { faTachometerAlt, faUser, faBox, faTruck, faDollarSign, faQuestionCircle, faBuilding, faCar, faSignOutAlt, faUserCircle } from "@fortawesome/free-solid-svg-icons";
 import { useNavigate } from "react-router-dom";
 import axios from 'axios'
-
+import { toast } from 'sonner'
 
 export default function Sidebar() {
   const location = useLocation(); // Get the current route
   const navigate = useNavigate();
-  const handleLogout = () => {
-    try{
-      const response = axios.post("http://localhost:8000/admin/logout",{},{withCredentials:true});
-      console.log(response);
-      if(response.status !== 200){
-        console.log("Logged out successfully");
+  const backendURL = import.meta.env.VITE_BACKEND_URL;
+  //   const handleLogout = () => {
+  //     try{
+  //       const response = axios.post(`${backendURL}/admin/logout`,{},{withCredentials:true});
+  //       console.log(response);
+  //       if(response.status !== 200){
+  //         console.log("Logged out successfully");
+  //         navigate("/admin/login");
+  //       }
+  //       else{
+  //         console.error("Logout failed")
+  //       }
+  //     }
+  //     catch(error){
+  //       console.error("Error logging out:", error);
+  //     }
+
+  // };
+
+  const handleLogout = async () => {
+    try {
+      const { data } = await axios.post(
+        `${backendURL}/admin/logout`,
+        {},
+        { withCredentials: true }
+      );
+
+      // Success handling
+      toast.success(data.message || "Logged out successfully");
+      console.log("Logout success:", data.message);
+      navigate("/admin/login");
+
+    } catch (error) {
+      // Error handling
+      const errorMessage = error.response?.data?.message || "Logout failed";
+      const statusCode = error.response?.status;
+
+      // Show appropriate toast
+      if (statusCode === 401) {
+        toast.warning("Session expired, please login again");
+      } else {
+        toast.error(errorMessage);
+      }
+
+      console.error("Logout error:", errorMessage);
+
+      // Redirect if unauthorized
+      if (statusCode === 401) {
         navigate("/admin/login");
       }
-      else{
-        console.error("Logout failed")
-      }
     }
-    catch(error){
-      console.error("Error logging out:", error);
-    }
-    
-};
+  };
   return (
     <div className="w-full h-screen bg-white flex flex-col items-center justify-center py-6 rounded-xl">
       {/* Logo and Title */}
