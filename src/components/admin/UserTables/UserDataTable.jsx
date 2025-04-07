@@ -2,8 +2,21 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import StaffTable from './StaffTable';
 import DriverTable from './DriverTable'
 import AdminTable from './AdminTable'
+import {useState,useEffect} from 'react'
+import DemoPage from "./DataTable/DemoPage";
 
 const UserDataTable = () => {
+
+    const [customerData,setCustomerData]=useState([]);
+    const [staffData,setStaffData]=useState([]);
+    const [driverData,setDriverData]=useState([]);
+    const [adminData,setAdminData]=useState([]);
+
+    useEffect(()=>{
+        
+    },[])
+
+
     return (
         <div>
             <Tabs defaultValue="customer" className="w-full h-full">
@@ -14,13 +27,9 @@ const UserDataTable = () => {
                     <TabsTrigger value="admin">Admin</TabsTrigger>
                 </TabsList>
                 <TabsContent value="customer">Customer Data </TabsContent>
-                <TabsContent value="staff"><StaffTable title="Staff" apiEndpoint="http://localhost:8000/admin/staff/all" /></TabsContent>
-                <TabsContent value="driver"><DriverTable title="Drivers" apiEndpoint="http://localhost:8000/admin/driver/all" /></TabsContent>
-                <TabsContent value="admin"><AdminTable title="Admins" apiEndpoint="http://localhost:8000/admin/all" /></TabsContent>
-
-                
-      
-      
+                <TabsContent value="staff"><DemoPage title='staff'/></TabsContent>
+                <TabsContent value="driver"><DemoPage title='driver'/></TabsContent>
+                <TabsContent value="admin"><DemoPage title='admin'/></TabsContent>
             </Tabs>
 
         </div>
@@ -28,3 +37,4 @@ const UserDataTable = () => {
 }
 
 export default UserDataTable
+

@@ -1,16 +1,7 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
-import {
-    Table,
-    TableBody,
-    TableCaption,
-    TableCell,
-    TableFooter,
-    TableHeader,
-    TableRow,
-    TableHead,
-} from "@/components/ui/table";
-import StickyHeadTable from "./MUITable";
+
+import StickyHeadTable from "../MUITable";
 
 const AdminTable = ({ title, apiEndpoint }) => {
     const [data, setData] = useState([]);
@@ -19,11 +10,11 @@ const AdminTable = ({ title, apiEndpoint }) => {
         const fetchData = async () => {
             try {
                 const response = await axios.get(apiEndpoint, { withCredentials: true });
-                console.log(`API Response for ${title}:`, response.data);
+                
 
                 // Check if data exists and remove unwanted fields
-                if (response.data && response.data[title.toLowerCase()]) {
-                    const filteredData = response.data[title.toLowerCase()].map(item => {
+                if (response.data && response.data[`${title.toLowerCase()}Data`]) {
+                    const filteredData = response.data[`${title.toLowerCase()}Data`].map(item => {
                         const { password, _id, updatedAt, __v, ...filteredItem } = item;
                         return filteredItem;
                     });
@@ -72,7 +63,7 @@ const AdminTable = ({ title, apiEndpoint }) => {
                     </TableFooter>
                 </Table>
             </div> */}
-            <StickyHeadTable data={data} headers={headers}/>
+            <StickyHeadTable data={data} headers={headers} />
         </div>
     );
 };

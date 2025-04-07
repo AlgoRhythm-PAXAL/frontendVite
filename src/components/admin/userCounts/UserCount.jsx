@@ -2,11 +2,14 @@ import NumberShowingCard from '../NUmberShowingCard'
 
 const UserCount = () => {
     return (
-        <div className="flex flex-col justify-center items-stretch gap-2 w-fit h-fit">
-            <NumberShowingCard title="Total Customers" number="1000" since="last year" type="Customer" />
-            <NumberShowingCard title="Total Drivers" number="1000" since="last year" type="Driver" />
-            <NumberShowingCard title="Total Admins" number="1000" since="last year" type="Admin" />
-            <NumberShowingCard title="Total Staffs" number="1000" since="last year" type="Staff" />
+        <div className="w-full">
+            <h1 className="text-2xl font-semibold mb-6">User Statistics</h1>
+            <div className="flex gap-3 justify-between items-center  w-full h-fit ">
+            <NumberShowingCard title="Total Customers"type="Customer"/>
+            <NumberShowingCard title="Total Drivers" type="Driver" />
+            <NumberShowingCard title="Total Admins"  type="Admin" />
+            <NumberShowingCard title="Total Staffs"type="Staff" />
+            </div>
         </div>
     )
 }

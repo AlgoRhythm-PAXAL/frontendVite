@@ -12,12 +12,20 @@ const PieChartContainer = () => {
     const fetchData = async () => {
       try {
         const response = await axios.get(
-          'http://localhost:8000/admin/pieChart/data',
+          `${import.meta.env.VITE_BACKEND_URL}/admin/pieChart/data`,
           { withCredentials: true }
         );
         setChartData(response.data);
         setLoading(false);
       } catch (err) {
+        const errorMessage=error.response?.data.message||'Failed to load chart data';
+        TransformStream.error('Data loading error',{
+          description:errorMessage,
+          action:{
+            label:'Retry',
+            onClick:() => fetchData()
+          }
+        });
         setError(err.message);
         setLoading(false);
       }
@@ -46,7 +54,7 @@ const processGroupData = (group) => ({
 
   return (
     // <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 p-6">
-    <div className="flex flex-wrap flex-2 gap-3 justify-center items-center">
+    <div className="flex w-full justify-between items-center">
       {chartData.map((group, index) => {
         const processedData = processGroupData(group);
         return (
