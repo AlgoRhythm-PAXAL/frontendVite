@@ -10,7 +10,7 @@ import {
     TableRow,
     TableHead,
 } from "@/components/ui/table";
-import StickyHeadTable from "./MUITable";
+import StickyHeadTable from "../MUITable";
 
 const AdminTable = ({ title, apiEndpoint }) => {
     const [data, setData] = useState([]);
@@ -19,26 +19,40 @@ const AdminTable = ({ title, apiEndpoint }) => {
         const fetchData = async () => {
             try {
                 const response = await axios.get(apiEndpoint, { withCredentials: true });
-                console.log(`API Response for ${title}:`, response.data.DriverData);
-                const driverData=response.data.DriverData;
                 
-                    setData(driverData);
-                
+
+                if (response.data && response.data[title.toLowerCase()]) {
+                    const filteredData = response.data[title.toLowerCase()].map(item => {
+                        const { password, _id, updatedAt, __v, adminId, branchId, ...filteredItem } = item;
+
+                        return {
+                            ...filteredItem,
+                            adminName: adminId?.name || "N/A",
+                            adminContact: adminId?.contactNo || "N/A",
+                            branchLocation: branchId?.location || "N/A",
+                        };
+                    });
+
+                    setData(filteredData);
+                }
             } catch (error) {
                 console.error(`Error fetching ${title}:`, error);
             }
         };
 
+
         fetchData();
     }, [apiEndpoint, title]);
 
     // Get table headers dynamically
+
     const headers = data.length > 0 ? Object.keys(data[0]) : [];
 
     return (
         <div className="w-full flex flex-col justify-center  p-2  bg-white rounded-2xl border border-gray-300 shadow-lg">
-            <h1>Driver table</h1>
-            {/* <Table>
+            <h1>Staff Details</h1>
+            {/* <div className="w-full mx-auto my-8 bg-white rounded-2xl border border-gray-300 shadow-lg">
+            <Table>
                 <TableCaption>A list of {title}</TableCaption>
                 <TableHeader>
                     <TableRow>
@@ -63,13 +77,10 @@ const AdminTable = ({ title, apiEndpoint }) => {
                         <TableCell colSpan={headers.length}>Total {title}: {data.length}</TableCell>
                     </TableRow>
                 </TableFooter>
-            </Table> */}
-
-           
-            <StickyHeadTable data={data} headers={headers}/>
-            
+            </Table>
+        </div> */}
+            <StickyHeadTable data={data} headers={headers} />
         </div>
-        
     );
 };
 
