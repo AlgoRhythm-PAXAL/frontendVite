@@ -8,10 +8,11 @@ const AdminList = () => {
     const [adminData, setAdminData] = useState([]); // Store an array of admins
     
     const fetchData = async () => {
+      const backendURL=import.meta.env.VITE_BACKEND_URL;
       try {
-        const response = await axios.get("http://localhost:8000/admin/all", { withCredentials: true });
-        console.log("API Response:", response.data.admins);
-        setAdminData(response.data.admins); // Set entire admins array
+        const response = await axios.get(`${backendURL}/admin/all`, { withCredentials: true });
+        
+        setAdminData(response.data.userData); // Set entire admins array
       } catch (error) {
         console.error("Error fetching data", error);
       }
@@ -40,7 +41,7 @@ const AdminList = () => {
       {adminData.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {adminData.map((admin) => (
-            <div key={admin.adminId} className="border p-4 rounded-lg shadow-lg bg-white relative">
+            <div key={admin._id} className="border p-4 rounded-lg shadow-lg bg-white relative">
               <p><strong>Name:</strong> {admin.name}</p>
               <p><strong>Email:</strong> {admin.email}</p>
               <p><strong>NIC:</strong> {admin.nic}</p>
@@ -54,7 +55,7 @@ const AdminList = () => {
                 <ProfilePicture publicId={admin.profilePicLink}/>
               )}
               <button 
-                onClick={() => handleDelete(admin.adminId)} 
+                onClick={() => handleDelete(admin._id)} 
                 className="text-red-500 hover:text-red-700 absolute top-2 right-2"
               >
                 <FontAwesomeIcon icon={faUserSlash} size="lg" />

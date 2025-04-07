@@ -13,21 +13,12 @@ const Dashboard = () => {
     <div className="flex flex-col mx-5">
       <SectionTitle title="Dashboard" />
       <div className="flex flex-col gap-2">
-      <ImageUpload />
         <div className="flex justify-evenly items-center">
-        
           <PieChartContainer />
-
-
         </div>
-        
-        
-          <Component />
-          
-        
-
+        <Component />
       </div>
-      <AdminList/>
+      <AdminList />
     </div>
   );
 };
