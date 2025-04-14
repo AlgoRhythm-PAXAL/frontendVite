@@ -14,6 +14,7 @@ import AdminResetPassword from "./pages/admin/AdminResetPassword";
 import Branches from "./pages/admin/Branches";
 import AdminProfile from "./pages/admin/AdminProfile";
 import { Toaster } from 'sonner';
+import Vehicle from "./pages/admin/Vehicle";
 
 const App = () => {
   return (
@@ -34,6 +35,7 @@ const App = () => {
             <Route path="shipments" element={<Shipments />} />
             <Route path="branches" element={<Branches />} />
             <Route path="profile" element={<AdminProfile />} />
+            <Route path="vehicles" element={<Vehicle/>}/>
           </Route>
         </Route>
       </Routes>

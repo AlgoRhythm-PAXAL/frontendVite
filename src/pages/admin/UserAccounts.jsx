@@ -1,32 +1,39 @@
+import ImageUpload from '../../components/admin/ImageUpload/ImageUpload';
 import SectionTitle from '../../components/admin/SectionTitle';
-import NumberShowingCard from "../../components/admin/NUmberShowingCard";
+
 import UserRegistrationForm from '../../components/admin/UserRegistrationForm';
 
-import DriverTable from '../../components/admin/UserTables/DriverTable';
-import StaffTable from '../../components/admin/UserTables/StaffTable';
-import UserDataTable from '../../components/admin/UserTables/UserDataTable';
+
+
+import UserTables from '../../components/admin/UserTables/UserTables';
+import Modal from '../../components/admin/adminProfile/Modal';
 import UserCount from "../../components/admin/userCounts/userCount";
-import UserTable from '../../components/admin/UserTables/UserTable';
-import DemoPage from '../../components/admin/UserTables/DataTable/DemoPage';
+import { Button } from "@/components/ui/button";
+import { ImagePlus, Lock, Edit3, Save, X } from "lucide-react";
+import {useState} from 'react'
 
 const UserAccounts = () => {
-
+  
 
 
   return (
     <div className="flex flex-col  mx-8  ">
       <SectionTitle title="User Accounts" />
+      
       <div className="flex flex-col gap-5 w-full justify-center items-center">
+       
         
-      {/* <UserTable title="Admin" /> */}
+
+        {/* <UserTable title="Admin" /> */}
         <UserCount />
         <UserRegistrationForm />
 
 
 
-      </div>
-      <UserDataTable />
 
+      </div>
+      <UserTables />
+      
     </div>
   );
 };
