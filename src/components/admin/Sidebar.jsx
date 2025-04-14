@@ -1,32 +1,37 @@
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation,useNavigate } from "react-router-dom";
 import NavItem from "./NavItem";
 import LOGO from "../../assets/Velox-Logo.png"
 import { faTachometerAlt, faUser, faBox, faTruck, faDollarSign, faQuestionCircle, faBuilding, faCar, faSignOutAlt, faUserCircle } from "@fortawesome/free-solid-svg-icons";
-import { useNavigate } from "react-router-dom";
+import { useState,useEffect } from "react";
 import axios from 'axios'
 import { toast } from 'sonner'
+import ProfilePicture from "./ImageUpload/ProfilePicture";
 
 export default function Sidebar() {
   const location = useLocation(); // Get the current route
   const navigate = useNavigate();
   const backendURL = import.meta.env.VITE_BACKEND_URL;
-  //   const handleLogout = () => {
-  //     try{
-  //       const response = axios.post(`${backendURL}/admin/logout`,{},{withCredentials:true});
-  //       console.log(response);
-  //       if(response.status !== 200){
-  //         console.log("Logged out successfully");
-  //         navigate("/admin/login");
-  //       }
-  //       else{
-  //         console.error("Logout failed")
-  //       }
-  //     }
-  //     catch(error){
-  //       console.error("Error logging out:", error);
-  //     }
+  const [data,setData]=useState([]);
 
-  // };
+  useEffect(()=>{
+    const fetchMyData=async()=>{
+      try{
+        const response=await axios.get(`${backendURL}/admin/get/mydata`,{withCredentials:true});
+        const myData=response.data.myData;
+        const filteredData={
+          name:myData.name,
+          avatar:myData.profilePicLink,
+        }
+        
+        setData(filteredData);
+      }
+      catch(error){
+        console.log("Error",error)
+      }
+    }
+
+    fetchMyData();
+  },[])
 
   const handleLogout = async () => {
     try {
@@ -83,12 +88,12 @@ export default function Sidebar() {
         <Link to="/admin/shipments">
           <NavItem title="Shipments" icon={faTruck} active={location.pathname === "/admin/shipments"} />
         </Link>
-        <Link to="/admin/rates">
+        {/* <Link to="/admin/rates">
           <NavItem title="Rates" icon={faDollarSign} active={location.pathname === "/admin/rates"} />
         </Link>
         <Link to="/admin/inquiries">
           <NavItem title="Inquiries" icon={faQuestionCircle} active={location.pathname === "/admin/inquiries"} />
-        </Link>
+        </Link> */}
         <Link to="/admin/branches">
           <NavItem title="Branches" icon={faBuilding} active={location.pathname === "/admin/branches"} />
         </Link>
@@ -100,7 +105,7 @@ export default function Sidebar() {
       {/* Profile & Logout */}
       <div className="w-full my-5">
         <Link to="/admin/profile">
-          <NavItem title="Thanuka Perera" icon={faUserCircle} active={location.pathname === "/admin/profile"} />
+          <NavItem title={data.name}  avatar={data.avatar} active={location.pathname === "/admin/profile"} />
         </Link>
       </div>
       <NavItem title="Logout" onClick={handleLogout} icon={faSignOutAlt} active={location.pathname === "/logout"} />
