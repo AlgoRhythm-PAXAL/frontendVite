@@ -30,7 +30,7 @@ const chartConfig = {
 
 
 
-export function Component() {
+export  function Component() {
   const [data, setData] = useState(null);
   const backendUrl=import.meta.env.VITE_BACKEND_URL;
   useEffect(() => {

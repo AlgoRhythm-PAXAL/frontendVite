@@ -1,4 +1,3 @@
-// DemoPage.jsx (updated)
 import { useState,useEffect } from 'react';
 import { DataTable } from "./DataTable";
 import { EntryDetails } from "../../Parcel/EntryDetails";
@@ -6,283 +5,24 @@ import axios from 'axios';
 import Modal from '../../adminProfile/Modal';
 
 
-const driverColumns=[
-    {
-        accessorKey: "itemId",
-        header: "Driver ID"
-    },
-    {
-        accessorKey: "name",
-        header: "Name"
-    },
-    {
-        accessorKey: "nic",
-        header: "NIC"
-    },
-    {
-        accessorKey: "email",
-        header: "Email",
-    },
-    {
-        accessorKey:"contactNo",
-        header:"Contact"
-    },
-    {
-        accessorKey:"createdAt",
-        header:"Joined date"
-    },
-    {
-        accessorKey:"licenseId",
-        header:"License Id"
-    },
-    {
-        accessorKey:"branchLocation",
-        header:"Branch"
-    },
-    {
-        accessorKey:"branchContactNo",
-        header:"Branch Contact"
-    },
-    {
-        accessorKey:"adminName",
-        header:"Added Admin"
-    },
-    // {
-    //     accessorKey:"",
-    //     header:""
-    // },
-];
-const adminColumns=[
-    {
-        accessorKey: "itemId",
-        header: "Admin ID"
-    },
-    {
-        accessorKey: "name",
-        header: "Name"
-    },
-    {
-        accessorKey: "nic",
-        header: "NIC"
-    },
-    {
-        accessorKey: "email",
-        header: "Email",
-    },
-    {
-        accessorKey:"contactNo",
-        header:"Contact"
-    },
-    {
-        accessorKey:"createdAt",
-        header:"Joined date"
-    },
-]
-const staffColumns=[
-    {
-        accessorKey: "itemId",
-        header: "Staff ID"
-    },
-    {
-        accessorKey: "name",
-        header: "Name"
-    },
-    {
-        accessorKey: "nic",
-        header: "NIC"
-    },
-    {
-        accessorKey: "email",
-        header: "Email",
-    },
-    {
-        accessorKey:"contactNo",
-        header:"Contact"
-    },
-    {
-        accessorKey:"createdAt",
-        header:"Joined date"
-    },
-    {
-        accessorKey:"status",
-        header:"Status"
-    },
-    {
-        accessorKey:"branchLocation",
-        header:"Branch"
-    },
-    {
-        accessorKey:"adminName",
-        header:"Added admin"
-    },
-    
-]
-const customerColumns=[
-    {
-        accessorKey: "userId",
-        header: "Customer Id"
-    },
-    {
-        accessorKey: "name",
-        header: "Name"
-    },
-    {
-        accessorKey: "nic",
-        header: "NIC"
-    },
-    {
-        accessorKey: "email",
-        header: "Email",
-    },
-    {
-        accessorKey:"contact",
-        header:"Contact"
-    },
-    {
-        accessorKey:"address",
-        header:"Address"
-    },
-    {
-        accessorKey:"createdAt",
-        header:"Joined date"
-    },
-]
-const parcelColumns=[
-    {
-        accessorKey:"itemId",
-        header:"Parcel No"
-    },
-    {
-        accessorKey:"trackingNo",
-        header:"Tracking No"
-    },
-    {
-        accessorKey:"itemType",
-        header:"Item type"
-    },
-    {
-        accessorKey:"itemSize",
-        header:"Item size"
-    },
-    {
-        accessorKey:"receivingType",
-        header:"Receiving type"
-    },
-    {
-        accessorKey:"senderName",
-        header:"Sender"
-    },
-    {
-        accessorKey:"shipmentMethod",
-        header:"Shipping Method"
-    },
-    {
-        accessorKey:"specialInstructions",
-        header:"Special Instructions"
-    },
-    {
-        accessorKey:"status",
-        header:"Current status"
-    },
-    {
-        accessorKey:"createdAt",
-        header:"Order placed date"
-    },
-]
-const vehicleColumns=[
-    {
-        accessorKey: "itemId",
-        header: "Vehicle ID"
-    },
-    {
-        accessorKey: "registrationNo",
-        header: "Registration No"
-    },
-    {
-        accessorKey: "vehicleType",
-        header: "Vehicle Type"
-    },
-    {
-        accessorKey: "capableVolume",
-        header: "Capable Volume"
-    },
-    {
-        accessorKey: "capableWeight",
-        header: "Capable Weight"
-    },
-    {
-        accessorKey: "assignedBranch",
-        header: "Assigned Branch"
-    },
-    {
-        accessorKey: "currentBranch",
-        header: "Current Branch"
-    },
-]
-const branchColumns=[
-    {
-        accessorKey: "itemId",
-        header: "Branch No"
-    },
-    {
-        accessorKey: "location",
-        header: "Branch location"
-    },
-    {
-        accessorKey: "contact",
-        header: "Contact"
-    },
-    {
-        accessorKey: "updatedAt",
-        header: "Last update"
-    },
-    {
-        accessorKey: "createdAt",
-        header: "Since"
-    },
-]
-
-const shipmentColumns=[
-    {
-        accessorKey: "itemId",
-        header: "Branch No"
-    },
-    {
-        accessorKey: "deliveryType",
-        header: "Shipment Type"
-    },
-    {
-        accessorKey: "route",
-        header: "Routes"
-    },
-    {
-        accessorKey: "sourceCenter",
-        header: "Source Branch"
-    },
-    {
-        accessorKey:"currentLocation",
-        header:"Current Branch"
-    },
-    {
-        accessorKey: "status",
-        header: "Status"
-    },
-    
-]
+const formatUser = (str) => {
+    if (!str) return '';
+    return str
+      .split(' ')
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+      .join(' ')+'s';
+  };
+  
 
 
-
-
-export default function DemoPage({title,deleteEnabled,updateEnabled,disableDateFilter}) {
+export default function TableDistributor({title,columns,deleteEnabled,updateEnabled,disableDateFilter}) {
     const [data, setData] = useState([]);
     const [selectedEntry, setSelectedEntry] = useState(null);
     const backendURL = import.meta.env.VITE_BACKEND_URL;
     const user = title.toLowerCase();
-    const formattedUser = user.charAt(0).toUpperCase() + user.slice(1) + 's';
-
-    // ... (apiEndpoint logic and useEffect remain unchanged)
+    const formattedUser = formatUser(user)
     let apiEndpoint="";
-    let columns = adminColumns;
+    
     if(user==='admin'){
         apiEndpoint=`${backendURL}/${user}/all`;
     }
@@ -293,31 +33,7 @@ export default function DemoPage({title,deleteEnabled,updateEnabled,disableDateF
         apiEndpoint=`${backendURL}/admin/${user}/all`;
     }
     
-
-    if(user==='admin'){
-        columns=adminColumns
-    }
-    else if(user==='driver'){
-        columns=driverColumns
-    }
-    else if(user==='staff'){
-        columns=staffColumns
-    }else if(user==='customer'){
-        columns=customerColumns
-    }
-    else if(user==='parcel'){
-        columns=parcelColumns
-    }
-    else if(user==='vehicle'){
-        columns=vehicleColumns
-    }
-    else if(user==='branch'){
-        columns=branchColumns
-    }
-    else if(user==='shipment'){
-        columns=shipmentColumns
-    }
-
+// Fetching data when component mount
     useEffect(() => {
         const fetchData = async () => {
             try {
@@ -385,19 +101,16 @@ export default function DemoPage({title,deleteEnabled,updateEnabled,disableDateF
                 onRowClick={handleRowClick}
             />
 
-
-            <Modal 
-      open={!!selectedEntry}
-      onClose={() => setSelectedEntry(null)}
-    >
-      {selectedEntry && (
-        <EntryDetails 
-          collectionName={selectedEntry.collection}
-          entryId={selectedEntry.itemId}
-          onClose={() => setSelectedEntry(null)}
-        />
-      )}
-    </Modal>
+            {/* Modal Opening */}
+            <Modal open={!!selectedEntry} onClose={() => setSelectedEntry(null)} >
+                {selectedEntry && (
+                        <EntryDetails 
+                            collectionName={selectedEntry.collection}
+                            entryId={selectedEntry.itemId}
+                            onClose={() => setSelectedEntry(null)}
+                        />
+                )}
+            </Modal>
         </div>
     )
 }
