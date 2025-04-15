@@ -28,7 +28,7 @@ const Branches = () => {
   return (
     <div className="mx-8">
         <SectionTitle title="Branches"/>
-        <TableDistributor title="branch" columns={branchColumns} disableDateFilter={true}/>
+        <TableDistributor title="branch" columns={branchColumns} disableDateFilter={true} enableRowClick={false}/>
         
     </div>
   )

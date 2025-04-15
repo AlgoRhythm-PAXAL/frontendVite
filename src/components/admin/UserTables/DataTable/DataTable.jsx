@@ -34,6 +34,7 @@ export function DataTable({
   updateText = "Update",
   showAllLabel = "Show All Entries",
   disableDateFilter = false,
+  enableRowClick =true,
   onRowClick
 }) {
   const [globalFilter, setGlobalFilter] = useState('');
@@ -204,8 +205,8 @@ export function DataTable({
               table.getRowModel().rows.map((row) => (
                 <TableRow 
                   key={row.id} 
-                  className={`hover:bg-gray-50 ${onRowClick ? 'cursor-pointer' : ''}`}
-                  onClick={() => onRowClick?.(collectionName, row.original.itemId)}
+                  className={`hover:bg-gray-50 ${enableRowClick && onRowClick ? 'cursor-pointer' : ''}`}
+                  onClick={enableRowClick ?() => onRowClick?.(collectionName, row.original.itemId):undefined}
                 >
                   {row.getVisibleCells().map((cell) => (
                     <TableCell 
