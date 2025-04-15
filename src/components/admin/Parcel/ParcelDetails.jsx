@@ -1,54 +1,88 @@
-//Formatting Date to meaningful structure and capitalize strings
 import { capitalize, formatDateTime } from '../../../utils/formatters'
-import DemoPage from '../UserTables/DataTable/TableDistributor';
+import TableDistributor from '../UserTables/DataTable/TableDistributor';
+import { useState, useEffect } from 'react';
+import axios from 'axios';
+
 const parcelColumns = [
   {
-    accessorKey: "itemId",
-    header: "Parcel No"
-  },
-  {
-    accessorKey: "trackingNo",
-    header: "Tracking No"
-  },
-  {
-    accessorKey: "itemType",
-    header: "Item type"
-  },
-  {
-    accessorKey: "itemSize",
-    header: "Item size"
-  },
-  {
-    accessorKey: "receivingType",
-    header: "Receiving type"
-  },
-  {
-    accessorKey: "senderName",
-    header: "Sender"
-  },
-  {
-    accessorKey: "shipmentMethod",
-    header: "Shipping Method"
-  },
-  {
-    accessorKey: "specialInstructions",
-    header: "Special Instructions"
-  },
-  {
     accessorKey: "status",
-    header: "Current status"
+    header: "Status"
   },
   {
-    accessorKey: "createdAt",
-    header: "Order placed date"
+    accessorKey: "time",
+    header: "Timestamp"
   },
+  {
+    accessorKey: "location",
+    header: "Location"
+  },
+  {
+    accessorKey: "handledBy",
+    header: "Handled By"
+  },
+  {
+    accessorKey: "note",
+    header: "Notes"
+  },
+
 ]
 
-const ParcelDetails = ({ parcel }) => {
+const ParcelDetails = ({ entryId }) => {
+  const backendURL = import.meta.env.VITE_BACKEND_URL;
+  const [entryData, setEntryData] = useState(null);
+  const [parcelTimeData,setParcelTimeData] = useState(null)
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  //if parcels are not existed loading will be displayed
-  if (!parcel) return <div className="text-center p-8">Loading parcel details...</div>;
+  useEffect(() => {
+    const fetchDetails = async () => {
+      try {
+        const response = await axios.get(`${backendURL}/admin/parcel/${entryId}`, { withCredentials: true });
+        const Data = response.data.data;
+        if (Data) {
+          setEntryData(Data);
+        } else {
+          throw new Error('No data received');
+        }
+      } catch (err) {
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
 
+    const fetchPTime= async()=>{
+      try{
+        const response = await axios.get(`${backendURL}/admin/track/statuses/${entryId}`, { withCredentials: true });
+        const tempTimeData=response.data.timeData
+        const TimeData =tempTimeData.map(item=>({
+          status:capitalize(item?.status),
+          time:formatDateTime(item?.time),
+          location:item?.location,
+          handledBy:item.handledBy,
+          note:item.note
+
+        }))
+        console.log(TimeData)
+        setParcelTimeData(TimeData);
+      }
+      catch(error){
+        setError(error.message);
+      }
+    };
+
+    if (entryId){
+      fetchDetails()
+      fetchPTime()
+    };
+
+  }, [entryId, backendURL]);
+  const parcel = entryData;
+
+
+  //Loading and error states handling
+  if (loading) return <div>Loading parcel details...</div>;
+  if (error) return <div>Error loading details: {error}</div>;
   const {
     _id,
     parcelId,
@@ -61,6 +95,8 @@ const ParcelDetails = ({ parcel }) => {
     receivingType,
     shippingMethod,
     status,
+    from,
+    to,
     pickupInformation,
     deliveryInformation,
     senderId,
@@ -89,6 +125,8 @@ const ParcelDetails = ({ parcel }) => {
             <Info label="Receiving Type" value={capitalize(receivingType)} />
             <Info label="Special Instructions" value={capitalize(specialInstructions || "None")} />
             <Info label="Status" value={capitalize(status)} />
+            <Info label="Originating Branch" value={capitalize(`${from?.location} branch`)}/>
+            <Info label="Destination Branch" value={capitalize(`${to?.location} branch`)}/>
           </div>
         </Section>
       </div>
@@ -183,13 +221,13 @@ const ParcelDetails = ({ parcel }) => {
 
       {/* Status Tracking Table */}
 
-      <DemoPage title='Parcel Status Tracking and Assignment Detail' columns={parcelColumns} disableDateFilter={true} />
+      <TableDistributor title='Parcel Status Tracking and Assignment Detail' entryData={parcelTimeData} columns={parcelColumns} disableDateFilter={true}  enableRowClick={false}/>
     </div>
   );
 };
 
 const Section = ({ title, children }) => (
-  <div className="bg-white rounded-lg shadow-md p-5 mb-6">
+  <div className="bg-white rounded-lg shadow-md p-5 mb-6 overflow-hidden">
     <h2 className="text-xl font-semibold mb-4 mt-3  mx-4">{title}</h2>
     {children}
   </div>

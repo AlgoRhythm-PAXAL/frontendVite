@@ -78,7 +78,7 @@ const Parcels = () => {
       <div className="flex flex-col gap-">
 
         <div className="my-8">
-          <DemoPage title='parcel' columns={parcelColumns} deleteEnabled={true} updateEnabled={true} />
+          <DemoPage title='parcel' columns={parcelColumns}  deleteEnabled={true} updateEnabled={true} enableRowClick={true} />
         </div>
       </div>
     </div>

@@ -22,6 +22,9 @@ const App = () => {
       <Toaster position="bottom-right" richColors expand visibleToasts={5} offset="16px" />
       <Routes>
         <Route path="/" element={<Home />} />
+
+
+        {/* Admin Routes */}
         <Route path="/admin/login" element={<AdminLogin />} />
         <Route path="/admin/forgotPassword" element={<AdminForgotPassword />} />
         <Route path="/admin/verify-OTP" element={<AdminVerifyCode />} />
@@ -38,6 +41,7 @@ const App = () => {
             <Route path="vehicles" element={<Vehicle/>}/>
           </Route>
         </Route>
+        {/* Admin Routes */}
       </Routes>
     </Router>
   );

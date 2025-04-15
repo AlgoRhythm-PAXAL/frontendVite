@@ -15,74 +15,140 @@ const formatUser = (str) => {
   
 
 
-export default function TableDistributor({title,columns,deleteEnabled,updateEnabled,disableDateFilter}) {
+export default function TableDistributor({title,entryData,columns,deleteEnabled,updateEnabled,disableDateFilter,enableRowClick}) {
     const [data, setData] = useState([]);
     const [selectedEntry, setSelectedEntry] = useState(null);
     const backendURL = import.meta.env.VITE_BACKEND_URL;
     const user = title.toLowerCase();
     const formattedUser = formatUser(user)
-    let apiEndpoint="";
+//    if(!entryData){
+//     let apiEndpoint="";
+//     if(user==='admin'){
+//         apiEndpoint=`${backendURL}/${user}/all`;
+//     }
+//     else if(user==='branche'){
+//         apiEndpoint=`${backendURL}/admin/branch/all`;
+//     }
+//     else if(user ==='parcel status tracking and assignment detail'){
+//         apiEndpoint=`${backendURL}/admin/track/statuses`;
+//     }
+//     else {
+//         apiEndpoint=`${backendURL}/admin/${user}/all`;
+//     }
     
-    if(user==='admin'){
-        apiEndpoint=`${backendURL}/${user}/all`;
-    }
-    else if(user==='branche'){
-        apiEndpoint=`${backendURL}/admin/branch/all`;
-    }
-    else {
-        apiEndpoint=`${backendURL}/admin/${user}/all`;
-    }
-    
-// Fetching data when component mount
-    useEffect(() => {
-        const fetchData = async () => {
-            try {
-                const response = await axios.get(apiEndpoint, { withCredentials: true });
-                console.log(response.data.userData);
-                const rawData = response.data.userData || response.data;
+// // // Fetching data when component mount
+// //     useEffect(() => {
+// //         const fetchData = async () => {
+// //             try {
+// //                 const response = await axios.get(apiEndpoint, { withCredentials: true });
+// //                 console.log(response.data.userData);
+// //                 const rawData = response.data.userData || response.data;
                 
-                const updatedData = rawData.map(item => {
-                    const itemId = item.parcelId || item.userId || item.driverId || item.staffId || item.branchId|| item.adminId || item.vehicleId||item.id;
-                    let formattedCreatedAt;
-                if (user === 'parcel') {
-                    formattedCreatedAt = new Date(item.createdAt).toLocaleString('en-US', {
-                      year: 'numeric',
-                      month: 'short',
-                      day: 'numeric',
-                      hour: '2-digit',
-                      minute: '2-digit',
-                      hour12: true
-                    });
-                  } else {
-                    formattedCreatedAt = new Date(item.createdAt).toLocaleDateString('en-US', {
-                      year: 'numeric',
-                      month: 'short',
-                      day: 'numeric'
-                    });
-                  }
-                    return {
-                        ...item,
-                        itemId, // add the resolved itemId
-                        createdAt: formattedCreatedAt,
-                        updatedAt: new Date(item.updatedAt).toLocaleDateString('en-US', {
-                            year: 'numeric',
-                            month: 'short',
-                            day: 'numeric'
-                        })
-                    };
-                });
+// //                 const updatedData = rawData.map(item => {
+// //                     const itemId = item.parcelId || item.userId || item.driverId || item.staffId || item.branchId|| item.adminId || item.vehicleId||item.id;
+// //                     let formattedCreatedAt;
+// //                 if (user === 'parcel') {
+// //                     formattedCreatedAt = new Date(item.createdAt).toLocaleString('en-US', {
+// //                       year: 'numeric',
+// //                       month: 'short',
+// //                       day: 'numeric',
+// //                       hour: '2-digit',
+// //                       minute: '2-digit',
+// //                       hour12: true
+// //                     });
+// //                   } else {
+// //                     formattedCreatedAt = new Date(item.createdAt).toLocaleDateString('en-US', {
+// //                       year: 'numeric',
+// //                       month: 'short',
+// //                       day: 'numeric'
+// //                     });
+// //                   }
+// //                     return {
+// //                         ...item,
+// //                         itemId, // add the resolved itemId
+// //                         createdAt: formattedCreatedAt,
+// //                         updatedAt: new Date(item.updatedAt).toLocaleDateString('en-US', {
+// //                             year: 'numeric',
+// //                             month: 'short',
+// //                             day: 'numeric'
+// //                         })
+// //                     };
+// //                 });
     
-                console.log(updatedData);
-                setData(updatedData);
+// //                 console.log(updatedData);
+// //                 setData(updatedData);
     
-            } catch (error) {
-                console.error(`Error fetching `, error);
+// //             } catch (error) {
+// //                 console.error(`Error fetching `, error);
+// //             }
+// //         };
+    
+// //         fetchData();
+// //     }, []);
+    
+
+//    }
+   useEffect(() => {
+    const fetchData = async () => {
+        if(entryData) {
+            console.log(entryData);
+            setData(Array.isArray(entryData) ? entryData : [entryData]);
+            return;
+        }
+
+        try {
+            let apiEndpoint;
+            if(user === 'admin') {
+                apiEndpoint = `${backendURL}/${user}/all`;
+            } else if(user === 'branche') {
+                apiEndpoint = `${backendURL}/admin/branch/all`;
+            } else if(user === 'parcel status tracking and assignment detail') {
+                apiEndpoint = `${backendURL}/admin/track/statuses`;
+            } else {
+                apiEndpoint = `${backendURL}/admin/${user}/all`;
             }
-        };
-    
-        fetchData();
-    }, []);
-    
+
+            const response = await axios.get(apiEndpoint, { withCredentials: true });
+            const rawData = response.data.userData || response.data;
+            const updatedData = rawData.map(item => {
+                const itemId = item.parcelId || item.userId || item.driverId || item.staffId || item.branchId|| item.adminId || item.vehicleId||item.id;
+                let formattedCreatedAt;
+            if (user === 'parcel') {
+                formattedCreatedAt = new Date(item.createdAt).toLocaleString('en-US', {
+                  year: 'numeric',
+                  month: 'short',
+                  day: 'numeric',
+                  hour: '2-digit',
+                  minute: '2-digit',
+                  hour12: true
+                });
+              } else {
+                formattedCreatedAt = new Date(item.createdAt).toLocaleDateString('en-US', {
+                  year: 'numeric',
+                  month: 'short',
+                  day: 'numeric'
+                });
+              }
+                return {
+                    ...item,
+                    itemId, // add the resolved itemId
+                    createdAt: formattedCreatedAt,
+                    updatedAt: new Date(item.updatedAt).toLocaleDateString('en-US', {
+                        year: 'numeric',
+                        month: 'short',
+                        day: 'numeric'
+                    })
+                };
+            });
+
+            setData(updatedData);
+        } catch (error) {
+            console.error(`Error fetching data: `, error);
+        }
+    };
+
+    fetchData();
+}, [entryData, user, backendURL]);
 
     const handleRowClick = (collection, itemId) => {
         setSelectedEntry({ collection, itemId });
@@ -98,6 +164,7 @@ export default function TableDistributor({title,columns,deleteEnabled,updateEnab
                 deleteEnabled={deleteEnabled} 
                 updateEnabled={updateEnabled} 
                 disableDateFilter={disableDateFilter}
+                enableRowClick={enableRowClick}
                 onRowClick={handleRowClick}
             />
 

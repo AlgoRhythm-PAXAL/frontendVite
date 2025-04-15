@@ -37,7 +37,7 @@ const Vehicle = () => {
   return (
     <div className="flex flex-col mx-5">
         <SectionTitle title="Vehicles"/>
-        <TableDistributor title="vehicle" columns={vehicleColumns} disableDateFilter={true}/>
+        <TableDistributor title="vehicle" columns={vehicleColumns} disableDateFilter={true} enableRowClick={false}/>
     </div>
   )
 }
