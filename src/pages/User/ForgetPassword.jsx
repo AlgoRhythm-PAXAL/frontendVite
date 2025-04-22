@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from 'axios';
+import toast from "react-hot-toast";
 
 const ForgotPassword = () => {
   const [email, setEmail] = useState("");
@@ -20,22 +21,14 @@ const ForgotPassword = () => {
       });
   
       console.log("Response received:", response.data);
-      alert("Reset otp Send your email.");
+      toast.success("Reset otp Send your email.");
       localStorage.setItem("userEmail",email); // Ensure response is not undefined
       navigate('/reset-password');
-     
-    //   if (response.data && response.data.status === "success") {
-    //     localStorage.setItem("userEmail",email); // Ensure response is not undefined
-    //     // alert("SignUp Successful!!") // <-- This should be from AppContext
-    //     // console.log("Navigating to /verify"); 
-    //     navigate('/reset-password');
-    //   } else {
-    //     console.log("Signup failed response:", response.data);
-    //     alert(response.data?.message || "Signup failed");
-    //   }
+    
       
     } catch (error) {
       console.error("Error received:", error.response || error);
+      toast.error("Error received:", error.response || error);
      
     } finally {
       setLoading(false);

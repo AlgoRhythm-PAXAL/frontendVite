@@ -1,133 +1,802 @@
-// import { useState } from "react";
-// import { useNavigate } from "react-router-dom";
-// import axios from "axios";
-// import Navbar from "../../components/User/Navbar";
 
-
+// import { useState } from 'react';
+// import { 
+//   FiUser, FiPhone, FiMail, FiPackage, FiTruck, FiHome, 
+//   FiMapPin, FiCalendar, FiClock, FiSave, FiCreditCard, FiDollarSign 
+// } from 'react-icons/fi';
+// import Navbar from '../../components/User/Navbar';
 
 // const AddParcel = () => {
- 
-//   const navigate = useNavigate();
+//   // Form state
 //   const [formData, setFormData] = useState({
-//     receiverFullname: "",
-//     receiverEmail: "",
-//     receiverContact: "",
+//     // Receiver details
+//     receiverFullName: '',
+//     receiverContactNumber: '',
+//     receiverEmail: '',
     
-//         receiverNumber: "",
-//         receiverStreet: "",
-//         receiverCity: "",
-//         receiverDistrict: "",
-//         receiverPostalcode: "",
-//         receiverProvince: "",
+//     // Parcel details
+//     itemType: '',
+//     itemSize: '',
+//     submittingType: '',
+//     receivingType: '',
     
-//     parcelSize: "",
-//     itemType: "",
-//     specialInstructions: "",
+//     // Pickup information (conditional)
+//     pickupDate: '',
+//     pickupTime: '',
+//     pickupAddress: '',
+//     pickupCity: '',
+//     pickupDistrict: '',
+//     pickupProvince: '',
     
-//       shipmentMethod: "",
+//     // Delivery information (conditional)
+//     deliveryAddress: '',
+//     deliveryCity: '',
+//     deliveryDistrict: '',
+//     deliveryProvince: '',
+//     postalCode: '',
     
-      
-//       paymentMethod: "",
+//     // Branch information (conditional)
+//     fromBranch: '',
+//     toBranch: '',
     
+//     // Payment and shipment details
+//     paymentMethod: '',
+//     shipmentMethod: '',
+//     specialInstructions: ''
 //   });
 
-//   // Handle input changes
+//   const [isSubmitting, setIsSubmitting] = useState(false);
+//   const [submitSuccess, setSubmitSuccess] = useState(false);
+//   const [activeSection, setActiveSection] = useState('receiver');
+
+//   // Sri Lanka districts
+//   const sriLankaDistricts = [
+//     'Colombo', 'Gampaha', 'Kalutara', 'Kandy', 'Matale', 'Nuwara Eliya', 
+//     'Galle', 'Matara', 'Hambantota', 'Jaffna', 'Kilinochchi', 'Mannar', 
+//     'Vavuniya', 'Mullaitivu', 'Batticaloa', 'Ampara', 'Trincomalee', 
+//     'Kurunegala', 'Puttalam', 'Anuradhapura', 'Polonnaruwa', 'Badulla', 
+//     'Moneragala', 'Ratnapura', 'Kegalle'
+//   ];
+
+//   const itemTypes = ['Glass', 'Furniture', 'Flowers', 'Gifts', 'Toys', 'Heavy Things', 'Others'];
+//   const itemSizes = ['Small', 'Medium', 'Large'];
+//   const shipmentMethods = ['Standard', 'Express'];
+//   const paymentMethods = ['Online', 'Cash on Delivery'];
+
 //   const handleChange = (e) => {
-    
-//     setFormData({ ...formData, [e.target.name]: e.target.value });
+//     const { name, value } = e.target;
+//     setFormData(prev => ({
+//       ...prev,
+//       [name]: value
+//     }));
 //   };
 
-
-
-//   // Handle form submission
-//   const SubmitHandler = async (e) => {
+//   const handleSubmit = async (e) => {
 //     e.preventDefault();
+//     setIsSubmitting(true);
+    
 //     try {
-//      console.log("sending to server");
-//       const response = await axios.post("http://localhost:8000/api/parcels/addparcel", formData,{
-//        withCredentials:true,
-//       });
-
-     
-//       if (response.data && response.data.status==="success") {
-//         alert("Parcel added successfully!");
-//         navigate("/"); // Redirect to parcels list
-//       } else {
-//         alert(response.data.message || "Failed to add parcel.");
-//       }
+//       // Simulate API call
+//       await new Promise(resolve => setTimeout(resolve, 1500));
+//       console.log('Form submitted:', formData);
+//       setSubmitSuccess(true);
 //     } catch (error) {
-//       console.error("Error adding parcel:", error);
-//       alert("Something went wrong.");
+//       console.error('Submission error:', error);
+//     } finally {
+//       setIsSubmitting(false);
 //     }
 //   };
 
+//   // Determine which fields to show based on form selections
+//   const showPickupFields = formData.submittingType === 'Pickup';
+//   const showDeliveryFields = formData.receivingType === 'doorstep';
+//   const showFromBranchField = formData.submittingType === 'Drop-off';
+//   const showToBranchField = (formData.submittingType === 'Pickup' && formData.receivingType === 'collection_center') || 
+//                           (formData.submittingType === 'Drop-off' && formData.receivingType === 'collection_center');
+
+//   if (submitSuccess) {
+//     return (
+//       <div className="min-h-screen bg-gradient-to-b from-teal-50 to-white">
+//         <Navbar />
+//         <div className="max-w-4xl mx-auto px-4 py-12 sm:px-6 lg:px-8">
+//           <div className="bg-white shadow-xl rounded-xl p-8 text-center border border-teal-100 transform transition-all duration-300 hover:shadow-2xl">
+//             <div className="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-teal-100">
+//               <svg className="h-8 w-8 text-teal-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+//                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+//               </svg>
+//             </div>
+//             <h2 className="mt-4 text-2xl font-bold text-gray-900">Parcel Added Successfully!</h2>
+//             <p className="mt-2 text-gray-600">
+//               Your parcel has been registered. Tracking number: <span className="font-mono font-bold text-teal-600">PKG{Math.floor(Math.random() * 1000000)}</span>
+//             </p>
+//             <div className="mt-6">
+//               <button
+//                 onClick={() => setSubmitSuccess(false)}
+//                 className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-lg shadow-sm text-white bg-teal-600 hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500 transition-colors duration-200"
+//               >
+//                 Add Another Parcel
+//               </button>
+//             </div>
+//           </div>
+//         </div>
+//       </div>
+//     );
+//   }
+
 //   return (
-
-//     <div>
-//       <Navbar/>
-//     <div className="flex justify-center items-center min-h-screen bg-gray-100 p-4">
+//     <div className="min-h-screen bg-gradient-to-b from-teal-50 to-white">
+//       <Navbar />
       
-//       <div className="bg-white p-8 rounded-lg shadow-md w-full max-w-4xl">
-//         <h2 className="text-2xl font-semibold text-gray-800 mb-6">Add Parcel</h2>
-//         <form onSubmit={SubmitHandler}>
-//           {/* Receiver Information */}
-//           <div className="mb-6">
-//             <h3 className="font-semibold">Receiver Information</h3>
-//             <input type="text" name="receiverFullname" value={formData.receiverFullname} onChange={handleChange} placeholder="Receiver Name" className="w-full p-2 border rounded mt-2" />
-//             <input type="email" name="receiverEmail" value={formData.receiverEmail} onChange={handleChange} placeholder="Receiver Email" className="w-full p-2 border rounded mt-2" />
-//             <input type="text" name="receiverContact" value={formData.receiverContact} onChange={handleChange} placeholder="Receiver Contact" className="w-full p-2 border rounded mt-2" />
-//           </div>
+//       <div className="max-w-4xl mx-auto px-4 py-8 sm:px-6 lg:px-8">
+//         <div className="text-center mb-8">
+//           <h1 className="text-3xl font-extrabold text-gray-900">Add New Parcel</h1>
+//           <p className="mt-2 text-lg text-gray-600">
+//             Fill in the details below to register your parcel for delivery
+//           </p>
+//         </div>
 
-//           {/* Receiver Address */}
-//           <div className="mb-6">
-//             <h3 className="font-semibold">Receiver Address</h3>
-//             <div className="grid grid-cols-2 gap-4">
-//               <input type="text" name="receiverNumber" value={formData.receiverNumber} onChange={handleChange} placeholder="Number" className="p-2 border rounded" />
-//               <input type="text" name="receiverStreet" value={formData.receiverStreet}  onChange={handleChange} placeholder="Street" className="p-2 border rounded" />
-//               <input type="text" name="receiverCity" value={formData.receiverCity} onChange={handleChange} placeholder="City" className="p-2 border rounded" />
-//               <input type="text" name="receiverDistrict" value={formData.receiverDistrict} onChange={handleChange} placeholder="District" className="p-2 border rounded" />
-//               <input type="text" name="receiverPostalcode" value={formData.receiverPostalcode}  onChange={handleChange}placeholder="Postal Code" className="p-2 border rounded" />
-//               <input type="text" name="receiverProvince" value={formData.receiverProvince}  onChange={handleChange} placeholder="Province" className="p-2 border rounded" />
-//             </div>
+//         {/* Progress Steps */}
+//         <div className="mb-8">
+//           <div className="flex justify-between items-center">
+//             {['receiver', 'parcel', 'location', 'payment'].map((step) => (
+//               <button
+//                 key={step}
+//                 onClick={() => setActiveSection(step)}
+//                 className={`flex flex-col items-center ${activeSection === step ? 'text-teal-600' : 'text-gray-500'}`}
+//               >
+//                 <div className={`w-10 h-10 rounded-full flex items-center justify-center mb-2 
+//                   ${activeSection === step ? 'bg-teal-100 border-2 border-teal-600' : 'bg-gray-100 border-2 border-gray-300'}`}>
+//                   {step === 'receiver' && <FiUser className="text-lg" />}
+//                   {step === 'parcel' && <FiPackage className="text-lg" />}
+//                   {step === 'location' && <FiMapPin className="text-lg" />}
+//                   {step === 'payment' && <FiCreditCard className="text-lg" />}
+//                 </div>
+//                 <span className="text-xs font-medium capitalize">{step}</span>
+//               </button>
+//             ))}
 //           </div>
-
-//           {/* Parcel Information */}
-//           <div className="mb-6">
-//             <h3 className="font-semibold">Parcel Information</h3>
-//             <input type="text" name="parcelSize" value={formData.parcelSize} onChange={handleChange} placeholder="Parcel Size" className="w-full p-2 border rounded mt-2" />
-//             <input type="text" name="itemType" value={formData.itemType} onChange={handleChange} placeholder="Item Type" className="w-full p-2 border rounded mt-2" />
-//             <textarea name="specialInstructions" value={formData.specialInstructions} onChange={handleChange} placeholder="Special Instructions" className="w-full p-2 border rounded mt-2"></textarea>
+//           <div className="w-full bg-gray-200 rounded-full h-2.5 mt-4">
+//             <div 
+//               className="bg-teal-600 h-2.5 rounded-full transition-all duration-500" 
+//               style={{
+//                 width: activeSection === 'receiver' ? '25%' : 
+//                       activeSection === 'parcel' ? '50%' :
+//                       activeSection === 'location' ? '75%' : '100%'
+//               }}
+//             ></div>
 //           </div>
+//         </div>
 
-//           {/* Shipping Information */}
-//           <div className="mb-6">
-//             <h3 className="font-semibold">Shipping Information</h3>
-//             <div className="flex space-x-4">
-//               <label>
-//                 <input type="radio" name="shipmentMethod" value="Standard" checked={formData.shipmentMethod === "Standard"} onChange={handleChange} /> Standard
-//               </label>
-//               <label>
-//                 <input type="radio" name="shipmentMethod" value="Express" checked={formData.shipmentMethod === "Express"} onChange={handleChange} /> Express
-//               </label>
-//             </div>
-//             <div className="flex space-x-4 mt-2">
-//               <label>
-//                 <input type="radio" name="paymentMethod" value="Online" checked={formData.paymentMethod === "Online"} onChange={handleChange} /> Online
-//               </label>
-//               <label>
-//                 <input type="radio" name="paymentMethod" value="Cash" checked={formData.paymentMethod === "Cash"} onChange={handleChange} /> Cash
-//               </label>
-//             </div>
-//           </div>
+//         <form onSubmit={handleSubmit} className="bg-white shadow-xl rounded-xl overflow-hidden border border-teal-100">
+//           {/* Form Sections */}
+//           <div className="p-6 space-y-8">
+//             {/* Receiver Details Section */}
+//             {(activeSection === 'receiver') && (
+//               <div className="border-b border-gray-200 pb-6">
+//                 <h2 className="text-xl font-semibold text-gray-800 flex items-center">
+//                   <FiUser className="mr-2 text-teal-600" />
+//                   Receiver Details
+//                 </h2>
+//                 <div className="mt-4 grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-6">
+//                   <div className="sm:col-span-3">
+//                     <label htmlFor="receiverFullName" className="block text-sm font-medium text-gray-700">
+//                       Full Name
+//                     </label>
+//                     <div className="mt-1 relative">
+//                       <input
+//                         type="text"
+//                         id="receiverFullName"
+//                         name="receiverFullName"
+//                         value={formData.receiverFullName}
+//                         onChange={handleChange}
+//                         required
+//                         className="block w-full rounded-lg border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm py-2 px-3 border pl-10 transition-all duration-200"
+//                       />
+//                       <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+//                         <FiUser className="h-5 w-5 text-gray-400" />
+//                       </div>
+//                     </div>
+//                   </div>
 
-//           {/* Buttons */}
-//           <div className="flex justify-between">
-//             <button type="button" className="px-6 py-2 border border-gray-400 rounded">Cancel</button>
-//             <button type="submit" className="px-6 py-2 bg-teal-700 text-white rounded">+ Add Parcel</button>
+//                   <div className="sm:col-span-3">
+//                     <label htmlFor="receiverContactNumber" className="block text-sm font-medium text-gray-700">
+//                       Contact Number
+//                     </label>
+//                     <div className="mt-1 relative">
+//                       <input
+//                         type="tel"
+//                         id="receiverContactNumber"
+//                         name="receiverContactNumber"
+//                         value={formData.receiverContactNumber}
+//                         onChange={handleChange}
+//                         required
+//                         className="block w-full rounded-lg border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm py-2 px-3 border pl-10 transition-all duration-200"
+//                       />
+//                       <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+//                         <FiPhone className="h-5 w-5 text-gray-400" />
+//                       </div>
+//                     </div>
+//                   </div>
+
+//                   <div className="sm:col-span-6">
+//                     <label htmlFor="receiverEmail" className="block text-sm font-medium text-gray-700">
+//                       Email Address
+//                     </label>
+//                     <div className="mt-1 relative">
+//                       <input
+//                         type="email"
+//                         id="receiverEmail"
+//                         name="receiverEmail"
+//                         value={formData.receiverEmail}
+//                         onChange={handleChange}
+//                         className="block w-full rounded-lg border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm py-2 px-3 border pl-10 transition-all duration-200"
+//                       />
+//                       <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+//                         <FiMail className="h-5 w-5 text-gray-400" />
+//                       </div>
+//                     </div>
+//                   </div>
+//                 </div>
+//                 <div className="mt-6 flex justify-end">
+//                   <button
+//                     type="button"
+//                     onClick={() => setActiveSection('parcel')}
+//                     className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-lg shadow-sm text-white bg-teal-600 hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500 transition-colors duration-200"
+//                   >
+//                     Next: Parcel Details
+//                   </button>
+//                 </div>
+//               </div>
+//             )}
+
+//             {/* Parcel Details Section */}
+//             {(activeSection === 'parcel') && (
+//               <div className="border-b border-gray-200 pb-6">
+//                 <h2 className="text-xl font-semibold text-gray-800 flex items-center">
+//                   <FiPackage className="mr-2 text-teal-600" />
+//                   Parcel Details
+//                 </h2>
+//                 <div className="mt-4 grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-6">
+//                   <div className="sm:col-span-3">
+//                     <label htmlFor="itemType" className="block text-sm font-medium text-gray-700">
+//                       Item Type
+//                     </label>
+//                     <div className="mt-1">
+//                       <select
+//                         id="itemType"
+//                         name="itemType"
+//                         value={formData.itemType}
+//                         onChange={handleChange}
+//                         required
+//                         className="block w-full rounded-lg border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm py-2 px-3 border transition-all duration-200"
+//                       >
+//                         <option value="">Select item type</option>
+//                         {itemTypes.map(type => (
+//                           <option key={type} value={type}>{type}</option>
+//                         ))}
+//                       </select>
+//                     </div>
+//                   </div>
+
+//                   <div className="sm:col-span-3">
+//                     <label htmlFor="itemSize" className="block text-sm font-medium text-gray-700">
+//                       Item Size
+//                     </label>
+//                     <div className="mt-1">
+//                       <select
+//                         id="itemSize"
+//                         name="itemSize"
+//                         value={formData.itemSize}
+//                         onChange={handleChange}
+//                         required
+//                         className="block w-full rounded-lg border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm py-2 px-3 border transition-all duration-200"
+//                       >
+//                         <option value="">Select item size</option>
+//                         {itemSizes.map(size => (
+//                           <option key={size} value={size}>{size}</option>
+//                         ))}
+//                       </select>
+//                     </div>
+//                   </div>
+
+//                   <div className="sm:col-span-3">
+//                     <label htmlFor="submittingType" className="block text-sm font-medium text-gray-700">
+//                       Submitting Type
+//                     </label>
+//                     <div className="mt-1">
+//                       <select
+//                         id="submittingType"
+//                         name="submittingType"
+//                         value={formData.submittingType}
+//                         onChange={handleChange}
+//                         required
+//                         className="block w-full rounded-lg border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm py-2 px-3 border transition-all duration-200"
+//                       >
+//                         <option value="">Select submitting type</option>
+//                         <option value="Pickup">Pickup</option>
+//                         <option value="Drop-off">Drop-off</option>
+//                       </select>
+//                     </div>
+//                   </div>
+
+//                   <div className="sm:col-span-3">
+//                     <label htmlFor="receivingType" className="block text-sm font-medium text-gray-700">
+//                       Receiving Type
+//                     </label>
+//                     <div className="mt-1">
+//                       <select
+//                         id="receivingType"
+//                         name="receivingType"
+//                         value={formData.receivingType}
+//                         onChange={handleChange}
+//                         required
+//                         className="block w-full rounded-lg border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm py-2 px-3 border transition-all duration-200"
+//                       >
+//                         <option value="">Select receiving type</option>
+//                         <option value="doorstep">Doorstep Delivery</option>
+//                         <option value="collection_center">Collection Center</option>
+//                       </select>
+//                     </div>
+//                   </div>
+//                 </div>
+//                 <div className="mt-6 flex justify-between">
+//                   <button
+//                     type="button"
+//                     onClick={() => setActiveSection('receiver')}
+//                     className="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-lg shadow-sm text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500 transition-colors duration-200"
+//                   >
+//                     Back
+//                   </button>
+//                   <button
+//                     type="button"
+//                     onClick={() => setActiveSection('location')}
+//                     className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-lg shadow-sm text-white bg-teal-600 hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500 transition-colors duration-200"
+//                   >
+//                     Next: Location Details
+//                   </button>
+//                 </div>
+//               </div>
+//             )}
+
+//             {/* Location Details Section */}
+//             {(activeSection === 'location') && (
+//               <>
+//                 {/* Conditional Pickup Information */}
+//                 {showPickupFields && (
+//                   <div className="border-b border-gray-200 pb-6">
+//                     <h2 className="text-xl font-semibold text-gray-800 flex items-center">
+//                       <FiMapPin className="mr-2 text-teal-600" />
+//                       Pickup Information
+//                     </h2>
+//                     <div className="mt-4 grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-6">
+//                       <div className="sm:col-span-3">
+//                         <label htmlFor="pickupDate" className="block text-sm font-medium text-gray-700">
+//                           Pickup Date
+//                         </label>
+//                         <div className="mt-1 relative rounded-md shadow-sm">
+//                           <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+//                             <FiCalendar className="h-5 w-5 text-gray-400" />
+//                           </div>
+//                           <input
+//                             type="date"
+//                             id="pickupDate"
+//                             name="pickupDate"
+//                             value={formData.pickupDate}
+//                             onChange={handleChange}
+//                             required={showPickupFields}
+//                             min={new Date().toISOString().split('T')[0]}
+//                             className="block w-full rounded-lg border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm py-2 pl-10 border transition-all duration-200"
+//                           />
+//                         </div>
+//                       </div>
+
+//                       <div className="sm:col-span-3">
+//                         <label htmlFor="pickupTime" className="block text-sm font-medium text-gray-700">
+//                           Pickup Time
+//                         </label>
+//                         <div className="mt-1 relative rounded-md shadow-sm">
+//                           <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+//                             <FiClock className="h-5 w-5 text-gray-400" />
+//                           </div>
+//                           <input
+//                             type="time"
+//                             id="pickupTime"
+//                             name="pickupTime"
+//                             value={formData.pickupTime}
+//                             onChange={handleChange}
+//                             required={showPickupFields}
+//                             className="block w-full rounded-lg border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm py-2 pl-10 border transition-all duration-200"
+//                           />
+//                         </div>
+//                       </div>
+
+//                       <div className="sm:col-span-6">
+//                         <label htmlFor="pickupAddress" className="block text-sm font-medium text-gray-700">
+//                           Pickup Address
+//                         </label>
+//                         <div className="mt-1 relative">
+//                           <input
+//                             type="text"
+//                             id="pickupAddress"
+//                             name="pickupAddress"
+//                             value={formData.pickupAddress}
+//                             onChange={handleChange}
+//                             required={showPickupFields}
+//                             className="block w-full rounded-lg border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm py-2 px-3 border pl-10 transition-all duration-200"
+//                           />
+//                           <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+//                             <FiHome className="h-5 w-5 text-gray-400" />
+//                           </div>
+//                         </div>
+//                       </div>
+
+//                       <div className="sm:col-span-2">
+//                         <label htmlFor="pickupCity" className="block text-sm font-medium text-gray-700">
+//                           City
+//                         </label>
+//                         <div className="mt-1">
+//                           <input
+//                             type="text"
+//                             id="pickupCity"
+//                             name="pickupCity"
+//                             value={formData.pickupCity}
+//                             onChange={handleChange}
+//                             required={showPickupFields}
+//                             className="block w-full rounded-lg border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm py-2 px-3 border transition-all duration-200"
+//                           />
+//                         </div>
+//                       </div>
+
+//                       <div className="sm:col-span-2">
+//                         <label htmlFor="pickupDistrict" className="block text-sm font-medium text-gray-700">
+//                           District
+//                         </label>
+//                         <div className="mt-1">
+//                           <select
+//                             id="pickupDistrict"
+//                             name="pickupDistrict"
+//                             value={formData.pickupDistrict}
+//                             onChange={handleChange}
+//                             required={showPickupFields}
+//                             className="block w-full rounded-lg border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm py-2 px-3 border transition-all duration-200"
+//                           >
+//                             <option value="">Select district</option>
+//                             {sriLankaDistricts.map(district => (
+//                               <option key={district} value={district}>{district}</option>
+//                             ))}
+//                           </select>
+//                         </div>
+//                       </div>
+
+//                       <div className="sm:col-span-2">
+//                         <label htmlFor="pickupProvince" className="block text-sm font-medium text-gray-700">
+//                           Province
+//                         </label>
+//                         <div className="mt-1">
+//                           <input
+//                             type="text"
+//                             id="pickupProvince"
+//                             name="pickupProvince"
+//                             value={formData.pickupProvince}
+//                             onChange={handleChange}
+//                             required={showPickupFields}
+//                             className="block w-full rounded-lg border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm py-2 px-3 border transition-all duration-200"
+//                           />
+//                         </div>
+//                       </div>
+//                     </div>
+//                   </div>
+//                 )}
+
+//                 {/* Conditional Delivery Information */}
+//                 {showDeliveryFields && (
+//                   <div className="border-b border-gray-200 pb-6">
+//                     <h2 className="text-xl font-semibold text-gray-800 flex items-center">
+//                       <FiHome className="mr-2 text-teal-600" />
+//                       Delivery Information
+//                     </h2>
+//                     <div className="mt-4 grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-6">
+//                       <div className="sm:col-span-6">
+//                         <label htmlFor="deliveryAddress" className="block text-sm font-medium text-gray-700">
+//                           Delivery Address
+//                         </label>
+//                         <div className="mt-1 relative">
+//                           <input
+//                             type="text"
+//                             id="deliveryAddress"
+//                             name="deliveryAddress"
+//                             value={formData.deliveryAddress}
+//                             onChange={handleChange}
+//                             required={showDeliveryFields}
+//                             className="block w-full rounded-lg border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm py-2 px-3 border pl-10 transition-all duration-200"
+//                           />
+//                           <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+//                             <FiMapPin className="h-5 w-5 text-gray-400" />
+//                           </div>
+//                         </div>
+//                       </div>
+
+//                       <div className="sm:col-span-2">
+//                         <label htmlFor="deliveryCity" className="block text-sm font-medium text-gray-700">
+//                           City
+//                         </label>
+//                         <div className="mt-1">
+//                           <input
+//                             type="text"
+//                             id="deliveryCity"
+//                             name="deliveryCity"
+//                             value={formData.deliveryCity}
+//                             onChange={handleChange}
+//                             required={showDeliveryFields}
+//                             className="block w-full rounded-lg border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm py-2 px-3 border transition-all duration-200"
+//                           />
+//                         </div>
+//                       </div>
+
+//                       <div className="sm:col-span-2">
+//                         <label htmlFor="deliveryDistrict" className="block text-sm font-medium text-gray-700">
+//                           District
+//                         </label>
+//                         <div className="mt-1">
+//                           <select
+//                             id="deliveryDistrict"
+//                             name="deliveryDistrict"
+//                             value={formData.deliveryDistrict}
+//                             onChange={handleChange}
+//                             required={showDeliveryFields}
+//                             className="block w-full rounded-lg border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm py-2 px-3 border transition-all duration-200"
+//                           >
+//                             <option value="">Select district</option>
+//                             {sriLankaDistricts.map(district => (
+//                               <option key={district} value={district}>{district}</option>
+//                             ))}
+//                           </select>
+//                         </div>
+//                       </div>
+
+//                       <div className="sm:col-span-2">
+//                         <label htmlFor="deliveryProvince" className="block text-sm font-medium text-gray-700">
+//                           Province
+//                         </label>
+//                         <div className="mt-1">
+//                           <input
+//                             type="text"
+//                             id="deliveryProvince"
+//                             name="deliveryProvince"
+//                             value={formData.deliveryProvince}
+//                             onChange={handleChange}
+//                             required={showDeliveryFields}
+//                             className="block w-full rounded-lg border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm py-2 px-3 border transition-all duration-200"
+//                           />
+//                         </div>
+//                       </div>
+
+//                       <div className="sm:col-span-2">
+//                         <label htmlFor="postalCode" className="block text-sm font-medium text-gray-700">
+//                           Postal Code
+//                         </label>
+//                         <div className="mt-1">
+//                           <input
+//                             type="text"
+//                             id="postalCode"
+//                             name="postalCode"
+//                             value={formData.postalCode}
+//                             onChange={handleChange}
+//                             required={showDeliveryFields}
+//                             className="block w-full rounded-lg border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm py-2 px-3 border transition-all duration-200"
+//                           />
+//                         </div>
+//                       </div>
+//                     </div>
+//                   </div>
+//                 )}
+
+//                 {/* Conditional Branch Information */}
+//                 {(showFromBranchField || showToBranchField) && (
+//                   <div className="border-b border-gray-200 pb-6">
+//                     <h2 className="text-xl font-semibold text-gray-800 flex items-center">
+//                       <FiTruck className="mr-2 text-teal-600" />
+//                       Branch Information
+//                     </h2>
+//                     <div className="mt-4 grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-6">
+//                       {showFromBranchField && (
+//                         <div className="sm:col-span-3">
+//                           <label htmlFor="fromBranch" className="block text-sm font-medium text-gray-700">
+//                             From Branch
+//                           </label>
+//                           <div className="mt-1">
+//                             <select
+//                               id="fromBranch"
+//                               name="fromBranch"
+//                               value={formData.fromBranch}
+//                               onChange={handleChange}
+//                               required={showFromBranchField}
+//                               className="block w-full rounded-lg border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm py-2 px-3 border transition-all duration-200"
+//                             >
+//                               <option value="">Select branch</option>
+//                               {sriLankaDistricts.map(district => (
+//                                 <option key={`from-${district}`} value={district}>{district}</option>
+//                               ))}
+//                             </select>
+//                           </div>
+//                         </div>
+//                       )}
+
+//                       {showToBranchField && (
+//                         <div className="sm:col-span-3">
+//                           <label htmlFor="toBranch" className="block text-sm font-medium text-gray-700">
+//                             To Branch
+//                           </label>
+//                           <div className="mt-1">
+//                             <select
+//                               id="toBranch"
+//                               name="toBranch"
+//                               value={formData.toBranch}
+//                               onChange={handleChange}
+//                               required={showToBranchField}
+//                               className="block w-full rounded-lg border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm py-2 px-3 border transition-all duration-200"
+//                             >
+//                               <option value="">Select branch</option>
+//                               {sriLankaDistricts.map(district => (
+//                                 <option key={`to-${district}`} value={district}>{district}</option>
+//                               ))}
+//                             </select>
+//                           </div>
+//                         </div>
+//                       )}
+//                     </div>
+//                   </div>
+//                 )}
+
+//                 <div className="mt-6 flex justify-between">
+//                   <button
+//                     type="button"
+//                     onClick={() => setActiveSection('parcel')}
+//                     className="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-lg shadow-sm text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500 transition-colors duration-200"
+//                   >
+//                     Back
+//                   </button>
+//                   <button
+//                     type="button"
+//                     onClick={() => setActiveSection('payment')}
+//                     className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-lg shadow-sm text-white bg-teal-600 hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500 transition-colors duration-200"
+//                   >
+//                     Next: Payment & Shipment
+//                   </button>
+//                 </div>
+//               </>
+//             )}
+
+//             {/* Payment & Shipment Section */}
+//             {(activeSection === 'payment') && (
+//               <div>
+//                 <div className="border-b border-gray-200 pb-6">
+//                   <h2 className="text-xl font-semibold text-gray-800 flex items-center">
+//                     <FiCreditCard className="mr-2 text-teal-600" />
+//                     Payment Method
+//                   </h2>
+//                   <div className="mt-4 grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-6">
+//                     <div className="sm:col-span-6">
+//                       <div className="grid grid-cols-2 gap-4">
+//                         {paymentMethods.map(method => (
+//                           <div key={method} className="relative">
+//                             <input
+//                               type="radio"
+//                               id={`payment-${method}`}
+//                               name="paymentMethod"
+//                               value={method}
+//                               checked={formData.paymentMethod === method}
+//                               onChange={handleChange}
+//                               required
+//                               className="sr-only"
+//                             />
+//                             <label 
+//                               htmlFor={`payment-${method}`}
+//                               className={`flex items-center justify-center p-4 border rounded-lg cursor-pointer transition-all duration-200 ${
+//                                 formData.paymentMethod === method 
+//                                   ? 'border-teal-500 bg-teal-50 shadow-md' 
+//                                   : 'border-gray-300 hover:border-teal-300'
+//                               }`}
+//                             >
+//                               <div className="flex items-center">
+//                                 {method === 'Online' ? (
+//                                   <FiCreditCard className="h-5 w-5 text-teal-600 mr-2" />
+//                                 ) : (
+//                                   <FiDollarSign className="h-5 w-5 text-teal-600 mr-2" />
+//                                 )}
+//                                 <span className="text-sm font-medium text-gray-700">{method}</span>
+//                               </div>
+//                             </label>
+//                           </div>
+//                         ))}
+//                       </div>
+//                     </div>
+//                   </div>
+//                 </div>
+
+//                 {/* Shipment Method Section */}
+//                 <div className="border-b border-gray-200 pb-6">
+//                   <h2 className="text-xl font-semibold text-gray-800 flex items-center">
+//                     <FiTruck className="mr-2 text-teal-600" />
+//                     Shipment Details
+//                   </h2>
+//                   <div className="mt-4 grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-6">
+//                     <div className="sm:col-span-3">
+//                       <label htmlFor="shipmentMethod" className="block text-sm font-medium text-gray-700">
+//                         Shipment Method
+//                       </label>
+//                       <div className="mt-1">
+//                         <select
+//                           id="shipmentMethod"
+//                           name="shipmentMethod"
+//                           value={formData.shipmentMethod}
+//                           onChange={handleChange}
+//                           required
+//                           className="block w-full rounded-lg border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm py-2 px-3 border transition-all duration-200"
+//                         >
+//                           <option value="">Select shipment method</option>
+//                           {shipmentMethods.map(method => (
+//                             <option key={method} value={method}>{method}</option>
+//                           ))}
+//                         </select>
+//                       </div>
+//                     </div>
+
+//                     <div className="sm:col-span-6">
+//                       <label htmlFor="specialInstructions" className="block text-sm font-medium text-gray-700">
+//                         Special Instructions (Optional)
+//                       </label>
+//                       <div className="mt-1">
+//                         <textarea
+//                           id="specialInstructions"
+//                           name="specialInstructions"
+//                           rows="3"
+//                           value={formData.specialInstructions}
+//                           onChange={handleChange}
+//                           className="block w-full rounded-lg border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm py-2 px-3 border transition-all duration-200"
+//                           placeholder="Any special handling instructions..."
+//                         />
+//                       </div>
+//                     </div>
+//                   </div>
+//                 </div>
+
+//                 <div className="mt-6 flex justify-between">
+//                   <button
+//                     type="button"
+//                     onClick={() => setActiveSection('location')}
+//                     className="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-lg shadow-sm text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500 transition-colors duration-200"
+//                   >
+//                     Back
+//                   </button>
+//                   <button
+//                     type="submit"
+//                     disabled={isSubmitting}
+//                     className={`inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-lg shadow-sm text-white bg-teal-600 hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500 transition-colors duration-200 ${
+//                       isSubmitting ? 'opacity-75 cursor-not-allowed' : ''
+//                     }`}
+//                   >
+//                     {isSubmitting ? (
+//                       <>
+//                         <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+//                           <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+//                           <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+//                         </svg>
+//                         Processing...
+//                       </>
+//                     ) : (
+//                       <>
+//                         <FiSave className="mr-2" />
+//                         Submit Parcel
+//                       </>
+//                     )}
+//                   </button>
+//                 </div>
+//               </div>
+//             )}
 //           </div>
 //         </form>
 //       </div>
-//     </div>
 //     </div>
 //   );
 // };
@@ -135,143 +804,856 @@
 // export default AddParcel;
 
 
-import  { useState } from 'react';
-import axios from 'axios';
+import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { fetchBranches, submitParcel } from '../../api/parcelApi';
+import { 
+  FiUser, FiPackage, FiMapPin, FiCreditCard, 
+  FiPhone, FiMail, FiCalendar, FiClock, 
+  FiHome, FiTruck, FiDollarSign, FiSave 
+} from 'react-icons/fi';
+import Navbar from '../../components/User/Navbar';
 
-const AddParcelForm = () => {
+// Constants
+const itemTypes = ['Document', 'Clothing', 'Electronics', 'Food', 'Other','Glass','Flowers'];
+const itemSizes = ['Small', 'Medium', 'Large'];
+const paymentMethods = ['Online', 'Cash on Delivery'];
+const shipmentMethods = ['Standard', 'Express'];
+const sriLankaDistricts = [
+  'Ampara', 'Anuradhapura', 'Badulla', 'Batticaloa', 'Colombo', 
+  'Galle', 'Gampaha', 'Hambantota', 'Jaffna', 'Kalutara', 
+  'Kandy', 'Kegalle', 'Kilinochchi', 'Kurunegala', 'Mannar', 
+  'Matale', 'Matara', 'Moneragala', 'Mullaitivu', 'Nuwara Eliya', 
+  'Polonnaruwa', 'Puttalam', 'Ratnapura', 'Trincomalee', 'Vavuniya'
+];
+
+const AddParcel = () => {
+  const [branches, setBranches] = useState([]);
+  const [isLoadingBranches, setIsLoadingBranches] = useState(false);
+  const [activeSection, setActiveSection] = useState('receiver');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitSuccess, setSubmitSuccess] = useState(false);
+  const [error, setError] = useState(null);
+  const navigate = useNavigate();
+
   const [formData, setFormData] = useState({
-    fullname: '',
-    nic: '',
-    contact: '',
-    address: '',
-    district: '',
-    province: '',
-    zone: '',
-
-    receiverFullname: '',
-    receiverContact: '',
+    receiverFullName: '',
+    receiverContactNumber: '',
     receiverEmail: '',
-    receiverPostalcode: '',
-    receiverNumber: '',
-    receiverDistrict: '',
-    receiverProvince: '',
-    receiverAddress: '',
-    receiverLandmark: '',
-    receiverZone: '',
-
-    parcelSize: '',
     itemType: '',
+    itemSize: '',
+    submittingType: '',
+    receivingType: '',
+    pickupDate: '',
+    pickupTime: '',
+    pickupAddress: '',
+    pickupCity: '',
+    pickupDistrict: '',
+    pickupProvince: '',
+    deliveryAddress: '',
+    deliveryCity: '',
+    deliveryDistrict: '',
+    deliveryProvince: '',
+    postalCode: '',
+    fromBranch: '',
+    toBranch: '',
+    paymentMethod: 'Online',
     shipmentMethod: '',
-    submittingMethod: '',
-    paymentMethod: '',
     specialInstructions: ''
   });
 
+  // Fetch branches on component mount
+  useEffect(() => {
+    const loadBranches = async () => {
+      setIsLoadingBranches(true);
+      try {
+        const branchesData = await fetchBranches();
+        setBranches(branchesData);
+      } catch (err) {
+        setError('Failed to load branches. Please try again later.');
+        console.error("Failed to load branches", err);
+      } finally {
+        setIsLoadingBranches(false);
+      }
+    };
+    loadBranches();
+  }, []);
+
   const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
   };
 
+  // Derived state
+  const showPickupFields = formData.submittingType === 'Pickup';
+  const showDeliveryFields = formData.receivingType === 'doorstep';
+  const showFromBranchField = formData.submittingType === 'Drop-off';
+  const showToBranchField = formData.receivingType === 'collection_center';
 
- 
-
-
+  // Update your handleSubmit function
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setIsSubmitting(true);
+    setError(null);
+    
     try {
-        const res = await axios.post(
-       "http://localhost:8000/api/parcels/addparcel", formData,
-        { withCredentials: true }
-      );
+      // Transform data to match backend expectations
+      const payload = {
+        receiverFullName: formData.receiverFullName,
+        receiverContact: formData.receiverContactNumber,
+        receiverEmail: formData.receiverEmail,
+        itemSize: formData.itemSize.toLowerCase(),
+        itemType: formData.itemType,
+        shipmentMethod: formData.shipmentMethod.toLowerCase(),
+        submittingType: formData.submittingType.toLowerCase(),
+        paymentMethod: formData.paymentMethod === 'Online' ? 'Online' : 'COD',
+        specialInstructions: formData.specialInstructions,
+        receivingType: formData.receivingType,
+        // Conditional fields
+        ...(formData.submittingType === 'Pickup' && {
+          pickupDate: formData.pickupDate,
+          pickupTime: formData.pickupTime,
+          address: formData.pickupAddress,
+          city: formData.pickupCity,
+          district: formData.pickupDistrict,
+          province: formData.pickupProvince
+        }),
+        ...(formData.receivingType === 'doorstep' && {
+          deliveryAddress: formData.deliveryAddress,
+          deliveryCity: formData.deliveryCity,
+          deliveryDistrict: formData.deliveryDistrict,
+          deliveryProvince: formData.deliveryProvince,
+          postalCode: formData.postalCode
+        }),
+        // Branch references
+        from: formData.fromBranch || null,
+        to: formData.toBranch || null
+      };
 
-      console.log(res.data);
-      alert('Parcel Added Successfully!');
-    } catch (err) {
-      console.error('Error Details:', err.response ? err.response.data : err);
+      const response = await submitParcel(payload);
       
-      console.error(err);
-      alert('Failed to add parcel.');
+      if (response.paymentUrl) {
+        // For online payments - redirect to Stripe
+        window.location.href = response.paymentUrl;
+      } else {
+        // For COD - show success
+        setSubmitSuccess(true);
+      }
+    } catch (err) {
+      setError(err.response?.data?.message || 'Failed to submit parcel. Please try again.');
+      console.error('Submission error:', err);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
-  return (
-    <div className="max-w-4xl mx-auto bg-white shadow-lg rounded-2xl p-8 mt-10">
-      <h2 className="text-3xl font-bold text-center mb-8 text-blue-600">Add New Parcel</h2>
-      <form onSubmit={handleSubmit} className="space-y-8">
-
-        {/* Sender Section */}
-        <div>
-          <h3 className="text-xl font-semibold text-gray-700 mb-4">Sender Information</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <input name="fullname" onChange={handleChange} placeholder="Full Name" className="input-style" />
-            <input name="nic" onChange={handleChange} placeholder="NIC Number" className="input-style" />
-            <input name="contact" onChange={handleChange} placeholder="Contact Number" className="input-style" />
-            <input name="address" onChange={handleChange} placeholder="Address" className="input-style" />
-            <input name="district" onChange={handleChange} placeholder="District" className="input-style" />
-            <input name="province" onChange={handleChange} placeholder="Province" className="input-style" />
-            <input name="zone" onChange={handleChange} placeholder="Zone" className="input-style" />
-          </div>
-        </div>
-
-        {/* Receiver Section */}
-        <div>
-          <h3 className="text-xl font-semibold text-gray-700 mb-4">Receiver Information</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <input name="receiverFullname" onChange={handleChange} placeholder="Full Name" className="input-style" />
-            <input name="receiverContact" onChange={handleChange} placeholder="Contact Number" className="input-style" />
-            <input name="receiverEmail" onChange={handleChange} placeholder="Email" className="input-style" />
-            <input name="receiverPostalcode" onChange={handleChange} placeholder="Postal Code" className="input-style" />
-            <input name="receiverNumber" onChange={handleChange} placeholder="House Number" className="input-style" />
-            <input name="receiverDistrict" onChange={handleChange} placeholder="District" className="input-style" />
-            <input name="receiverProvince" onChange={handleChange} placeholder="Province" className="input-style" />
-            <input name="receiverAddress" onChange={handleChange} placeholder="Address" className="input-style" />
-            <input name="receiverLandmark" onChange={handleChange} placeholder="Landmark" className="input-style" />
-            <input name="receiverZone" onChange={handleChange} placeholder="Zone" className="input-style" />
-          </div>
-        </div>
-
-        {/* Parcel Section */}
-        <div>
-          <h3 className="text-xl font-semibold text-gray-700 mb-4">Parcel Details</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <select name="parcelSize" onChange={handleChange} className="input-style">
-              <option value="">Select Parcel Size</option>
-              <option value="Small">Small</option>
-              <option value="Medium">Medium</option>
-              <option value="Large">Large</option>
-            </select>
-            <input name="itemType" onChange={handleChange} placeholder="Item Type" className="input-style" />
-            <select name="shipmentMethod" onChange={handleChange} className="input-style">
-              <option value="">Shipment Method</option>
-              <option value="Express">Express</option>
-              <option value="Standard">Standard</option>
-             
-            </select>
-            <select name="submittingMethod" onChange={handleChange} className="input-style">
-              <option value="">Submitting Method</option>
-              <option value="Drop-Off">Drop-off</option>
-              <option value="Pickup">Pick-up</option>
-            </select>
-            <select name="paymentMethod" onChange={handleChange} className="input-style">
-              <option value="">Payment Method</option>
-              <option value="COD">Cash On Delivery</option>
-              <option value="Online">Online</option>
-            </select>
-            <textarea name="specialInstructions" onChange={handleChange} placeholder="Special Instructions" className="input-style"></textarea>
-          </div>
-        </div>
-
-        {/* Submit Button */}
-        <div className="text-center">
-          <button type="submit" className="bg-blue-600 text-white py-3 px-10 rounded-xl hover:bg-blue-700 transition">Add Parcel</button>
-        </div>
-      </form>
+  // Branch dropdown component
+  const renderBranchDropdown = (name, value, label, required) => (
+    <div className="mt-1">
+      <select
+        id={name}
+        name={name}
+        value={value}
+        onChange={handleChange}
+        required={required}
+        className="block w-full rounded-lg border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm py-2 px-3 border transition-all duration-200"
+        disabled={isLoadingBranches}
+      >
+        <option value="">Select {label.toLowerCase()}</option>
+        {branches.map(branch => (
+          <option key={branch._id} value={branch._id}>
+            {branch.location} ({branch.branchId})
+          </option>
+        ))}
+      </select>
+      {isLoadingBranches && (
+        <p className="mt-1 text-sm text-gray-500">Loading branches...</p>
+      )}
     </div>
+  );
 
+  return (
+    <div>
+      <Navbar />
+    <div className="min-h-screen relative bg-gradient-to-b from-teal-50 to-white">
+      
+         <div className="absolute top-0 left-0 w-full rotate-180">
+  <svg className="w-full h-auto" viewBox="0 0 1440 320" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <linearGradient id="topToBottomGradient" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stopColor="#1f818c" />
+        <stop offset="100%" stopColor="white" />
+      </linearGradient>
+    </defs>
+    <path
+      fill="url(#topToBottomGradient)"
+      fillOpacity="1"
+      d="M0,64L48,80C96,96,192,128,288,128C384,128,480,96,576,106.7C672,117,768,171,864,181.3C960,192,1056,160,1152,149.3C1248,139,1344,149,1392,154.7L1440,160L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"
+    />
+  </svg>
+</div>
+      
+      
+   
+      
+      
+      <div className="max-w-4xl mx-auto relative px-4 py-8 sm:px-6 lg:px-8">
+        
+        <div className="text-center mb-8">
+          <h1 className="text-3xl  font-extrabold text-gray-900">Add New Parcel</h1>
+          <p className="mt-2 text-lg text-gray-600">
+            Fill in the details below to register your parcel for delivery
+          </p>
+        </div>
+        
 
+        {/* Progress Steps */}
+        <div className="mb-30">
+          <div className="flex justify-between items-center">
+            {['receiver', 'parcel', 'location', 'payment'].map((step) => (
+              <button
+                key={step}
+                onClick={() => setActiveSection(step)}
+                className={`flex flex-col items-center ${activeSection === step ? 'text-teal-600' : 'text-gray-500'}`}
+              >
+                <div className={`w-10 h-10 rounded-full flex items-center justify-center mb-8 
+                  ${activeSection === step ? 'bg-teal-100 border-2 border-teal-600' : 'bg-gray-100 border-2 border-gray-300'}`}>
+                  {step === 'receiver' && <FiUser className="text-lg" />}
+                  {step === 'parcel' && <FiPackage className="text-lg" />}
+                  {step === 'location' && <FiMapPin className="text-lg" />}
+                  {step === 'payment' && <FiCreditCard className="text-lg" />}
+                </div>
+                <span className="text-xs font-medium capitalize">{step}</span>
+              </button>
+            ))}
+          </div>
+          <div className="w-full bg-gray-200 rounded-full h-2.5 mt-4">
+            <div 
+              className="bg-teal-600 h-2.5 rounded-full transition-all duration-500" 
+              style={{
+                width: activeSection === 'receiver' ? '25%' : 
+                      activeSection === 'parcel' ? '50%' :
+                      activeSection === 'location' ? '75%' : '100%'
+              }}
+            ></div>
+          </div>
+        </div>
 
+        <form onSubmit={handleSubmit} className="bg-white shadow-xl rounded-xl overflow-hidden border border-teal-100">
+          {/* Form Sections */}
+          <div className="p-6 space-y-8">
+            {/* Receiver Details Section */}
+            {(activeSection === 'receiver') && (
+              <div className="border-b border-gray-200 pb-6">
+                <h2 className="text-xl font-semibold text-gray-800 flex items-center">
+                  <FiUser className="mr-2 text-teal-600" />
+                  Receiver Details
+                </h2>
+                <div className="mt-4 grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-6">
+                  <div className="sm:col-span-3">
+                    <label htmlFor="receiverFullName" className="block text-sm font-medium text-gray-700">
+                      Full Name
+                    </label>
+                    <div className="mt-1 relative">
+                      <input
+                        type="text"
+                        id="receiverFullName"
+                        name="receiverFullName"
+                        value={formData.receiverFullName}
+                        onChange={handleChange}
+                        required
+                        className="block w-full rounded-lg border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm py-2 px-3 border pl-10 transition-all duration-200"
+                      />
+                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <FiUser className="h-5 w-5 text-gray-400" />
+                      </div>
+                    </div>
+                  </div>
 
+                  <div className="sm:col-span-3">
+                    <label htmlFor="receiverContactNumber" className="block text-sm font-medium text-gray-700">
+                      Contact Number
+                    </label>
+                    <div className="mt-1 relative">
+                      <input
+                        type="tel"
+                        id="receiverContactNumber"
+                        name="receiverContactNumber"
+                        value={formData.receiverContactNumber}
+                        onChange={handleChange}
+                        required
+                        className="block w-full rounded-lg border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm py-2 px-3 border pl-10 transition-all duration-200"
+                      />
+                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <FiPhone className="h-5 w-5 text-gray-400" />
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="sm:col-span-6">
+                    <label htmlFor="receiverEmail" className="block text-sm font-medium text-gray-700">
+                      Email Address
+                    </label>
+                    <div className="mt-1 relative">
+                      <input
+                        type="email"
+                        id="receiverEmail"
+                        name="receiverEmail"
+                        value={formData.receiverEmail}
+                        onChange={handleChange}
+                        className="block w-full rounded-lg border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm py-2 px-3 border pl-10 transition-all duration-200"
+                      />
+                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <FiMail className="h-5 w-5 text-gray-400" />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div className="mt-6 flex justify-end">
+                  <button
+                    type="button"
+                    onClick={() => setActiveSection('parcel')}
+                    className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-lg shadow-sm text-white bg-teal-600 hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500 transition-colors duration-200"
+                  >
+                    Next: Parcel Details
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Parcel Details Section */}
+            {(activeSection === 'parcel') && (
+              <div className="border-b border-gray-200 pb-6">
+                <h2 className="text-xl font-semibold text-gray-800 flex items-center">
+                  <FiPackage className="mr-2 text-teal-600" />
+                  Parcel Details
+                </h2>
+                <div className="mt-4 grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-6">
+                  <div className="sm:col-span-3">
+                    <label htmlFor="itemType" className="block text-sm font-medium text-gray-700">
+                      Item Type
+                    </label>
+                    <div className="mt-1">
+                      <select
+                        id="itemType"
+                        name="itemType"
+                        value={formData.itemType}
+                        onChange={handleChange}
+                        required
+                        className="block w-full rounded-lg border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm py-2 px-3 border transition-all duration-200"
+                      >
+                        <option value="">Select item type</option>
+                        {itemTypes.map(type => (
+                          <option key={type} value={type}>{type}</option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+
+                  <div className="sm:col-span-3">
+                    <label htmlFor="itemSize" className="block text-sm font-medium text-gray-700">
+                      Item Size
+                    </label>
+                    <div className="mt-1">
+                      <select
+                        id="itemSize"
+                        name="itemSize"
+                        value={formData.itemSize}
+                        onChange={handleChange}
+                        required
+                        className="block w-full rounded-lg border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm py-2 px-3 border transition-all duration-200"
+                      >
+                        <option value="">Select item size</option>
+                        {itemSizes.map(size => (
+                          <option key={size} value={size}>{size}</option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+
+                  <div className="sm:col-span-3">
+                    <label htmlFor="submittingType" className="block text-sm font-medium text-gray-700">
+                      Submitting Type
+                    </label>
+                    <div className="mt-1">
+                      <select
+                        id="submittingType"
+                        name="submittingType"
+                        value={formData.submittingType}
+                        onChange={handleChange}
+                        required
+                        className="block w-full rounded-lg border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm py-2 px-3 border transition-all duration-200"
+                      >
+                        <option value="">Select submitting type</option>
+                        <option value="Pickup">Pickup</option>
+                        <option value="Drop-off">Drop-off</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div className="sm:col-span-3">
+                    <label htmlFor="receivingType" className="block text-sm font-medium text-gray-700">
+                      Receiving Type
+                    </label>
+                    <div className="mt-1">
+                      <select
+                        id="receivingType"
+                        name="receivingType"
+                        value={formData.receivingType}
+                        onChange={handleChange}
+                        required
+                        className="block w-full rounded-lg border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm py-2 px-3 border transition-all duration-200"
+                      >
+                        <option value="">Select receiving type</option>
+                        <option value="doorstep">Doorstep Delivery</option>
+                        <option value="collection_center">Collection Center</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
+                <div className="mt-6 flex justify-between">
+                  <button
+                    type="button"
+                    onClick={() => setActiveSection('receiver')}
+                    className="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-lg shadow-sm text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500 transition-colors duration-200"
+                  >
+                    Back
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setActiveSection('location')}
+                    className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-lg shadow-sm text-white bg-teal-600 hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500 transition-colors duration-200"
+                  >
+                    Next: Location Details
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Location Details Section */}
+            {(activeSection === 'location') && (
+              <>
+                {/* Conditional Pickup Information */}
+                {showPickupFields && (
+                  <div className="border-b border-gray-200 pb-6">
+                    <h2 className="text-xl font-semibold text-gray-800 flex items-center">
+                      <FiMapPin className="mr-2 text-teal-600" />
+                      Pickup Information
+                    </h2>
+                    <div className="mt-4 grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-6">
+                      <div className="sm:col-span-3">
+                        <label htmlFor="pickupDate" className="block text-sm font-medium text-gray-700">
+                          Pickup Date
+                        </label>
+                        <div className="mt-1 relative rounded-md shadow-sm">
+                          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <FiCalendar className="h-5 w-5 text-gray-400" />
+                          </div>
+                          <input
+                            type="date"
+                            id="pickupDate"
+                            name="pickupDate"
+                            value={formData.pickupDate}
+                            onChange={handleChange}
+                            required={showPickupFields}
+                            min={new Date().toISOString().split('T')[0]}
+                            className="block w-full rounded-lg border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm py-2 pl-10 border transition-all duration-200"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="sm:col-span-3">
+                        <label htmlFor="pickupTime" className="block text-sm font-medium text-gray-700">
+                          Pickup Time
+                        </label>
+                        <div className="mt-1 relative rounded-md shadow-sm">
+                          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <FiClock className="h-5 w-5 text-gray-400" />
+                          </div>
+                          <input
+                            type="time"
+                            id="pickupTime"
+                            name="pickupTime"
+                            value={formData.pickupTime}
+                            onChange={handleChange}
+                            required={showPickupFields}
+                            className="block w-full rounded-lg border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm py-2 pl-10 border transition-all duration-200"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="sm:col-span-6">
+                        <label htmlFor="pickupAddress" className="block text-sm font-medium text-gray-700">
+                          Pickup Address
+                        </label>
+                        <div className="mt-1 relative">
+                          <input
+                            type="text"
+                            id="pickupAddress"
+                            name="pickupAddress"
+                            value={formData.pickupAddress}
+                            onChange={handleChange}
+                            required={showPickupFields}
+                            className="block w-full rounded-lg border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm py-2 px-3 border pl-10 transition-all duration-200"
+                          />
+                          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <FiHome className="h-5 w-5 text-gray-400" />
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="sm:col-span-2">
+                        <label htmlFor="pickupCity" className="block text-sm font-medium text-gray-700">
+                          City
+                        </label>
+                        <div className="mt-1">
+                          <input
+                            type="text"
+                            id="pickupCity"
+                            name="pickupCity"
+                            value={formData.pickupCity}
+                            onChange={handleChange}
+                            required={showPickupFields}
+                            className="block w-full rounded-lg border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm py-2 px-3 border transition-all duration-200"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="sm:col-span-2">
+                        <label htmlFor="pickupDistrict" className="block text-sm font-medium text-gray-700">
+                          District
+                        </label>
+                        <div className="mt-1">
+                          <select
+                            id="pickupDistrict"
+                            name="pickupDistrict"
+                            value={formData.pickupDistrict}
+                            onChange={handleChange}
+                            required={showPickupFields}
+                            className="block w-full rounded-lg border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm py-2 px-3 border transition-all duration-200"
+                          >
+                            <option value="">Select district</option>
+                            {sriLankaDistricts.map(district => (
+                              <option key={district} value={district}>{district}</option>
+                            ))}
+                          </select>
+                        </div>
+                      </div>
+
+                      <div className="sm:col-span-2">
+                        <label htmlFor="pickupProvince" className="block text-sm font-medium text-gray-700">
+                          Province
+                        </label>
+                        <div className="mt-1">
+                          <input
+                            type="text"
+                            id="pickupProvince"
+                            name="pickupProvince"
+                            value={formData.pickupProvince}
+                            onChange={handleChange}
+                            required={showPickupFields}
+                            className="block w-full rounded-lg border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm py-2 px-3 border transition-all duration-200"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Conditional Delivery Information */}
+                {showDeliveryFields && (
+                  <div className="border-b border-gray-200 pb-6">
+                    <h2 className="text-xl font-semibold text-gray-800 flex items-center">
+                      <FiHome className="mr-2 text-teal-600" />
+                      Delivery Information
+                    </h2>
+                    <div className="mt-4 grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-6">
+                      <div className="sm:col-span-6">
+                        <label htmlFor="deliveryAddress" className="block text-sm font-medium text-gray-700">
+                          Delivery Address
+                        </label>
+                        <div className="mt-1 relative">
+                          <input
+                            type="text"
+                            id="deliveryAddress"
+                            name="deliveryAddress"
+                            value={formData.deliveryAddress}
+                            onChange={handleChange}
+                            required={showDeliveryFields}
+                            className="block w-full rounded-lg border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm py-2 px-3 border pl-10 transition-all duration-200"
+                          />
+                          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <FiMapPin className="h-5 w-5 text-gray-400" />
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="sm:col-span-2">
+                        <label htmlFor="deliveryCity" className="block text-sm font-medium text-gray-700">
+                          City
+                        </label>
+                        <div className="mt-1">
+                          <input
+                            type="text"
+                            id="deliveryCity"
+                            name="deliveryCity"
+                            value={formData.deliveryCity}
+                            onChange={handleChange}
+                            required={showDeliveryFields}
+                            className="block w-full rounded-lg border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm py-2 px-3 border transition-all duration-200"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="sm:col-span-2">
+                        <label htmlFor="deliveryDistrict" className="block text-sm font-medium text-gray-700">
+                          District
+                        </label>
+                        <div className="mt-1">
+                          <select
+                            id="deliveryDistrict"
+                            name="deliveryDistrict"
+                            value={formData.deliveryDistrict}
+                            onChange={handleChange}
+                            required={showDeliveryFields}
+                            className="block w-full rounded-lg border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm py-2 px-3 border transition-all duration-200"
+                          >
+                            <option value="">Select district</option>
+                            {sriLankaDistricts.map(district => (
+                              <option key={district} value={district}>{district}</option>
+                            ))}
+                          </select>
+                        </div>
+                      </div>
+
+                      <div className="sm:col-span-2">
+                        <label htmlFor="deliveryProvince" className="block text-sm font-medium text-gray-700">
+                          Province
+                        </label>
+                        <div className="mt-1">
+                          <input
+                            type="text"
+                            id="deliveryProvince"
+                            name="deliveryProvince"
+                            value={formData.deliveryProvince}
+                            onChange={handleChange}
+                            required={showDeliveryFields}
+                            className="block w-full rounded-lg border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm py-2 px-3 border transition-all duration-200"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="sm:col-span-2">
+                        <label htmlFor="postalCode" className="block text-sm font-medium text-gray-700">
+                          Postal Code
+                        </label>
+                        <div className="mt-1">
+                          <input
+                            type="text"
+                            id="postalCode"
+                            name="postalCode"
+                            value={formData.postalCode}
+                            onChange={handleChange}
+                            required={showDeliveryFields}
+                            className="block w-full rounded-lg border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm py-2 px-3 border transition-all duration-200"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Conditional Branch Information */}
+                {(showFromBranchField || showToBranchField) && (
+                  <div className="border-b border-gray-200 pb-6">
+                    <h2 className="text-xl font-semibold text-gray-800 flex items-center">
+                      <FiTruck className="mr-2 text-teal-600" />
+                      Branch Information
+                    </h2>
+                    <div className="mt-4 grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-6">
+                      {showFromBranchField && (
+                        <div className="sm:col-span-3">
+                          <label htmlFor="fromBranch" className="block text-sm font-medium text-gray-700">
+                            From Branch
+                          </label>
+                          {renderBranchDropdown('fromBranch', formData.fromBranch, 'branch', true)}
+                        </div>
+                      )}
+
+                      {showToBranchField && (
+                        <div className="sm:col-span-3">
+                          <label htmlFor="toBranch" className="block text-sm font-medium text-gray-700">
+                            To Branch
+                          </label>
+                          {renderBranchDropdown('toBranch', formData.toBranch, 'branch', true)}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                <div className="mt-6 flex justify-between">
+                  <button
+                    type="button"
+                    onClick={() => setActiveSection('parcel')}
+                    className="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-lg shadow-sm text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500 transition-colors duration-200"
+                  >
+                    Back
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setActiveSection('payment')}
+                    className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-lg shadow-sm text-white bg-teal-600 hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500 transition-colors duration-200"
+                  >
+                    Next: Payment & Shipment
+                  </button>
+                </div>
+              </>
+            )}
+
+            {/* Payment & Shipment Section */}
+            {(activeSection === 'payment') && (
+              <div>
+                <div className="border-b border-gray-200 pb-6">
+                  <h2 className="text-xl font-semibold text-gray-800 flex items-center">
+                    <FiCreditCard className="mr-2 text-teal-600" />
+                    Payment Method
+                  </h2>
+                  <div className="mt-4 grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-6">
+                    <div className="sm:col-span-6">
+                      <div className="grid grid-cols-2 gap-4">
+                        {paymentMethods.map(method => (
+                          <div key={method} className="relative">
+                            <input
+                              type="radio"
+                              id={`payment-${method}`}
+                              name="paymentMethod"
+                              value={method}
+                              checked={formData.paymentMethod === method}
+                              onChange={handleChange}
+                              required
+                              className="sr-only"
+                            />
+                            <label 
+                              htmlFor={`payment-${method}`}
+                              className={`flex items-center justify-center p-4 border rounded-lg cursor-pointer transition-all duration-200 ${
+                                formData.paymentMethod === method 
+                                  ? 'border-teal-500 bg-teal-50 shadow-md' 
+                                  : 'border-gray-300 hover:border-teal-300'
+                              }`}
+                            >
+                              <div className="flex items-center">
+                                {method === 'Online' ? (
+                                  <FiCreditCard className="h-5 w-5 text-teal-600 mr-2" />
+                                ) : (
+                                  <FiDollarSign className="h-5 w-5 text-teal-600 mr-2" />
+                                )}
+                                <span className="text-sm font-medium text-gray-700">{method}</span>
+                              </div>
+                            </label>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Shipment Method Section */}
+                <div className="border-b border-gray-200 pb-6">
+                  <h2 className="text-xl font-semibold text-gray-800 flex items-center">
+                    <FiTruck className="mr-2 text-teal-600" />
+                    Shipment Details
+                  </h2>
+                  <div className="mt-4 grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-6">
+                    <div className="sm:col-span-3">
+                      <label htmlFor="shipmentMethod" className="block text-sm font-medium text-gray-700">
+                        Shipment Method
+                      </label>
+                      <div className="mt-1">
+                        <select
+                          id="shipmentMethod"
+                          name="shipmentMethod"
+                          value={formData.shipmentMethod}
+                          onChange={handleChange}
+                          required
+                          className="block w-full rounded-lg border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm py-2 px-3 border transition-all duration-200"
+                        >
+                          <option value="">Select shipment method</option>
+                          {shipmentMethods.map(method => (
+                            <option key={method} value={method}>{method}</option>
+                          ))}
+                        </select>
+                      </div>
+                    </div>
+
+                    <div className="sm:col-span-6">
+                      <label htmlFor="specialInstructions" className="block text-sm font-medium text-gray-700">
+                        Special Instructions (Optional)
+                      </label>
+                      <div className="mt-1">
+                        <textarea
+                          id="specialInstructions"
+                          name="specialInstructions"
+                          rows="3"
+                          value={formData.specialInstructions}
+                          onChange={handleChange}
+                          className="block w-full rounded-lg border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm py-2 px-3 border transition-all duration-200"
+                          placeholder="Any special handling instructions..."
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="mt-6 flex justify-between">
+                  <button
+                    type="button"
+                    onClick={() => setActiveSection('location')}
+                    className="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-lg shadow-sm text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500 transition-colors duration-200"
+                  >
+                    Back
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={isSubmitting}
+                    className={`inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-lg shadow-sm text-white bg-teal-600 hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500 transition-colors duration-200 ${
+                      isSubmitting ? 'opacity-75 cursor-not-allowed' : ''
+                    }`}
+                  >
+                    {isSubmitting ? (
+                      <>
+                        <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        Processing...
+                      </>
+                    ) : (
+                      <>
+                        <FiSave className="mr-2" />
+                        Submit Parcel
+                      </>
+                    )}
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        </form>
+
+        {/* Error display */}
+        {error && (
+          <div className="mt-4 p-4 bg-red-50 text-red-700 rounded-lg">
+            {error}
+          </div>
+        )}
+      </div>
+    </div>
+    </div>
   );
 };
 
-export default AddParcelForm;
-
+export default AddParcel;

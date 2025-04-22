@@ -17,7 +17,10 @@ import AddParcel from './pages/User/AddParcel';
 import Parcel from './pages/User/Parcel';
 import TrackingPage from './pages/User/TrackingPage';
 import Checkout from './pages/User/Checkout';
-
+import ContactUs from './pages/User/ContactUs';
+import { Toaster } from "react-hot-toast"; // ✅ Import Toaster
+import AboutUs from './pages/User/AboutUs';
+import PaymentSuccess from "./pages/User/PaymentSuccess";
 
 
 
@@ -32,6 +35,9 @@ const App = () => {
 
    
     <Router> {/* Use BrowserRouter instead */}
+
+     {/* ✅ Toaster added here */}
+     <Toaster position="top-center" reverseOrder={false} /> 
       <Routes>
         
       <Route path="/" element={<Home/>}/>
@@ -45,6 +51,9 @@ const App = () => {
       <Route path="/parcel" element={<Parcel/>}/>
       <Route path="/track" element={<TrackingPage/>}/>
       <Route path="/checkout" element={<Checkout/>}/>
+      <Route path='/contactus' element={<ContactUs/>}/>
+      <Route path='/aboutus' element={<AboutUs/>}/>
+      <Route path="/payment-success" element={<PaymentSuccess />} />
      
 
 
