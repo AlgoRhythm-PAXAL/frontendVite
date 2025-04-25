@@ -5,13 +5,12 @@ import Cookies from "js-cookie";
 import { useNavigate, Link } from "react-router-dom";
 
 const StaffLogin = () => {
-  const [email, setEmail] = useState(""); // Declare a state variable
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
-    // prevent the browser from reloading the page
     e.preventDefault();
 
     try {
@@ -21,16 +20,10 @@ const StaffLogin = () => {
         { withCredentials: true }
       );
 
-      Cookies.set("StaffToken", response.data.token, {
-        expires: 1,
-        secure: true,
-      });
-      console.log("Token = " + Cookies.get("StaffToken"));
-
       console.log("Login successful, token stored in cookie.");
-      alert(response.data.message); // Show success message
+      alert(response.data.message);
 
-      navigate("/staff/MainMenu");
+      navigate("/staff/main-menu");
     } catch (error) {
       console.error("Login error:", error);
       alert("Login failed. Please check your credentials.");

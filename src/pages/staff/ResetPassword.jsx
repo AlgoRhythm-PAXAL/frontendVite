@@ -9,13 +9,12 @@ const ResetPassword = () => {
   const { email, resetCode } = location.state || {};
 
   const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState(""); // Declare a state variable
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [message, setMessage] = useState("");
 
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
-    // prevent the browser from reloading the page
     e.preventDefault();
     if (!password.trim() || !confirmPassword.trim()) {
       alert("Password fields cannot be empty");

@@ -7,13 +7,12 @@ const ForgotPasswordCode = () => {
   const location = useLocation();
   const { email } = location.state || {};
 
-  const [resetCode, setResetCode] = useState(""); // Declare a state variable
+  const [resetCode, setResetCode] = useState("");
   const [message, setMessage] = useState("");
 
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
-    // prevent the browser from reloading the page
     e.preventDefault();
 
     try {
