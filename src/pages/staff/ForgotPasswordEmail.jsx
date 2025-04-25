@@ -4,13 +4,12 @@ import axios from "axios";
 import { useNavigate } from "react-router-dom";
 
 const ForgotPasswordEmail = () => {
-  const [email, setEmail] = useState(""); // Declare a state variable
+  const [email, setEmail] = useState("");
   const [message, setMessage] = useState("");
 
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
-    // prevent the browser from reloading the page
     e.preventDefault();
 
     try {
@@ -25,8 +24,7 @@ const ForgotPasswordEmail = () => {
       }, 2000); // Optional delay for demo purposes
       setMessage(response.data.message);
     } catch (error) {
-      console.error("Error in axios.post request:", error); // Debugging
-      console.error("Error response:", error.response); // Debugging
+      console.error("Error :", error);
 
       setMessage("Error: Unable to send reset email");
     }
