@@ -27,7 +27,7 @@ const AdminLogin = () => {
             toast.success('Login Successful', { description: `Hello ${response.data.admin.name}`, duration: 2000, action: { label: 'Dashboard', onClick: () => navigate("/admin") } })
             console.log("Login successful");
 
-            setTimeout(() => navigate("/admin"), 2000);
+            setTimeout(() => navigate("/admin"), 1000);
 
         } catch (error) {
             const errorMessage = error.response?.data?.message || 'Login failed. Please check your credentials.';

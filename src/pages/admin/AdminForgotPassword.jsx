@@ -1,9 +1,3 @@
-import FormField from '../../components/admin/FormField'
-import axios from 'axios';
-import { useState } from 'react'
-import LOGO from '../../assets/Velox-Logo.png'
-import { useNavigate } from "react-router-dom"
-import { Link } from 'react-router-dom'
 import ForgotPassword from '../../components/admin/authentication/ForgotPassword';
 
 const AdminForgotPassword = () => {
