@@ -1,24 +1,41 @@
 import SectionTitle from "../../components/admin/SectionTitle"
-import { format } from 'date-fns';
-import { DatePickerWithPresets } from "../../components/admin/DatePicker";
-import ParcelTable from "../../components/admin/ParcelTable"
+import DemoPage from "../../components/admin/UserTables/DataTable/TableDistributor";
 
+const shipmentColumns = [
+  {
+    accessorKey: "itemId",
+    header: "Branch No"
+  },
+  {
+    accessorKey: "deliveryType",
+    header: "Shipment Type"
+  },
+  {
+    accessorKey: "route",
+    header: "Routes"
+  },
+  {
+    accessorKey: "sourceCenter",
+    header: "Source Branch"
+  },
+  {
+    accessorKey: "currentLocation",
+    header: "Current Branch"
+  },
+  {
+    accessorKey: "status",
+    header: "Status"
+  },
+
+]
 
 const Shipments = () => {
-  const now = new Date();
-  console.log(now);
-  const formattedDate = format(now, 'MMMM do, yyyy ');
+
   return (
     <div className="flex flex-col  mx-8  ">
       <SectionTitle title="Shipments" />
       <div className="flex flex-col gap-">
-        <div className="flex items-center justify-between">
-          <h1 className="text-2xl">On <span className="font-semibold text-2xl">{formattedDate} </span></h1>
-          <DatePickerWithPresets />
-        </div>
-        <div className="my-8">
-          <ParcelTable title="Customer" apiEndPoint="http://localhost:8000/admin/parcel/all" />
-        </div>
+        <DemoPage title="shipment" columns={shipmentColumns} deleteEnabled={false} updateEnabled={false} disableDateFilter={true} />
       </div>
     </div>
   )
