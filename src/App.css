@@ -66,3 +66,7 @@
     @apply bg-background text-foreground;
   }
 }
+
+.input-field {
+  @apply border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-teal-500;
+}
