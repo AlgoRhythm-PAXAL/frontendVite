@@ -6,22 +6,49 @@ import AdminLayout from "./pages/admin/AdminLayout";
 import Parcels from "./pages/admin/Parcels";
 import Shipments from "./pages/admin/Shipments";
 import AdminLogin from "./pages/admin/AdminLogin";
-import Home from "./pages/Home";
+
+{
+  /*User Routes */
+}
+
+import Home from "./pages/User/userHome";
+import Signup from "./pages/User/Signup";
+import Login from "./pages/User/Login";
+import Emailverify from "./pages/User/Emailverify";
+import ForgetPassword from "./pages/User/ForgetPassword";
+import ResetPassword from "./pages/User/ResetPassword";
+import Profile from "./pages/User/Profile";
+import AddParcel from "./pages/User/AddParcel";
+import Parcel from "./pages/User/Parcel";
+import TrackingPage from "./pages/User/TrackingPage";
+import Checkout from "./pages/User/Checkout";
+import ContactUs from "./pages/User/ContactUs";
+import { Toaster as HotToastToaster } from "react-hot-toast"; // ✅ Import Toaster
+import AboutUs from "./pages/User/AboutUs";
+import PaymentSuccess from "./pages/User/PaymentSuccess";
+{
+  /*User Routes */
+}
+
 import ProtectedAdminRoute from "./components/admin/ProtectedAdminRoutes"; // Import the protected route
 import AdminForgotPassword from "./pages/admin/AdminForgotPassword";
 import AdminVerifyCode from "./pages/admin/AdminVerifyCode";
 import AdminResetPassword from "./pages/admin/AdminResetPassword";
 import Branches from "./pages/admin/Branches";
 import AdminProfile from "./pages/admin/AdminProfile";
-import { Toaster } from 'sonner';
+import { Toaster as SonnerToaster } from "sonner";
 import Vehicle from "./pages/admin/Vehicle";
 
-{/* Staff login */}
+{
+  /* Staff login */
+}
 import StaffLogin from "./pages/staff/StaffLogin";
 import ForgotPasswordEmail from "./pages/staff/ForgotPasswordEmail";
 import ForgotPasswordCode from "./pages/staff/ForgotPasswordCode";
-import ResetPassword from "./pages/staff/ResetPassword";
-{/* Staff pages */}
+import StaffResetPassword from "./pages/staff/ResetPassword";
+{
+  /* Staff pages */
+}
 import ProtectedStaffRoute from "./components/staff/ProtectedStaffRoutes";
 import StaffMainMenu from "./pages/staff/StaffMainMenu";
 import StaffLayout from "./pages/staff/StaffLayout";
@@ -36,10 +63,23 @@ import ParcelInvoice from "./pages/staff/ParcelInvoice";
 const App = () => {
   return (
     <Router>
-      <Toaster position="bottom-right" richColors expand visibleToasts={5} offset="16px" />
+      <SonnerToaster position="bottom-right" richColors expand visibleToasts={5} offset="16px" />
+      <HotToastToaster position="top-center" reverseOrder={false} />
       <Routes>
         <Route path="/" element={<Home />} />
-
+        <Route path="/signup" element={<Signup />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/verify" element={<Emailverify />} />
+        <Route path="/forget-password" element={<ForgetPassword />} />
+        <Route path="/reset-password" element={<ResetPassword />} />
+        <Route path="/profile" element={<Profile />} />
+        <Route path="/addparcel" element={<AddParcel />} />
+        <Route path="/parcel" element={<Parcel />} />
+        <Route path="/track" element={<TrackingPage />} />
+        <Route path="/checkout" element={<Checkout />} />
+        <Route path="/contactus" element={<ContactUs />} />
+        <Route path="/aboutus" element={<AboutUs />} />
+        <Route path="/payment-success" element={<PaymentSuccess />} />
 
         {/* Admin Routes */}
         <Route path="/admin/login" element={<AdminLogin />} />
@@ -55,31 +95,52 @@ const App = () => {
             <Route path="shipments" element={<Shipments />} />
             <Route path="branches" element={<Branches />} />
             <Route path="profile" element={<AdminProfile />} />
-            <Route path="vehicles" element={<Vehicle/>}/>
+            <Route path="vehicles" element={<Vehicle />} />
           </Route>
         </Route>
 
         {/* Staff Routes */}
-        <Route path="staff/login" element={<StaffLogin/>}/>
-        <Route path="staff/forgot-password" element={<ForgotPasswordEmail/>}/>
-        <Route path="staff/forgot-password-code" element={<ForgotPasswordCode/>}/>
-        <Route path="staff/reset-password" element={<ResetPassword/>}/>
+        <Route path="staff/login" element={<StaffLogin />} />
+        <Route path="staff/forgot-password" element={<ForgotPasswordEmail />} />
+        <Route
+          path="staff/forgot-password-code"
+          element={<ForgotPasswordCode />}
+        />
+        <Route path="staff/reset-password" element={<StaffResetPassword />} />
 
         {/* Protected Staff Routes */}
-        <Route path="/staff" element={<ProtectedStaffRoute/>}>
-          <Route path="/staff/main-menu" element={<StaffMainMenu/>}/>
-          <Route path="/staff" element={<StaffLayout/>}>
-            <Route path="lodging-management/view-parcels" element={<ViewParcels/>}/>
-            <Route path="lodging-management/view-pickups" element={<PickupRequests/>}/>
-            <Route path="lodging-management/view-dropOffs" element={<DropOffRequests/>}/>
-            <Route path="lodging-management/view-parcels/:parcelId" element={<ViewOneParcel/>}/>
-            <Route path="lodging-management/view-parcels/invoice/:parcelId" element={<ParcelInvoice/>}/>
-            <Route path="lodging-management/view-pickups/:parcelId" element={<ViewOnePickup/>}/>
-            <Route path="lodging-management/view-dropOffs/:parcelId" element={<ViewOneDropOff/>}/>
-
-
+        <Route path="/staff" element={<ProtectedStaffRoute />}>
+          <Route path="/staff/main-menu" element={<StaffMainMenu />} />
+          <Route path="/staff" element={<StaffLayout />}>
+            <Route
+              path="lodging-management/view-parcels"
+              element={<ViewParcels />}
+            />
+            <Route
+              path="lodging-management/view-pickups"
+              element={<PickupRequests />}
+            />
+            <Route
+              path="lodging-management/view-dropOffs"
+              element={<DropOffRequests />}
+            />
+            <Route
+              path="lodging-management/view-parcels/:parcelId"
+              element={<ViewOneParcel />}
+            />
+            <Route
+              path="lodging-management/view-parcels/invoice/:parcelId"
+              element={<ParcelInvoice />}
+            />
+            <Route
+              path="lodging-management/view-pickups/:parcelId"
+              element={<ViewOnePickup />}
+            />
+            <Route
+              path="lodging-management/view-dropOffs/:parcelId"
+              element={<ViewOneDropOff />}
+            />
           </Route>
-
         </Route>
       </Routes>
     </Router>
