@@ -7,18 +7,53 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
-node_modules
-dist
-dist-ssr
-*.local
+# Dependency directories
+node_modules/
+bower_components/
 
-# Editor directories and files
-.vscode/*
-!.vscode/extensions.json
-.idea
+# Production build
+build/
+dist/
+dist-ssr/
+
+# Local env files
+.env
+.env.*.local
+
+# Testing
+coverage/
+
+# Misc
 .DS_Store
+Thumbs.db
+
+# IDEs and editors
+.vscode/
+!.vscode/extensions.json
+.idea/
 *.suo
 *.ntvs*
 *.njsproj
 *.sln
 *.sw?
+
+# Optional npm cache directory
+.npm/
+
+# Parcel-bundler cache
+.cache/
+
+# Next.js build output (if any)
+.next/
+
+# SvelteKit build output (if you accidentally mix it)
+.svelte-kit/
+
+# Vite cache
+.vite/
+
+# Storybook build
+out/
+
+# TypeScript
+*.tsbuildinfo
