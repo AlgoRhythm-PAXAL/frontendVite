@@ -5,7 +5,7 @@ const AdminLayout = () => {
   return (
     <div className="flex min-h-screen bg-Background">
       {/* Fixed Sidebar */}
-      <div className="fixed top-0 left-0 h-screen w-64 z-50"> {/* Adjust width as needed */}
+      <div className="fixed top-0 left-0 h-screen w-64 z-40"> {/* Adjust width as needed */}
         <Sidebar />
       </div>
 
