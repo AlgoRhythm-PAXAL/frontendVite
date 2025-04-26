@@ -141,6 +141,8 @@
                         onClick: () => window.open(result.data.profilePicLink, '_blank')
                     }
                 })
+                setTimeout(() => { window.location.reload() }, 900);
+
             } catch (err) {
                 console.error(err);
                 setError('Upload failed. Please try again.');
@@ -151,7 +153,7 @@
         };
     
         return (
-            <div className="min-h-screen py-12 px-4 sm:px-6 lg:px-8">
+            <div className="min-h-fit py-12 px-4 sm:px-6 lg:px-8">
                 <div className="max-w-md mx-auto bg-white rounded-lg shadow-md p-6">
                     <h2 className="text-2xl font-bold text-gray-800 mb-6 text-center">
                         Profile Picture Upload

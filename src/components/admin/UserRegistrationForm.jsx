@@ -329,7 +329,7 @@ const UserRegistrationForm = () => {
 
             const backendUrl = import.meta.env.VITE_BACKEND_URL;
             try {
-                const response = await axios.get(`${backendUrl}/admin/get/branches`, { withCredentials: true, timeout: 10000 });
+                const response = await axios.get(`${backendUrl}/admin/branch/all`, { withCredentials: true, timeout: 10000 });
                 setBranches(response.data.branches);
 
             } catch (error) {

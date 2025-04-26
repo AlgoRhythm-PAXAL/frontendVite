@@ -14,6 +14,7 @@ import AdminResetPassword from "./pages/admin/AdminResetPassword";
 import Branches from "./pages/admin/Branches";
 import AdminProfile from "./pages/admin/AdminProfile";
 import { Toaster } from 'sonner';
+import Vehicle from "./pages/admin/Vehicle";
 
 const App = () => {
   return (
@@ -21,6 +22,9 @@ const App = () => {
       <Toaster position="bottom-right" richColors expand visibleToasts={5} offset="16px" />
       <Routes>
         <Route path="/" element={<Home />} />
+
+
+        {/* Admin Routes */}
         <Route path="/admin/login" element={<AdminLogin />} />
         <Route path="/admin/forgotPassword" element={<AdminForgotPassword />} />
         <Route path="/admin/verify-OTP" element={<AdminVerifyCode />} />
@@ -34,8 +38,10 @@ const App = () => {
             <Route path="shipments" element={<Shipments />} />
             <Route path="branches" element={<Branches />} />
             <Route path="profile" element={<AdminProfile />} />
+            <Route path="vehicles" element={<Vehicle/>}/>
           </Route>
         </Route>
+        {/* Admin Routes */}
       </Routes>
     </Router>
   );
