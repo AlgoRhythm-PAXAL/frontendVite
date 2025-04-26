@@ -16,6 +16,23 @@ import AdminProfile from "./pages/admin/AdminProfile";
 import { Toaster } from 'sonner';
 import Vehicle from "./pages/admin/Vehicle";
 
+{/* Staff login */}
+import StaffLogin from "./pages/staff/StaffLogin";
+import ForgotPasswordEmail from "./pages/staff/ForgotPasswordEmail";
+import ForgotPasswordCode from "./pages/staff/ForgotPasswordCode";
+import ResetPassword from "./pages/staff/ResetPassword";
+{/* Staff pages */}
+import ProtectedStaffRoute from "./components/staff/ProtectedStaffRoutes";
+import StaffMainMenu from "./pages/staff/StaffMainMenu";
+import StaffLayout from "./pages/staff/StaffLayout";
+import ViewParcels from "./pages/staff/ViewParcels";
+import PickupRequests from "./pages/staff/PickupRequests";
+import DropOffRequests from "./pages/staff/DropOffRequests";
+import ViewOneParcel from "./pages/staff/ViewOneParcel";
+import ViewOnePickup from "./pages/staff/ViewOnePickup";
+import ViewOneDropOff from "./pages/staff/ViewOneDropOff";
+import ParcelInvoice from "./pages/staff/ParcelInvoice";
+
 const App = () => {
   return (
     <Router>
@@ -41,7 +58,29 @@ const App = () => {
             <Route path="vehicles" element={<Vehicle/>}/>
           </Route>
         </Route>
-        {/* Admin Routes */}
+
+        {/* Staff Routes */}
+        <Route path="staff/login" element={<StaffLogin/>}/>
+        <Route path="staff/forgot-password" element={<ForgotPasswordEmail/>}/>
+        <Route path="staff/forgot-password-code" element={<ForgotPasswordCode/>}/>
+        <Route path="staff/reset-password" element={<ResetPassword/>}/>
+
+        {/* Protected Staff Routes */}
+        <Route path="/staff" element={<ProtectedStaffRoute/>}>
+          <Route path="/staff/main-menu" element={<StaffMainMenu/>}/>
+          <Route path="/staff" element={<StaffLayout/>}>
+            <Route path="lodging-management/view-parcels" element={<ViewParcels/>}/>
+            <Route path="lodging-management/view-pickups" element={<PickupRequests/>}/>
+            <Route path="lodging-management/view-dropOffs" element={<DropOffRequests/>}/>
+            <Route path="lodging-management/view-parcels/:parcelId" element={<ViewOneParcel/>}/>
+            <Route path="lodging-management/view-parcels/invoice/:parcelId" element={<ParcelInvoice/>}/>
+            <Route path="lodging-management/view-pickups/:parcelId" element={<ViewOnePickup/>}/>
+            <Route path="lodging-management/view-dropOffs/:parcelId" element={<ViewOneDropOff/>}/>
+
+
+          </Route>
+
+        </Route>
       </Routes>
     </Router>
   );
