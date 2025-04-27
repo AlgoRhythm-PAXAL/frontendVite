@@ -1,7 +1,6 @@
 import SectionTitle from "../../components/admin/SectionTitle";
 import { Component } from "../../components/admin/BarChart";
 import PieChartContainer from "../../components/admin/pieCharts/PieChartContainer";
-import ImageUpload from "../../components/admin/ImageUpload/ImageUpload"
 import AdminList from "../../components/admin/AdminList"
 
 
