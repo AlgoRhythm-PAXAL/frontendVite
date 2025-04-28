@@ -18,6 +18,7 @@ const DataTable = ({
   rowsPerPage = [],
   actions = [],
   textMessage = [],
+  getRowClassName = () => "",
 }) => {
   const [page, setPage] = useState(1);
 
@@ -59,7 +60,7 @@ const DataTable = ({
               </TableRow>
             ) : (
               paginatedRows.map((row, index) => (
-                <TableRow key={index}>
+                <TableRow key={index} className={getRowClassName(row)}>
                   {columns.map((column, colIndex) => (
                     <TableCell key={colIndex}>
                       {column.render
@@ -75,6 +76,10 @@ const DataTable = ({
                         justifyContent="center"
                       >
                         {actions.map((action, actionIndex) => (
+                          <React.Fragment key={actionIndex}>
+                          {action.render ? (
+                            action.render(row) 
+                          ) : (
                           <button
                             key={actionIndex}
                             className={action.className || ""}
@@ -82,6 +87,8 @@ const DataTable = ({
                           >
                             {action.label || "Action"}
                           </button>
+                          )}
+                          </React.Fragment>
                         ))}
                       </Stack>
                     </TableCell>
