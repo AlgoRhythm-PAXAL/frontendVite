@@ -6,7 +6,7 @@ const StaffLayout = () => {
   return (
     <>
     <NavigationBar/>
-    <div className="flex w-full  bg-Background">
+    <div className="flex w-full ">
       <div className="w-2/12 ">
         {/*add side bar here*/}
       </div>

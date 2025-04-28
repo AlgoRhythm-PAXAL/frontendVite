@@ -11,7 +11,7 @@ const StaffMainMenu = () => {
             Staff Activities
           </h1>
 
-          <MainMenuButton text="Lodging Management" link="" />
+          <MainMenuButton text="Lodging Management" link="/staff/lodging-management/view-pickups" />
           <br />
           <MainMenuButton text="Collection Management" link="" />
           <br />

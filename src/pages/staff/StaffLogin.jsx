@@ -31,6 +31,7 @@ const StaffLogin = () => {
   };
 
   return (
+    
     <div className="flex h-screen items-center justify-center">
       <div className="w-full max-w-md bg-white p-8 rounded-2xl shadow-lg">
         <h2 className="text-2xl font-bold text-center text-gray-800 mb-8">

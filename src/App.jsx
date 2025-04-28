@@ -32,6 +32,7 @@ import ViewOneParcel from "./pages/staff/ViewOneParcel";
 import ViewOnePickup from "./pages/staff/ViewOnePickup";
 import ViewOneDropOff from "./pages/staff/ViewOneDropOff";
 import ParcelInvoice from "./pages/staff/ParcelInvoice";
+import AddNewParcel from "./pages/staff/AddNewParcel";
 
 const App = () => {
   return (
@@ -65,6 +66,7 @@ const App = () => {
         <Route path="staff/forgot-password-code" element={<ForgotPasswordCode/>}/>
         <Route path="staff/reset-password" element={<ResetPassword/>}/>
 
+
         {/* Protected Staff Routes */}
         <Route path="/staff" element={<ProtectedStaffRoute/>}>
           <Route path="/staff/main-menu" element={<StaffMainMenu/>}/>
@@ -76,7 +78,7 @@ const App = () => {
             <Route path="lodging-management/view-parcels/invoice/:parcelId" element={<ParcelInvoice/>}/>
             <Route path="lodging-management/view-pickups/:parcelId" element={<ViewOnePickup/>}/>
             <Route path="lodging-management/view-dropOffs/:parcelId" element={<ViewOneDropOff/>}/>
-
+            <Route path="lodging-management/add-new-parcel" element={<AddNewParcel/>}/>
 
           </Route>
 

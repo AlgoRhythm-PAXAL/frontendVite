@@ -1,4 +1,4 @@
-import StickyHeadTable from "../components/admin/MUITable"
+// import StickyHeadTable from "../components/admin/MUITable"
 
 const Home = () => {
   return (
