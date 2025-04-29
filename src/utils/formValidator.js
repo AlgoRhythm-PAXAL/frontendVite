@@ -16,7 +16,7 @@ const validateEmail = (email) => {
 };
 
 const validatePassword = (password) => {
-    return true; 
+    
   if (!password) {
     toast.error("Password is required");
     return false;
