@@ -17,9 +17,9 @@ const AdminLogin = () => {
 
     // ✅ Validate email and password using formValidator
     const isEmailValid = formValidator.validateEmail(formData.email);
-    const isPasswordValid = formValidator.validatePassword(formData.password);
+    
 
-    if (!isEmailValid || !isPasswordValid) {
+    if (!isEmailValid || !formData.password) {
       return; // 🛑 Stop if validation fails
     }
     setIsLoading(true);
@@ -102,7 +102,7 @@ const AdminLogin = () => {
             {isLoading ? (
               <div className="flex items-center justify-center gap-2">
                 <span className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></span>
-                Authenticating...
+                Loggin in.....
               </div>
             ) : (
               "Login"

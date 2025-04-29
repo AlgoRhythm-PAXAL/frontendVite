@@ -6,7 +6,7 @@ import AdminLayout from "./pages/admin/AdminLayout";
 import Parcels from "./pages/admin/Parcels";
 import Shipments from "./pages/admin/Shipments";
 import AdminLogin from "./pages/admin/AdminLogin";
-
+import axios from 'axios'
 {
   /*User Routes */
 }
@@ -59,6 +59,26 @@ import ViewOneParcel from "./pages/staff/ViewOneParcel";
 import ViewOnePickup from "./pages/staff/ViewOnePickup";
 import ViewOneDropOff from "./pages/staff/ViewOneDropOff";
 import ParcelInvoice from "./pages/staff/ParcelInvoice";
+
+//Axios Interceptor for Automatic Token Refresh for admin
+// axios.interceptors.response.use(
+//   response => response,
+//   async (error) => {
+//     const originalRequest = error.config;
+//     if (error.response.status === 403 && !originalRequest._retry) {
+//       originalRequest._retry = true;
+//       try {
+//         await axios.post('http://localhost:8000/admin/refresh', {}, { withCredentials: true });
+//         return axios(originalRequest);
+//       } catch (refreshError) {
+//         window.location.href = '/admin/login';
+//         return Promise.reject(refreshError);
+//       }
+//     }
+//     return Promise.reject(error);
+//   }
+// );
+
 
 const App = () => {
   return (

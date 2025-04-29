@@ -5,7 +5,7 @@ import { faTachometerAlt, faUser, faBox, faTruck, faDollarSign, faQuestionCircle
 import { useState,useEffect } from "react";
 import axios from 'axios'
 import { toast } from 'sonner'
-import ProfilePicture from "./ImageUpload/ProfilePicture";
+
 
 export default function Sidebar() {
   const location = useLocation(); // Get the current route
