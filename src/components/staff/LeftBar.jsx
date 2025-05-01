@@ -6,44 +6,16 @@ const TopAndLeftBar = () => {
     return (
         <div className="flex h-screen bg-gray-100">
             <SideBar />
-            <div className="flex flex-col flex-1">
-                <TopBar />
-                <div className="flex-1 overflow-auto">
-                    <Outlet />
-                </div>
-            </div>
+
+        <div className="flex-1 overflow-auto">
+                <Outlet />
         </div>
+        </div>
+
     );
 };
 
-// Top Bar Component for Parcel Management
-const TopBar = () => {
-    return (
-        <div className="bg-gray-100 w-full py-4 px-6 flex items-center justify-between border-b border-gray-200">
-            {/* Title in center */}
-            <div className="text-2xl font-semibold">
-                Available Parcels
-            </div>
 
-            {/* Right side controls */}
-            <div className="flex items-center space-x-5">
-                {/* Bell notification */}
-                <div className="text-xl">🔔</div>
-
-                {/* User location */}
-                <div className="text-right text-xs">
-                    <div className="text-gray-500">E0001</div>
-                    <div>Colombo</div>
-                </div>
-
-                {/* User profile image */}
-                <div className="h-8 w-8 rounded-full bg-red-200 overflow-hidden">
-                    <img src="/api/placeholder/32/32" alt="User Profile" className="h-full w-full object-cover" />
-                </div>
-            </div>
-        </div>
-    );
-};
 
 // Side Bar Component
 const SideBar = () => {
@@ -62,8 +34,8 @@ const SideBar = () => {
         {
             title: "Shipment Management",
             items: [
-                { title: "Parcel Table", path: "/staff/shipment-management/parcel-table-page" },
-                { title: "Create Shipment", path: "/staff/shipment-management/create-shipment" },
+                { title: "Create Shipment", path: "/staff/shipment-management/parcel-table-page" },
+                { title: "Create Shipment Manually", path: "/staff/shipment-management/manual-shipment-page" },
                 { title: "View Shipments", path: "/staff/shipment-management/view-shipments" }
             ]
         },
@@ -89,7 +61,7 @@ const SideBar = () => {
         <div className="bg-teal-600 h-full w-64 flex flex-col">
             {/* Company Logo */}
             <div className="p-4 flex justify-center">
-                <div className="text-white text-xl font-bold">PARCEL SYSTEM</div>
+                <div className="text-white text-xl font-bold">Staff Portal</div>
             </div>
 
             {/* Management Options */}

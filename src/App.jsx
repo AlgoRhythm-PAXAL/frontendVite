@@ -17,7 +17,8 @@ import AdminProfile from "./pages/admin/AdminProfile";
 
 
 import ParcelTablePage from "./pages/staff/ParcelTablePage/parcelTablePage";
-import TopAndLeftBar from "./components/staff/TopAndLeftBar";
+import ManualShipmentPage from "./pages/staff/ManualShipmentPage/manualShipmentPage";
+import LeftBar from "./components/staff/LeftBar";
  // You'll need to create this
 
 const App = () => {
@@ -46,8 +47,9 @@ const App = () => {
         </Route>
 
         {/* Staff routes */}
-        <Route path="/staff" element={<TopAndLeftBar />}>
+        <Route path="/staff" element={<LeftBar />}>
           <Route path="shipment-management/parcel-table-page" element={<ParcelTablePage />} />
+          <Route path="shipment-management/manual-shipment-page" element={<ManualShipmentPage />} />
           {/* Add other staff routes here */}
           {/* <Route path="shipment-management/create-shipment" element={<CreateShipment />} /> */}
           {/* <Route path="shipment-management/view-shipments" element={<ViewShipments />} /> */}
