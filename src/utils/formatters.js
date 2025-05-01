@@ -6,10 +6,7 @@ export const capitalize = (str) =>{
       .join(' ')||'-';
 }
     
-    
 
-
-  
 export const formatDateTime = (dateString) => {
     if (!dateString) return '-';
     try {

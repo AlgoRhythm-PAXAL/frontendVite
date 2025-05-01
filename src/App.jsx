@@ -6,21 +6,45 @@ import AdminLayout from "./pages/admin/AdminLayout";
 import Parcels from "./pages/admin/Parcels";
 import Shipments from "./pages/admin/Shipments";
 import AdminLogin from "./pages/admin/AdminLogin";
-import Home from "./pages/Home";
+
+{
+  /*User Routes */
+}
+
+import Home from "./pages/User/userHome";
+import Signup from "./pages/User/Signup";
+import Login from "./pages/User/Login";
+import Emailverify from "./pages/User/Emailverify";
+import ForgetPassword from "./pages/User/ForgetPassword";
+import ResetPassword from "./pages/User/ResetPassword";
+import Profile from "./pages/User/Profile";
+import AddParcel from "./pages/User/AddParcel";
+import Parcel from "./pages/User/Parcel";
+import TrackingPage from "./pages/User/TrackingPage";
+import Checkout from "./pages/User/Checkout";
+import ContactUs from "./pages/User/ContactUs";
+import { Toaster as HotToastToaster } from "react-hot-toast"; // ✅ Import Toaster
+import AboutUs from "./pages/User/AboutUs";
+import PaymentSuccess from "./pages/User/PaymentSuccess";
+{
+  /*User Routes */
+}
+
 import ProtectedAdminRoute from "./components/admin/ProtectedAdminRoutes"; // Import the protected route
 import AdminForgotPassword from "./pages/admin/AdminForgotPassword";
 import AdminVerifyCode from "./pages/admin/AdminVerifyCode";
 import AdminResetPassword from "./pages/admin/AdminResetPassword";
 import Branches from "./pages/admin/Branches";
 import AdminProfile from "./pages/admin/AdminProfile";
-import { Toaster } from 'sonner';
+import { Toaster as SonnerToaster } from "sonner";
 import Vehicle from "./pages/admin/Vehicle";
 
 {/* Staff login */}
+
 import StaffLogin from "./pages/staff/Login/StaffLogin";
 import ForgotPasswordEmail from "./pages/staff/Login/ForgotPasswordEmail";
 import ForgotPasswordCode from "./pages/staff/Login/ForgotPasswordCode";
-import ResetPassword from "./pages/staff/Login/ResetPassword";
+import StaffResetPassword from "./pages/staff/Login/ResetPassword";
 {/* Staff pages */}
 import ProtectedStaffRoute from "./components/staff/ProtectedStaffRoutes";
 import StaffMainMenu from "./pages/staff/StaffMainMenu";
@@ -45,10 +69,23 @@ import ViewOneCollectionCenterDeliveryparcel from "./pages/staff/ViewOneCollecti
 const App = () => {
   return (
     <Router>
-      <Toaster position="bottom-right" richColors expand visibleToasts={5} offset="16px" />
+      <SonnerToaster position="bottom-right" richColors expand visibleToasts={5} offset="16px" />
+      <HotToastToaster position="top-center" reverseOrder={false} />
       <Routes>
         <Route path="/" element={<Home />} />
-
+        <Route path="/signup" element={<Signup />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/verify" element={<Emailverify />} />
+        <Route path="/forget-password" element={<ForgetPassword />} />
+        <Route path="/reset-password" element={<ResetPassword />} />
+        <Route path="/profile" element={<Profile />} />
+        <Route path="/addparcel" element={<AddParcel />} />
+        <Route path="/parcel" element={<Parcel />} />
+        <Route path="/track" element={<TrackingPage />} />
+        <Route path="/checkout" element={<Checkout />} />
+        <Route path="/contactus" element={<ContactUs />} />
+        <Route path="/aboutus" element={<AboutUs />} />
+        <Route path="/payment-success" element={<PaymentSuccess />} />
 
         {/* Admin Routes */}
         <Route path="/admin/login" element={<AdminLogin />} />
@@ -64,7 +101,7 @@ const App = () => {
             <Route path="shipments" element={<Shipments />} />
             <Route path="branches" element={<Branches />} />
             <Route path="profile" element={<AdminProfile />} />
-            <Route path="vehicles" element={<Vehicle/>}/>
+            <Route path="vehicles" element={<Vehicle />} />
           </Route>
         </Route>
 
@@ -72,8 +109,7 @@ const App = () => {
         <Route path="staff/login" element={<StaffLogin/>}/>
         <Route path="staff/forgot-password" element={<ForgotPasswordEmail/>}/>
         <Route path="staff/forgot-password-code" element={<ForgotPasswordCode/>}/>
-        <Route path="staff/reset-password" element={<ResetPassword/>}/>
-
+        <Route path="staff/reset-password" element={<StaffResetPassword/>}/>
 
         {/* Protected Staff Routes */}
         <Route path="/staff" element={<ProtectedStaffRoute/>}>
@@ -100,7 +136,6 @@ const App = () => {
             <Route path="inquiry-management/view-replied-inquiries/:inquiryId" element={<ViewOneRepliedInquiry/>}/>
 
           </Route>
-
         </Route>
       </Routes>
     </Router>
