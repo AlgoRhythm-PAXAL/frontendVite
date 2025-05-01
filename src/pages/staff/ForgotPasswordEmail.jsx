@@ -1,11 +1,11 @@
-import Input from "../../components/ui/LoginInput";
-import { useState } from "react";
-import axios from "axios";
-import { useNavigate } from "react-router-dom";
+import Input from '../../components/ui/LoginInput';
+import { useState } from 'react';
+import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
 
 const ForgotPasswordEmail = () => {
-  const [email, setEmail] = useState("");
-  const [message, setMessage] = useState("");
+  const [email, setEmail] = useState('');
+  const [message, setMessage] = useState('');
 
   const navigate = useNavigate();
 
@@ -15,18 +15,18 @@ const ForgotPasswordEmail = () => {
     try {
       console.log(email);
       const response = await axios.post(
-        "http://localhost:8000/staff/forgot-password",
+        'http://localhost:8000/staff/forgot-password',
         { email }
       );
 
       setTimeout(() => {
-        navigate("/staff/forgot-password-code", { state: { email: email } });
+        navigate('/staff/forgot-password-code', { state: { email: email } });
       }, 2000); // Optional delay for demo purposes
       setMessage(response.data.message);
     } catch (error) {
-      console.error("Error :", error);
+      console.error('Error :', error);
 
-      setMessage("Error: Unable to send reset email");
+      setMessage('Error: Unable to send reset email');
     }
   };
 

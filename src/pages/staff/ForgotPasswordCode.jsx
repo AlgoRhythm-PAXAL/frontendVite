@@ -1,14 +1,14 @@
-import Input from "../../components/ui/LoginInput";
-import { useState } from "react";
-import axios from "axios";
-import { useLocation, useNavigate } from "react-router-dom";
+import Input from '../../components/ui/LoginInput';
+import { useState } from 'react';
+import axios from 'axios';
+import { useLocation, useNavigate } from 'react-router-dom';
 
 const ForgotPasswordCode = () => {
   const location = useLocation();
   const { email } = location.state || {};
 
-  const [resetCode, setResetCode] = useState("");
-  const [message, setMessage] = useState("");
+  const [resetCode, setResetCode] = useState('');
+  const [message, setMessage] = useState('');
 
   const navigate = useNavigate();
 
@@ -17,21 +17,21 @@ const ForgotPasswordCode = () => {
 
     try {
       const response = await axios.post(
-        "http://localhost:8000/staff/verify-reset-code",
+        'http://localhost:8000/staff/verify-reset-code',
         { email, resetCode }
       );
 
       setMessage(response.data.message);
 
       if (response.data.success) {
-        navigate("/staff/reset-password", {
+        navigate('/staff/reset-password', {
           state: { email: email, resetCode: resetCode },
         });
       }
     } catch (error) {
-      console.error("Axios error:", error.response?.data || error.message);
-      setMessage(error.response?.data?.message || "Something went wrong");
-      alert(error.response?.data?.message || "Invalid reset code");
+      console.error('Axios error:', error.response?.data || error.message);
+      setMessage(error.response?.data?.message || 'Something went wrong');
+      alert(error.response?.data?.message || 'Invalid reset code');
     }
   };
 
@@ -59,8 +59,8 @@ const ForgotPasswordCode = () => {
               className={`bg-Primary text-white px-20 py-4 w-64 rounded-xl font-semibold text-l 
                 ${
                   resetCode.length !== 6
-                    ? "opacity-50 cursor-not-allowed"
-                    : "hover:bg-PrimaryHover"
+                    ? 'opacity-50 cursor-not-allowed'
+                    : 'hover:bg-PrimaryHover'
                 }`}
               type="submit"
               disabled={resetCode.length !== 6}

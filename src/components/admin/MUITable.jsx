@@ -60,7 +60,6 @@
 //   );
 // }
 
-
 //Dense Rows by chatGPT
 
 // import * as React from 'react';
@@ -125,7 +124,6 @@
 //   );
 // }
 
-
 // import * as React from 'react';
 // import Paper from '@mui/material/Paper';
 // import Table from '@mui/material/Table';
@@ -156,10 +154,10 @@
 //           <TableHead>
 //             <TableRow>
 //               {headers.map((header) => (
-//                 <TableCell 
-//                   key={header} 
+//                 <TableCell
+//                   key={header}
 //                   sx={{ minWidth: 80, padding: '8px 6px', fontWeight: 'bold' }}
-                  
+
 //                 >
 //                   {header.toUpperCase()}
 //                 </TableCell>
@@ -187,12 +185,11 @@
 //         page={page}
 //         onPageChange={handleChangePage}
 //         onRowsPerPageChange={handleChangeRowsPerPage}
-//         sx={{ fontSize: '0.875rem', padding: '4px 16px' }} 
+//         sx={{ fontSize: '0.875rem', padding: '4px 16px' }}
 //       />
 //     </Paper>
 //   );
 // }
-
 
 // import * as React from 'react';
 // import Paper from '@mui/material/Paper';
@@ -224,14 +221,14 @@
 //           <TableHead>
 //             <TableRow sx={{ backgroundColor: '#f5f5f5' }}>
 //               {headers.map((header) => (
-//                 <TableCell 
-//                   key={header} 
-//                   sx={{ 
-//                     minWidth: 80, 
-//                     padding: '8px 8px', 
+//                 <TableCell
+//                   key={header}
+//                   sx={{
+//                     minWidth: 80,
+//                     padding: '8px 8px',
 //                     fontWeight: 550,  // Reduce font weight
 //                     // color: '#9e9e9e',  // Lighter text color
-//                     backgroundColor: '#fafafa' 
+//                     backgroundColor: '#fafafa'
 //                   }}
 //                 >
 //                   {header.toUpperCase()}
@@ -243,11 +240,11 @@
 //             {data.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((row, rowIndex) => (
 //               <TableRow hover role="checkbox" tabIndex={-1} key={rowIndex}>
 //                 {headers.map((header) => (
-//                   <TableCell 
-//                     key={header} 
-//                     sx={{ 
-//                       height: 28, 
-//                       padding: '8px 8px', 
+//                   <TableCell
+//                     key={header}
+//                     sx={{
+//                       height: 28,
+//                       padding: '8px 8px',
 //                       fontWeight: 300, // Reduce font weight
 //                     //   color: '#616161' // Slightly muted text color
 //                     }}
@@ -268,14 +265,13 @@
 //         page={page}
 //         onPageChange={handleChangePage}
 //         onRowsPerPageChange={handleChangeRowsPerPage}
-//         sx={{ fontSize: '0.8rem', padding: '4px 16px', 
+//         sx={{ fontSize: '0.8rem', padding: '4px 16px',
 //             // color: '#757575'
-//          }} 
+//          }}
 //       />
 //     </Paper>
 //   );
 // }
-
 
 import * as React from 'react';
 import Paper from '@mui/material/Paper';
@@ -304,13 +300,20 @@ export default function MUITable({ data, headers, onDelete }) {
   };
 
   return (
-    <Paper sx={{ width: '100%', overflow: 'hidden', boxShadow: 'none', border: '1px solid #e0e0e0' }}>
+    <Paper
+      sx={{
+        width: '100%',
+        overflow: 'hidden',
+        boxShadow: 'none',
+        border: '1px solid #e0e0e0',
+      }}
+    >
       <TableContainer sx={{ maxHeight: 440 }}>
         <Table stickyHeader aria-label="data table" size="small">
           <TableHead>
             <TableRow>
               {headers.map((header) => (
-                <TableCell 
+                <TableCell
                   key={header}
                   sx={{
                     minWidth: 80,
@@ -319,7 +322,7 @@ export default function MUITable({ data, headers, onDelete }) {
                     color: '#616161',
                     backgroundColor: '#f5f5f5',
                     borderBottom: '1px solid #e0e0e0',
-                    ...(header === 'Actions' && { width: 100 })
+                    ...(header === 'Actions' && { width: 100 }),
                   }}
                 >
                   {header.toUpperCase()}
@@ -331,8 +334,8 @@ export default function MUITable({ data, headers, onDelete }) {
             {data
               .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
               .map((row, rowIndex) => (
-                <TableRow 
-                  hover 
+                <TableRow
+                  hover
                   key={rowIndex}
                   sx={{ '&:last-child td': { borderBottom: 0 } }}
                 >
@@ -344,8 +347,8 @@ export default function MUITable({ data, headers, onDelete }) {
                         color: '#424242',
                         borderBottom: '1px solid #f0f0f0',
                         ...(header === 'Actions' && {
-                          textAlign: 'center'
-                        })
+                          textAlign: 'center',
+                        }),
                       }}
                     >
                       {header === 'Actions' && onDelete ? (
@@ -355,15 +358,15 @@ export default function MUITable({ data, headers, onDelete }) {
                             onClick={() => onDelete(row)}
                             sx={{
                               '&:hover': {
-                                color: (theme) => theme.palette.error.main
-                              }
+                                color: (theme) => theme.palette.error.main,
+                              },
                             }}
                           >
                             <DeleteIcon fontSize="small" />
                           </IconButton>
                         </Tooltip>
                       ) : (
-                        row[header] ?? '-'
+                        (row[header] ?? '-')
                       )}
                     </TableCell>
                   ))}
@@ -383,11 +386,11 @@ export default function MUITable({ data, headers, onDelete }) {
         sx={{
           borderTop: '1px solid #e0e0e0',
           '& .MuiTablePagination-selectLabel': {
-            fontSize: '0.875rem'
+            fontSize: '0.875rem',
           },
           '& .MuiTablePagination-displayedRows': {
-            fontSize: '0.875rem'
-          }
+            fontSize: '0.875rem',
+          },
         }}
       />
     </Paper>

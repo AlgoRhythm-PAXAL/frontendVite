@@ -1,47 +1,46 @@
-import * as React from "react"
-import { Bar, BarChart, CartesianGrid, XAxis } from "recharts"
+import * as React from 'react';
+import { Bar, BarChart, CartesianGrid, XAxis } from 'recharts';
 import {
   Card,
   CardContent,
   CardHeader,
   CardTitle,
   CardDescription,
-} from "@/components/ui/card"
+} from '@/components/ui/card';
 import {
   ChartContainer,
   ChartTooltip,
   ChartTooltipContent,
-} from "@/components/ui/chart"
-import { useState, useEffect } from 'react'
-import axios from 'axios'
-import {toast} from 'sonner'
+} from '@/components/ui/chart';
+import { useState, useEffect } from 'react';
+import axios from 'axios';
+import { toast } from 'sonner';
 
-
-const chartData = [
-  
-];
+const chartData = [];
 
 const chartConfig = {
   parcels: {
-    label: "Daily Parcels",
-    color: "hsl(var(--chart-1))",
+    label: 'Daily Parcels',
+    color: 'hsl(var(--chart-1))',
   },
-}
+};
 
-
-
-export  function Component() {
+export function Component() {
   const [data, setData] = useState(null);
-  const backendUrl=import.meta.env.VITE_BACKEND_URL;
+  const backendUrl = import.meta.env.VITE_BACKEND_URL;
   useEffect(() => {
     const fetchBarChartData = async () => {
       try {
-        const response = await axios.get(`${backendUrl}/admin/bar/data`,{withCredentials:true});
+        const response = await axios.get(`${backendUrl}/admin/bar/data`, {
+          withCredentials: true,
+        });
         setData(response.data.chartData); // Ensure state is properly updated
-        
       } catch (error) {
-        console.log("Error", error);
-        toast.error('Fetching data went fishing 🎣. No luck yet.',{description:error.response?.data?.message || 'Please try again later'})
+        console.log('Error', error);
+        toast.error('Fetching data went fishing 🎣. No luck yet.', {
+          description:
+            error.response?.data?.message || 'Please try again later',
+        });
       }
     };
     fetchBarChartData();
@@ -53,7 +52,6 @@ export  function Component() {
   );
 
   return (
-
     <div className="w-full">
       <Card>
         <CardHeader className="flex flex-col items-stretch space-y-0 border-b p-0 sm:flex-row">
@@ -75,7 +73,10 @@ export  function Component() {
           </div>
         </CardHeader>
         <CardContent className="px-2 sm:p-6">
-          <ChartContainer config={chartConfig} className="aspect-auto h-[250px] w-full">
+          <ChartContainer
+            config={chartConfig}
+            className="aspect-auto h-[250px] w-full"
+          >
             <BarChart data={data || chartData} margin={{ left: 12, right: 12 }}>
               <CartesianGrid vertical={false} />
               <XAxis
@@ -85,7 +86,10 @@ export  function Component() {
                 tickMargin={8}
                 minTickGap={32}
                 tickFormatter={(value) =>
-                  new Date(value).toLocaleDateString("en-US", { month: "short", day: "numeric" })
+                  new Date(value).toLocaleDateString('en-US', {
+                    month: 'short',
+                    day: 'numeric',
+                  })
                 }
               />
               <ChartTooltip
@@ -94,10 +98,10 @@ export  function Component() {
                     className="w-[150px]"
                     nameKey="parcels"
                     labelFormatter={(value) =>
-                      new Date(value).toLocaleDateString("en-US", {
-                        month: "short",
-                        day: "numeric",
-                        year: "numeric",
+                      new Date(value).toLocaleDateString('en-US', {
+                        month: 'short',
+                        day: 'numeric',
+                        year: 'numeric',
                       })
                     }
                   />

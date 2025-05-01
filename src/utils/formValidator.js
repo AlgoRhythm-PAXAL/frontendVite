@@ -1,7 +1,7 @@
-import { toast } from "sonner";
+import { toast } from 'sonner';
 
 const validateEmail = (email) => {
-  const requiredMessage = "Please enter your email to sign up!";
+  const requiredMessage = 'Please enter your email to sign up!';
   const invalidMessage = "Oops! That doesn't look like a valid email.";
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -16,27 +16,27 @@ const validateEmail = (email) => {
 };
 
 const validatePassword = (password) => {
-    return true; 
+  return true;
   if (!password) {
-    toast.error("Password is required");
+    toast.error('Password is required');
     return false;
   } else if (password.length < 8) {
-    toast.error("Password must be at least 8 characters");
+    toast.error('Password must be at least 8 characters');
     return false;
   } else if (!/[A-Z]/.test(password)) {
-    toast.error("Password must contain at least one uppercase letter");
+    toast.error('Password must contain at least one uppercase letter');
     return false;
   } else if (!/[a-z]/.test(password)) {
-    toast.error("Password must contain at least one lowercase letter");
+    toast.error('Password must contain at least one lowercase letter');
     return false;
   } else if (!/[0-9]/.test(password)) {
-    toast.error("Password must contain at least one number");
+    toast.error('Password must contain at least one number');
     return false;
   } else if (!/[!@#$%^&*(),.?":{}|<>]/.test(password)) {
-    toast.error("Password must contain at least one special character");
+    toast.error('Password must contain at least one special character');
     return false;
   }
-  return true; 
+  return true;
 };
 
 export default { validateEmail, validatePassword };

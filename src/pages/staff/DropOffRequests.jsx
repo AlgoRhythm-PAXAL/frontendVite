@@ -1,7 +1,7 @@
-import React, { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import axios from "axios";
-import DataTable from "../../components/staff/DataTable";
+import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
+import DataTable from '../../components/staff/DataTable';
 
 const DropOffRequests = () => {
   const [parcels, setParcels] = useState([]);
@@ -10,7 +10,7 @@ const DropOffRequests = () => {
   const getDropOffParcels = async () => {
     try {
       const response = await axios.get(
-        "http://localhost:8000/staff/lodging-management/get-all-dropOff-parcels",
+        'http://localhost:8000/staff/lodging-management/get-all-dropOff-parcels',
         { withCredentials: true }
       );
 
@@ -25,31 +25,31 @@ const DropOffRequests = () => {
   }, []);
 
   const columns = [
-    { label: "Parcel ID", key: "parcelId" },
+    { label: 'Parcel ID', key: 'parcelId' },
     {
-      label: "Sender Name",
-      key: "senderId",
+      label: 'Sender Name',
+      key: 'senderId',
       render: (value, row) =>
-        value?.fName && value?.lName ? `${value.fName} ${value.lName}` : "N/A",
+        value?.fName && value?.lName ? `${value.fName} ${value.lName}` : 'N/A',
     },
-    { label: "Shipping Method", key: "shippingMethod" },
+    { label: 'Shipping Method', key: 'shippingMethod' },
     {
-      label: "Registered Date",
-      key: "createdAt",
+      label: 'Registered Date',
+      key: 'createdAt',
       render: (value) =>
-        new Date(value).toLocaleDateString("en-GB", {
-          day: "2-digit",
-          month: "2-digit",
-          year: "numeric",
+        new Date(value).toLocaleDateString('en-GB', {
+          day: '2-digit',
+          month: '2-digit',
+          year: 'numeric',
         }),
     },
   ];
 
   const actions = [
     {
-      label: "Register",
+      label: 'Register',
       className:
-        "bg-Primary text-white font-semibold px-5 py-2 rounded-lg hover:shadow-md transition-all duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-Primary-light",
+        'bg-Primary text-white font-semibold px-5 py-2 rounded-lg hover:shadow-md transition-all duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-Primary-light',
       onClick: (row) =>
         navigate(`/staff/lodging-management/view-dropOffs/${row.parcelId}`),
     },
@@ -61,7 +61,7 @@ const DropOffRequests = () => {
       columns={columns}
       actions={actions}
       rowsPerPage={6}
-      textMessage={"No drop-off requests"}
+      textMessage={'No drop-off requests'}
     />
   );
 };

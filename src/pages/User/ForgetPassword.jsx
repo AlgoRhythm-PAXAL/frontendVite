@@ -1,35 +1,33 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import toast from "react-hot-toast";
+import toast from 'react-hot-toast';
 
 const ForgotPassword = () => {
-  const [email, setEmail] = useState("");
-  const [loading,setLoading]=useState(false);
+  const [email, setEmail] = useState('');
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
   const submitHandler = async (e) => {
     e.preventDefault();
     setLoading(true);
-  
+
     try {
-  
-        const response = await axios.post("http://localhost:8000/api/auth/forget-password", { email }, {
-            withCredentials: true,
-          
-          
-      });
-  
-      console.log("Response received:", response.data);
-      toast.success("Reset otp Send your email.");
-      localStorage.setItem("userEmail",email); // Ensure response is not undefined
+      const response = await axios.post(
+        'http://localhost:8000/api/auth/forget-password',
+        { email },
+        {
+          withCredentials: true,
+        }
+      );
+
+      console.log('Response received:', response.data);
+      toast.success('Reset otp Send your email.');
+      localStorage.setItem('userEmail', email); // Ensure response is not undefined
       navigate('/reset-password');
-    
-      
     } catch (error) {
-      console.error("Error received:", error.response || error);
-      toast.error("Error received:", error.response || error);
-     
+      console.error('Error received:', error.response || error);
+      toast.error('Error received:', error.response || error);
     } finally {
       setLoading(false);
     }
@@ -37,13 +35,15 @@ const ForgotPassword = () => {
   return (
     <div className="flex h-screen items-center justify-center bg-gray-100">
       <div className="w-full max-w-md bg-white p-8 shadow-lg rounded-lg">
-        <h2 className="text-2xl font-semibold text-center mb-4">Forgot Password</h2>
+        <h2 className="text-2xl font-semibold text-center mb-4">
+          Forgot Password
+        </h2>
         <p className="text-gray-600 text-center mb-6">
           Enter your email to receive a password reset link.
         </p>
 
         {/* Form */}
-        <form onSubmit={submitHandler }>
+        <form onSubmit={submitHandler}>
           <div className="mb-4">
             <label className="block text-gray-700 mb-1">Email</label>
             <input
@@ -56,13 +56,13 @@ const ForgotPassword = () => {
             />
           </div>
 
-         <button
+          <button
             type="submit"
             className="w-full bg-teal-700 text-white py-2 rounded-md mt-4 hover:bg-teal-800 transition duration-200"
-          disabled={loading}>
-          {loading ? "Sending.." :  "Send Reset Link"}
+            disabled={loading}
+          >
+            {loading ? 'Sending..' : 'Send Reset Link'}
           </button>
-          
         </form>
 
         {/* Back to Login */}

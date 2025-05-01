@@ -1,13 +1,9 @@
 import SectionTitle from '../../components/admin/SectionTitle';
 import UserRegistrationForm from '../../components/admin/UserRegistrationForm';
 import UserTables from '../../components/admin/UserTables/UserTables';
-import UserCount from "../../components/admin/userCounts/userCount";
-
+import UserCount from '../../components/admin/userCounts/userCount';
 
 const UserAccounts = () => {
-
-
-
   return (
     <div className="flex flex-col  mx-8  ">
       <SectionTitle title="User Accounts" />

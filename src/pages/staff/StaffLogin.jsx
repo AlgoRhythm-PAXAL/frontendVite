@@ -1,12 +1,12 @@
-import Input from "../../components/ui/LoginInput";
-import { useState } from "react";
-import axios from "axios";
-import Cookies from "js-cookie";
-import { useNavigate, Link } from "react-router-dom";
+import Input from '../../components/ui/LoginInput';
+import { useState } from 'react';
+import axios from 'axios';
+import Cookies from 'js-cookie';
+import { useNavigate, Link } from 'react-router-dom';
 
 const StaffLogin = () => {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
 
   const navigate = useNavigate();
 
@@ -15,18 +15,18 @@ const StaffLogin = () => {
 
     try {
       const response = await axios.post(
-        "http://localhost:8000/staff/login",
+        'http://localhost:8000/staff/login',
         { email, password },
         { withCredentials: true }
       );
 
-      console.log("Login successful, token stored in cookie.");
+      console.log('Login successful, token stored in cookie.');
       alert(response.data.message);
 
-      navigate("/staff/main-menu");
+      navigate('/staff/main-menu');
     } catch (error) {
-      console.error("Login error:", error);
-      alert("Login failed. Please check your credentials.");
+      console.error('Login error:', error);
+      alert('Login failed. Please check your credentials.');
     }
   };
 

@@ -1,4 +1,3 @@
-
 // // export default PieChart;
 // // Import required Chart.js components
 // import { Chart as ChartJS, ArcElement, Tooltip, Legend } from "chart.js/auto";
@@ -9,14 +8,6 @@
 // ChartJS.register(ArcElement, Tooltip, Legend, ChartDataLabels);
 
 // const PieChart = () => {
-
-
-  
-
-
-
-
-
 
 //   // Custom plugin for center total and bottom labels
 //   const totalCenterPlugin = {
@@ -45,14 +36,14 @@
 //       const labels = chart.config.data.labels;
 //       const colors = chart.config.data.datasets[0].backgroundColor;
 //       const values = chart.config.data.datasets[0].data;
-      
+
 //       // Label positioning
 //       const labelStartX = chartArea.left + 20; // Left margin
 //       let labelStartY = chartArea.bottom + 30; // Start below chart
 
 //       labels.forEach((label, index) => {
 //         ctx.save(); // Save state for each label
-        
+
 //         // Draw color indicator box
 //         const boxY = labelStartY;
 //         ctx.fillStyle = colors[index];
@@ -60,7 +51,7 @@
 
 //         // Create label text with count
 //         const labelText = `${label}: ${values[index]}`;
-        
+
 //         // Label text styling
 //         ctx.font = "14px 'Segoe UI', sans-serif";
 //         ctx.fillStyle = "#374151"; // Dark gray text
@@ -78,7 +69,7 @@
 //     // Container styling with Tailwind CSS
 //     <div className="flex flex-col gap-5 bg-white rounded-2xl border border-gray-300 shadow-lg min-w-[400px] p-4">
 //       <h1 className="text-lg font-semibold">Shipment Status</h1>
-      
+
 //       {/* Chart container with fixed dimensions */}
 //       <div className="relative h-[500px] min-h-[400px]">
 //         <Doughnut
@@ -104,7 +95,7 @@
 //             // Chart configuration
 //             cutout: '65%', // Doughnut hole size
 //             maintainAspectRatio: false, // Manual size control
-            
+
 //             // Layout padding for labels
 //             layout: {
 //               padding: {
@@ -113,7 +104,7 @@
 //                 right: 20
 //               }
 //             },
-            
+
 //             // Plugins configuration
 //             plugins: {
 //               legend: { display: false }, // Disable default legend
@@ -137,10 +128,9 @@
 
 // export default PieChart;
 
-
 // PieChart.jsx
-import { Chart as ChartJS, ArcElement, Tooltip, Legend } from "chart.js/auto";
-import { Doughnut } from "react-chartjs-2";
+import { Chart as ChartJS, ArcElement, Tooltip, Legend } from 'chart.js/auto';
+import { Doughnut } from 'react-chartjs-2';
 import ChartDataLabels from 'chartjs-plugin-datalabels';
 
 ChartJS.register(ArcElement, Tooltip, Legend, ChartDataLabels);
@@ -157,69 +147,65 @@ const PieChart = ({ labels, data, total, groupName }) => {
     '#0047AB', // Cobalt Blue (Notifications)
     '#4F46E5', // Royal Blue (Priority)
     '#2563EB', // Primary Blue (Actions/Processing)
-    
+
     '#0EA5E9', // Sky Blue (In Transit)
-    
+
     // '#2DD4BF', // Teal Blue (Special Handling)
     '#0077B6', // Cerulean Blue (Documentation)
-    
-   
-    '#0047AB', // Cobalt Blue (Notifications)
 
-    
+    '#0047AB', // Cobalt Blue (Notifications)
   ];
-   
 
   const totalCenterPlugin = {
-    id: "totalCenter",
+    id: 'totalCenter',
     afterDraw(chart) {
       const { ctx, chartArea } = chart;
       if (!chartArea) return;
-  
+
       // ------ CENTER TOTAL ------
       // const data = chart.config.data.datasets[0].data;
       // const total = data.reduce((acc, value) => acc + value, 0);
-  
+
       ctx.save();
       ctx.font = "bold 25px 'Segoe UI', sans-serif";
-      ctx.fillStyle = "#1F2937";
-      ctx.textAlign = "center";
-      ctx.textBaseline = "middle";
+      ctx.fillStyle = '#1F2937';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
       const centerX = (chartArea.left + chartArea.right) / 2;
       const centerY = (chartArea.top + chartArea.bottom) / 2;
       ctx.fillText(`${total}%`, centerX, centerY);
       ctx.restore();
-  
+
       // ------ BOTTOM LABELS WITH COLOR BOXES ------
       const labels = chart.config.data.labels;
       const colors = chart.config.data.datasets[0].backgroundColor;
       const values = chart.config.data.datasets[0].data;
-      
+
       // Label positioning
       const labelStartX = chartArea.left + 15; // Left margin
       let labelStartY = chartArea.bottom + 20; // Start below chart
-  
+
       labels.forEach((label, index) => {
         ctx.save();
-        
+
         // Draw color box
         ctx.fillStyle = colors[index];
         ctx.fillRect(labelStartX, labelStartY, 12, 12);
-  
+
         // Create label text with count
         const labelText = `${label}: ${values[index]}`;
-        
+
         // Draw text
         ctx.font = "14px 'Segoe UI', sans-serif";
-        ctx.fillStyle = "#374151";
-        ctx.textAlign = "left";
-        ctx.textBaseline = "top";
+        ctx.fillStyle = '#374151';
+        ctx.textAlign = 'left';
+        ctx.textBaseline = 'top';
         ctx.fillText(labelText, labelStartX + 25, labelStartY);
-  
+
         ctx.restore();
         labelStartY += 28; // Vertical spacing between labels
       });
-    }
+    },
   };
 
   return (
@@ -229,20 +215,22 @@ const PieChart = ({ labels, data, total, groupName }) => {
         <Doughnut
           data={{
             labels,
-            datasets: [{
-              label: "Shipments",
-              data,
-              backgroundColor: colors.slice(0, labels.length),
-              borderRadius: 10,
-              spacing: 1,
-            }],
-            hoverOffset: 4
+            datasets: [
+              {
+                label: 'Shipments',
+                data,
+                backgroundColor: colors.slice(0, labels.length),
+                borderRadius: 10,
+                spacing: 1,
+              },
+            ],
+            hoverOffset: 4,
           }}
           options={{
             cutout: '60%',
             maintainAspectRatio: false,
             layout: {
-              padding: { bottom: 150, left: 5, right: 5 }
+              padding: { bottom: 150, left: 5, right: 5 },
             },
             plugins: {
               legend: { display: false },
@@ -250,8 +238,8 @@ const PieChart = ({ labels, data, total, groupName }) => {
                 color: '#fff',
                 font: { size: 12, weight: 'normal' },
                 formatter: (value) => ` ${((value / total) * 100).toFixed(1)}%`,
-              }
-            }
+              },
+            },
           }}
           plugins={[totalCenterPlugin]}
         />
@@ -261,5 +249,3 @@ const PieChart = ({ labels, data, total, groupName }) => {
 };
 
 export default PieChart;
-
-

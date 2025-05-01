@@ -18,13 +18,14 @@ const PieChartContainer = () => {
         setChartData(response.data);
         setLoading(false);
       } catch (err) {
-        const errorMessage=error.response?.data.message||'Failed to load chart data';
-        TransformStream.error('Data loading error',{
-          description:errorMessage,
-          action:{
-            label:'Retry',
-            onClick:() => fetchData()
-          }
+        const errorMessage =
+          error.response?.data.message || 'Failed to load chart data';
+        TransformStream.error('Data loading error', {
+          description: errorMessage,
+          action: {
+            label: 'Retry',
+            onClick: () => fetchData(),
+          },
         });
         setError(err.message);
         setLoading(false);
@@ -41,14 +42,13 @@ const PieChartContainer = () => {
   //   groupName: group.group
   // });
 
-
-    // In PieChartContainer.js
-const processGroupData = (group) => ({
-  labels: group.subStages.map(sub => sub.status),
-  counts: group.subStages.map(sub => sub.count),
-  total: group.percentage, // Pass percentage instead of totalCount
-  groupName: group.group
-});
+  // In PieChartContainer.js
+  const processGroupData = (group) => ({
+    labels: group.subStages.map((sub) => sub.status),
+    counts: group.subStages.map((sub) => sub.count),
+    total: group.percentage, // Pass percentage instead of totalCount
+    groupName: group.group,
+  });
   if (loading) return <div>Loading...</div>;
   if (error) return <div>Error: {error}</div>;
 
@@ -69,7 +69,6 @@ const processGroupData = (group) => ({
         );
       })}
     </div>
-    
   );
 };
 

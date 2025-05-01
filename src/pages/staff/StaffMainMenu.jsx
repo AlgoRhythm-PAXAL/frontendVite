@@ -1,5 +1,5 @@
-import MainMenuButton from "../../components/staff/MainMenuButton";
-import NavigationBar from "../../components/staff/NavigationBar";
+import MainMenuButton from '../../components/staff/MainMenuButton';
+import NavigationBar from '../../components/staff/NavigationBar';
 
 const StaffMainMenu = () => {
   return (

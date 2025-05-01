@@ -1,23 +1,23 @@
-import Input from "../../components/ui/LoginInput";
-import { useState } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
-import axios from "axios";
+import Input from '../../components/ui/LoginInput';
+import { useState } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
+import axios from 'axios';
 
 const ResetPassword = () => {
   const location = useLocation();
 
   const { email, resetCode } = location.state || {};
 
-  const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
-  const [message, setMessage] = useState("");
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [message, setMessage] = useState('');
 
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!password.trim() || !confirmPassword.trim()) {
-      alert("Password fields cannot be empty");
+      alert('Password fields cannot be empty');
       return;
     }
 
@@ -27,14 +27,14 @@ const ResetPassword = () => {
     }
     try {
       const response = await axios.post(
-        "http://localhost:8000/staff/reset-password",
+        'http://localhost:8000/staff/reset-password',
         { newPassword: password, resetCode: resetCode, email: email }
       );
 
       setMessage(response.data.message);
 
       if (response.data.success) {
-        navigate("/staff/login");
+        navigate('/staff/login');
       }
     } catch (error) {
       console.error(error);

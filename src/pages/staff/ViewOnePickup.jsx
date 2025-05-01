@@ -1,7 +1,7 @@
-import React, { useState } from "react";
-import { useParams } from "react-router-dom";
-import ParcelInfo from "../../components/staff/ParcelInfo";
-import PickupSchedules from "../../components/staff/PickupSchedules";
+import React, { useState } from 'react';
+import { useParams } from 'react-router-dom';
+import ParcelInfo from '../../components/staff/ParcelInfo';
+import PickupSchedules from '../../components/staff/PickupSchedules';
 
 const ViewOnePickup = () => {
   const { parcelId } = useParams();

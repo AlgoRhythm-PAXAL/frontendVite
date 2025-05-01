@@ -51,8 +51,6 @@
 
 // export default Checkout;
 
-
-
 import React, { useEffect, useState } from 'react';
 import { loadStripe } from '@stripe/stripe-js';
 
@@ -61,7 +59,9 @@ const Checkout = () => {
 
   useEffect(() => {
     const initializeStripe = async () => {
-      const stripeInstance = await loadStripe('pk_test_51R3B48QZp8HlxlDzodvTaadEgXbZhTWsYPxqqcoDfwgJyaAZvrwvo8bQ7LKscORX2UVyCnT9Q2TbrLD08yoOGFJu00bhfZINbL');
+      const stripeInstance = await loadStripe(
+        'pk_test_51R3B48QZp8HlxlDzodvTaadEgXbZhTWsYPxqqcoDfwgJyaAZvrwvo8bQ7LKscORX2UVyCnT9Q2TbrLD08yoOGFJu00bhfZINbL'
+      );
       console.log('Stripe initialized:', stripeInstance); // Debugging line
       setStripe(stripeInstance);
     };
@@ -72,12 +72,15 @@ const Checkout = () => {
     if (stripe) {
       const handleCheckout = async () => {
         try {
-          const response = await fetch('http://localhost:8000/api/payment/checkout', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-          });
+          const response = await fetch(
+            'http://localhost:8000/api/payment/checkout',
+            {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+            }
+          );
 
           const data = await response.json();
           console.log('Backend Response:', data); // Debugging line

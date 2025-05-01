@@ -1,7 +1,7 @@
-import { useForm } from "react-hook-form";
-import axios from "axios";
-import BranchSelector from "./BranchSelector";
-import { useEffect, useState } from "react";
+import { useForm } from 'react-hook-form';
+import axios from 'axios';
+import BranchSelector from './BranchSelector';
+import { useEffect, useState } from 'react';
 
 const ParcelRegistrationForm = () => {
   const {
@@ -11,41 +11,38 @@ const ParcelRegistrationForm = () => {
     formState: { errors },
   } = useForm();
 
-  const [paymentAmount, setPaymentAmount] = useState("");
+  const [paymentAmount, setPaymentAmount] = useState('');
 
   const [itemSize, itemType, from, to, shippingMethod] = watch([
-    "itemSize",
-    "itemType",
-    "from",
-    "to",
-    "shippingMethod",
+    'itemSize',
+    'itemType',
+    'from',
+    'to',
+    'shippingMethod',
   ]);
 
   // Fetch payment amount
   const fetchPaymentAmount = async () => {
     try {
-      if (itemSize && itemType && from && to && shippingMethod){
-
+      if (itemSize && itemType && from && to && shippingMethod) {
         const response = await axios.get(
-        "http://localhost:8000/staff/parcel/calculate-payment",
-        {
-          params: {
-            itemSize,
-            itemType,
-            from,
-            to,
-            shippingMethod,
-          },
-        }
-      );
-      const amount = response.data.paymentAmount;
-      console.log(amount)
-      setPaymentAmount(amount);
+          'http://localhost:8000/staff/parcel/calculate-payment',
+          {
+            params: {
+              itemSize,
+              itemType,
+              from,
+              to,
+              shippingMethod,
+            },
+          }
+        );
+        const amount = response.data.paymentAmount;
+        console.log(amount);
+        setPaymentAmount(amount);
       }
-      
     } catch (error) {
-      console.error("Error fetching payment amount", error);
-      
+      console.error('Error fetching payment amount', error);
     }
   };
 
@@ -56,31 +53,26 @@ const ParcelRegistrationForm = () => {
 
   const onSubmit = async (data) => {
     try {
-      
       const formData = {
         ...data,
         latestLocation: data.from,
         username: data.customerEmail,
-        orderPlacedStaffId: "STAFF001",
-        
-
-      }
-      console.log("Data being sent to the server: ", formData);
+        orderPlacedStaffId: 'STAFF001',
+      };
+      console.log('Data being sent to the server: ', formData);
 
       const response = await axios.post(
-        "http://localhost:8000/staff/parcel/register-parcel",
+        'http://localhost:8000/staff/parcel/register-parcel',
         formData
         // {
         //   headers: { "Content-Type": "application/json" },
         //   // withCredentials: true,
         // }
       );
-      alert("Parcel Registered successfully!");
-      
-      
+      alert('Parcel Registered successfully!');
     } catch (error) {
-      console.error("Error submitting parcel data: ", error);
-      alert("Parcel registration failed");
+      console.error('Error submitting parcel data: ', error);
+      alert('Parcel registration failed');
     }
   };
 
@@ -98,7 +90,7 @@ const ParcelRegistrationForm = () => {
             <div className="flex items-center">
               <label className="w-1/3 text-left pl-10">First Name:</label>
               <input
-                {...register("fName", { required: true })}
+                {...register('fName', { required: true })}
                 className="border p-2 w-60"
               />
             </div>
@@ -111,7 +103,7 @@ const ParcelRegistrationForm = () => {
             <div className="flex items-center">
               <label className="w-1/3 text-left pl-10">Full Name:</label>
               <input
-                {...register("customerFullName", { required: true })}
+                {...register('customerFullName', { required: true })}
                 className="border p-2 w-60"
               />
             </div>
@@ -124,7 +116,7 @@ const ParcelRegistrationForm = () => {
             <div className="flex items-center">
               <label className="w-1/3 text-left pl-10">Mobile:</label>
               <input
-                {...register("customerContact", { required: true })}
+                {...register('customerContact', { required: true })}
                 className="border p-2 w-60"
               />
             </div>
@@ -137,7 +129,7 @@ const ParcelRegistrationForm = () => {
             <div className="flex items-center">
               <label className="w-1/3 text-left pl-10">Address:</label>
               <input
-                {...register("customerAddress", { required: true })}
+                {...register('customerAddress', { required: true })}
                 className="border p-2 w-60 h-32"
               />
             </div>
@@ -154,7 +146,7 @@ const ParcelRegistrationForm = () => {
             <div className="flex items-center">
               <label className="w-1/3 text-left pl-10">Last Name:</label>
               <input
-                {...register("lName", { required: true })}
+                {...register('lName', { required: true })}
                 className="border p-2 w-60"
               />
             </div>
@@ -167,7 +159,7 @@ const ParcelRegistrationForm = () => {
             <div className="flex items-center">
               <label className="w-1/3 text-left pl-10">NIC:</label>
               <input
-                {...register("nic", { required: true })}
+                {...register('nic', { required: true })}
                 className="border p-2 w-60"
               />
             </div>
@@ -181,7 +173,7 @@ const ParcelRegistrationForm = () => {
               <label className="w-1/3 text-left pl-10">Email:</label>
               <input
                 type="email"
-                {...register("customerEmail", { required: true })}
+                {...register('customerEmail', { required: true })}
                 className="border p-2 w-60"
               />
             </div>
@@ -203,7 +195,7 @@ const ParcelRegistrationForm = () => {
             <div className="flex items-center">
               <label className="w-1/3 text-left pl-10">Full Name:</label>
               <input
-                {...register("receiverFullName", { required: true })}
+                {...register('receiverFullName', { required: true })}
                 className="border p-2 w-60"
               />
             </div>
@@ -216,7 +208,7 @@ const ParcelRegistrationForm = () => {
             <div className="flex items-center">
               <label className="w-1/3 text-left pl-10">Address:</label>
               <input
-                {...register("receiverAddress", { required: true })}
+                {...register('receiverAddress', { required: true })}
                 className="border p-2 w-60 h-32"
               />
             </div>
@@ -233,7 +225,7 @@ const ParcelRegistrationForm = () => {
             <div className="flex items-center">
               <label className="w-1/3 text-left pl-10">Mobile:</label>
               <input
-                {...register("receiverContact", { required: true })}
+                {...register('receiverContact', { required: true })}
                 className="border p-2 w-60"
               />
             </div>
@@ -247,7 +239,7 @@ const ParcelRegistrationForm = () => {
               <label className="w-1/3 text-left pl-10">Email:</label>
               <input
                 type="email"
-                {...register("receiverEmail", { required: true })}
+                {...register('receiverEmail', { required: true })}
                 className="border p-2 w-60"
               />
             </div>
@@ -270,7 +262,7 @@ const ParcelRegistrationForm = () => {
               <label className="w-1/3 text-left pl-10">Parcel Size:</label>
 
               <select
-                {...register("itemSize", { required: true })}
+                {...register('itemSize', { required: true })}
                 className="border w-40  py-1 px-5"
               >
                 <option value="">Select</option>
@@ -288,7 +280,7 @@ const ParcelRegistrationForm = () => {
             <div className="flex items-center">
               <label className="w-1/3 text-left pl-10">Parcel Type:</label>
               <select
-                {...register("itemType", { required: true })}
+                {...register('itemType', { required: true })}
                 className="border w-40  py-1 px-5"
               >
                 <option value="">Select</option>
@@ -310,7 +302,7 @@ const ParcelRegistrationForm = () => {
             <div className="flex items-center">
               <label className="w-1/3 text-left pl-10">Instructions:</label>
               <input
-                {...register("specialInstruction")}
+                {...register('specialInstruction')}
                 className="border p-2 w-60 h-32"
               />
             </div>
@@ -342,7 +334,7 @@ const ParcelRegistrationForm = () => {
               <label className="inline-flex items-center mt-2">
                 <input
                   type="radio"
-                  {...register("shippingMethod", { required: true })}
+                  {...register('shippingMethod', { required: true })}
                   value="express"
                   className="border p-2 w-30 m-3"
                 />
@@ -351,7 +343,7 @@ const ParcelRegistrationForm = () => {
               <label className="inline-flex items-center mt-2">
                 <input
                   type="radio"
-                  {...register("shippingMethod", { required: true })}
+                  {...register('shippingMethod', { required: true })}
                   value="standard"
                   className="border p-2 w-30 m-3"
                 />
@@ -369,7 +361,7 @@ const ParcelRegistrationForm = () => {
               <label className="inline-flex items-center mt-2">
                 <input
                   type="radio"
-                  {...register("receivingType", { required: true })}
+                  {...register('receivingType', { required: true })}
                   value="collection_center"
                   className="border p-2 w-30 m-3"
                 />
@@ -378,7 +370,7 @@ const ParcelRegistrationForm = () => {
               <label className="inline-flex items-center mt-2">
                 <input
                   type="radio"
-                  {...register("receivingType", { required: true })}
+                  {...register('receivingType', { required: true })}
                   value="doorstep"
                   className="border p-2 w-30 m-3"
                 />
@@ -405,8 +397,8 @@ const ParcelRegistrationForm = () => {
                 Payment Amount (Rs.):
               </label>
               <input
-                {...register("paymentAmount", { required: true })}
-                value={paymentAmount ?? ""}
+                {...register('paymentAmount', { required: true })}
+                value={paymentAmount ?? ''}
                 className="border p-2 w-60"
                 readOnly
               />
@@ -421,7 +413,7 @@ const ParcelRegistrationForm = () => {
               <label className="inline-flex items-center mt-2">
                 <input
                   type="radio"
-                  {...register("paidBy", { required: true })}
+                  {...register('paidBy', { required: true })}
                   value="sender"
                   className="border p-2 w-30 m-3"
                 />
@@ -430,7 +422,7 @@ const ParcelRegistrationForm = () => {
               <label className="inline-flex items-center mt-2">
                 <input
                   type="radio"
-                  {...register("paidBy", { required: true })}
+                  {...register('paidBy', { required: true })}
                   value="receiver"
                   className="border p-2 w-30 m-3"
                 />
@@ -448,7 +440,7 @@ const ParcelRegistrationForm = () => {
               <label className="inline-flex items-center mt-2">
                 <input
                   type="radio"
-                  {...register("paymentStatus", { required: true })}
+                  {...register('paymentStatus', { required: true })}
                   value="paid"
                   className="border p-2 w-30 m-3"
                 />
@@ -457,7 +449,7 @@ const ParcelRegistrationForm = () => {
               <label className="inline-flex items-center mt-2">
                 <input
                   type="radio"
-                  {...register("paymentStatus", { required: true })}
+                  {...register('paymentStatus', { required: true })}
                   value="pending"
                   className="border p-2 w-30 m-3"
                 />
@@ -477,7 +469,7 @@ const ParcelRegistrationForm = () => {
           type="reset"
           value="Cancel"
           className="bg-white text-Primary border border-Primary px-6 py-2 rounded-xl "
-          onClick={() => reset({ paymentAmount: "" })}
+          onClick={() => reset({ paymentAmount: '' })}
         />
 
         <input

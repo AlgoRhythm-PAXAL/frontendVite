@@ -1,14 +1,14 @@
-import FormField from "../../components/admin/FormField";
-import axios from "axios";
-import { useState } from "react";
-import LOGO from "../../assets/Velox-Logo.png";
-import { useNavigate } from "react-router-dom";
-import { Link } from "react-router-dom";
-import { toast } from "sonner";
-import formValidator from "../../utils/formValidator.js";
+import FormField from '../../components/admin/FormField';
+import axios from 'axios';
+import { useState } from 'react';
+import LOGO from '../../assets/Velox-Logo.png';
+import { useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
+import { toast } from 'sonner';
+import formValidator from '../../utils/formValidator.js';
 
 const AdminLogin = () => {
-  const [formData, setFormData] = useState({ email: "", password: "" });
+  const [formData, setFormData] = useState({ email: '', password: '' });
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
 
@@ -25,32 +25,32 @@ const AdminLogin = () => {
     setIsLoading(true);
     try {
       const response = await axios.post(
-        "http://localhost:8000/admin/login",
+        'http://localhost:8000/admin/login',
         formData,
         {
           withCredentials: true,
-          headers: { "Content-Type": "application/json" },
+          headers: { 'Content-Type': 'application/json' },
         }
       );
-      toast.success("Login Successful", {
+      toast.success('Login Successful', {
         description: `Hello ${response.data.admin.name}`,
         duration: 2000,
-        action: { label: "Dashboard", onClick: () => navigate("/admin") },
+        action: { label: 'Dashboard', onClick: () => navigate('/admin') },
       });
-      console.log("Login successful");
+      console.log('Login successful');
 
-      setTimeout(() => navigate("/admin"), 1000);
+      setTimeout(() => navigate('/admin'), 1000);
     } catch (error) {
-      const errorMessage = "Login failed. Please check your credentials.";
+      const errorMessage = 'Login failed. Please check your credentials.';
       // const errorMessage = error.response?.data?.message || 'Login failed. Please check your credentials.';
-      toast.error("Authentication Error", {
+      toast.error('Authentication Error', {
         description: errorMessage,
         action: {
-          label: "Retry",
+          label: 'Retry',
           onClick: () => window.location.reload(),
         },
       });
-      console.error("Login error:", error);
+      console.error('Login error:', error);
     } finally {
       setIsLoading(false);
     }
@@ -105,7 +105,7 @@ const AdminLogin = () => {
                 Authenticating...
               </div>
             ) : (
-              "Login"
+              'Login'
             )}
           </button>
           <Link

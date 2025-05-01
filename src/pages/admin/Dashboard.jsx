@@ -1,11 +1,7 @@
-import SectionTitle from "../../components/admin/SectionTitle";
-import { Component } from "../../components/admin/BarChart";
-import PieChartContainer from "../../components/admin/pieCharts/PieChartContainer";
-import AdminList from "../../components/admin/AdminList"
-
-
-
-
+import SectionTitle from '../../components/admin/SectionTitle';
+import { Component } from '../../components/admin/BarChart';
+import PieChartContainer from '../../components/admin/pieCharts/PieChartContainer';
+import AdminList from '../../components/admin/AdminList';
 
 const Dashboard = () => {
   return (

@@ -8,10 +8,9 @@
 
 // export default function PieArcLabel({title,chartData,totalParcels}) {
 //   console.log("Pie Chart MUI",chartData)
-  
+
 //   // const [chartData, setChartData] = useState([]);
 //   // const [totalParcels, setTotalParcels] = useState(0);
-
 
 //   // useEffect(() => {
 //   //   const fetchData = async () => {
@@ -40,7 +39,6 @@
 
 //   //   fetchData();
 //   // }, []);
-  
 
 //   return (
 //     // <Box
@@ -72,7 +70,7 @@
 //             startAngle: -180,
 //             endAngle: 225,
 //             cx: 150,
-//             cy: 150,      
+//             cy: 150,
 //           },
 //         ]}
 //         sx={{
@@ -80,7 +78,7 @@
 //             fontWeight: 'normal',
 //             textAnchor: 'middle',
 //             fill: '#FFFFFF', // Ensures the label is centered in each section
-            
+
 //           },
 //         }}
 //         {...size}
@@ -97,7 +95,7 @@
 //   dominantBaseline: 'central',
 //   fontSize: 15,
 //   fontWeight: 'bold',
-  
+
 // }));
 
 // function PieCenterLabel({totalParcels}) {
@@ -120,14 +118,16 @@
 // //   valueFormatter,
 // // };
 
-
 import { PieChart, pieArcLabelClasses } from '@mui/x-charts/PieChart';
 import { styled } from '@mui/material/styles';
 import { useDrawingArea } from '@mui/x-charts/hooks';
 
-
-export default function PieArcLabel({ title, chartData, totalParcels,statusParcelCount }) {
-  
+export default function PieArcLabel({
+  title,
+  chartData,
+  totalParcels,
+  statusParcelCount,
+}) {
   return (
     <div className="flex flex-col items-center bg-background p-6 rounded-2xl shadow-lg">
       <h1 className="text-2xl font-semibold mb-4">{title}</h1>
@@ -150,8 +150,6 @@ export default function PieArcLabel({ title, chartData, totalParcels,statusParce
               cy: 150,
             },
           ]}
-
-          
           sx={{
             [`& .${pieArcLabelClasses.root}`]: {
               fontWeight: 'normal',
@@ -161,8 +159,9 @@ export default function PieArcLabel({ title, chartData, totalParcels,statusParce
           }}
           {...size}
         >
-          <PieCenterLabel totalParcels={`${((statusParcelCount / totalParcels) * 100).toFixed(2)}%`} />
-
+          <PieCenterLabel
+            totalParcels={`${((statusParcelCount / totalParcels) * 100).toFixed(2)}%`}
+          />
         </PieChart>
 
         {/* Labels Below */}
@@ -191,10 +190,23 @@ function PieCenterLabel({ totalParcels }) {
   const { width, height, left, top } = useDrawingArea();
   return (
     <StyledText x={left + width / 2} y={top + height / 2 - 5}>
-      <tspan x={left + width / 2} dy="-8" dx="-20" fontSize="23" fontWeight="bold">
+      <tspan
+        x={left + width / 2}
+        dy="-8"
+        dx="-20"
+        fontSize="23"
+        fontWeight="bold"
+      >
         {totalParcels}
       </tspan>
-      <tspan x={left + width / 2} dy="30" dx="-24" fontSize="14" fill="grey" fontWeight="normal">
+      <tspan
+        x={left + width / 2}
+        dy="30"
+        dx="-24"
+        fontSize="14"
+        fill="grey"
+        fontWeight="normal"
+      >
         Parcels
       </tspan>
     </StyledText>
@@ -205,4 +217,3 @@ const size = {
   width: 450,
   height: 310,
 };
-

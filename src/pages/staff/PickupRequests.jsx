@@ -1,8 +1,8 @@
-import React, { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { formatDistanceToNow } from "date-fns";
-import axios from "axios";
-import DataTable from "../../components/staff/DataTable";
+import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { formatDistanceToNow } from 'date-fns';
+import axios from 'axios';
+import DataTable from '../../components/staff/DataTable';
 
 const PickupRequests = () => {
   const [parcels, setParcels] = useState([]);
@@ -11,7 +11,7 @@ const PickupRequests = () => {
   const getPickupParcels = async () => {
     try {
       const response = await axios.get(
-        "http://localhost:8000/staff/lodging-management/get-all-pickup-parcels",
+        'http://localhost:8000/staff/lodging-management/get-all-pickup-parcels',
         { withCredentials: true }
       );
 
@@ -26,14 +26,14 @@ const PickupRequests = () => {
   }, []);
 
   const columns = [
-    { label: "Parcel ID", key: "parcelId" },
+    { label: 'Parcel ID', key: 'parcelId' },
     {
-      label: "Created",
-      key: "createdAt",
+      label: 'Created',
+      key: 'createdAt',
       render: (value) => {
         const date = new Date(value);
         if (isNaN(date)) {
-          return "Invalid Date";
+          return 'Invalid Date';
         }
         return formatDistanceToNow(date, {
           addSuffix: true,
@@ -41,28 +41,28 @@ const PickupRequests = () => {
       },
     },
     {
-      label: "Pickup Date",
-      key: "pickupInformation",
+      label: 'Pickup Date',
+      key: 'pickupInformation',
       render: (value, row) =>
-        new Date(row.pickupInformation.pickupDate).toLocaleDateString("en-GB", {
-          day: "2-digit",
-          month: "2-digit",
-          year: "numeric",
+        new Date(row.pickupInformation.pickupDate).toLocaleDateString('en-GB', {
+          day: '2-digit',
+          month: '2-digit',
+          year: 'numeric',
         }),
     },
-    { label: "Shipping Method", key: "shippingMethod" },
+    { label: 'Shipping Method', key: 'shippingMethod' },
     {
-      label: "Pickup City",
-      key: "pickupInformation",
-      render: (value, row) => row.pickupInformation?.city || "N/A",
+      label: 'Pickup City',
+      key: 'pickupInformation',
+      render: (value, row) => row.pickupInformation?.city || 'N/A',
     },
   ];
 
   const actions = [
     {
-      label: "Register",
+      label: 'Register',
       className:
-        "bg-Primary text-white font-semibold px-5 py-2 rounded-lg hover:shadow-md transition-all duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-Primary-light",
+        'bg-Primary text-white font-semibold px-5 py-2 rounded-lg hover:shadow-md transition-all duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-Primary-light',
       onClick: (row) =>
         navigate(`/staff/lodging-management/view-pickups/${row.parcelId}`),
     },
@@ -74,7 +74,7 @@ const PickupRequests = () => {
       columns={columns}
       actions={actions}
       rowsPerPage={6}
-      textMessage={"No pickup requests"}
+      textMessage={'No pickup requests'}
     />
   );
 };

@@ -1,6 +1,6 @@
-import React, { useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
-import ParcelInfo from "../../components/staff/ParcelInfo";
+import React, { useState } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
+import ParcelInfo from '../../components/staff/ParcelInfo';
 
 const ViewOneDropOff = () => {
   const { parcelId } = useParams();
@@ -12,7 +12,7 @@ const ViewOneDropOff = () => {
   };
 
   const handleViewInvoice = (parcelId) => {
-    console.log("invoice clicked");
+    console.log('invoice clicked');
     navigate(`/staff/lodging-management/view-parcels/invoice/${parcelId}`);
   };
 

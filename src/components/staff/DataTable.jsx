@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState } from 'react';
 import {
   Table,
   TableBody,
@@ -10,7 +10,7 @@ import {
   Stack,
   Pagination,
   Box,
-} from "@mui/material";
+} from '@mui/material';
 
 const DataTable = ({
   data = [],
@@ -77,10 +77,10 @@ const DataTable = ({
                         {actions.map((action, actionIndex) => (
                           <button
                             key={actionIndex}
-                            className={action.className || ""}
+                            className={action.className || ''}
                             onClick={() => action.onClick?.(row)}
                           >
-                            {action.label || "Action"}
+                            {action.label || 'Action'}
                           </button>
                         ))}
                       </Stack>

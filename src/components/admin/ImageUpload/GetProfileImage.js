@@ -1,4 +1,1 @@
-
-export const getProfileImage = (publicId, width = 200) => {
-  
-};
+export const getProfileImage = (publicId, width = 200) => {};
