@@ -1,14 +1,16 @@
-import  { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { ChevronDown, ChevronUp } from 'lucide-react';
 
 const ParcelTablePage = () => {
     const [parcels, setParcels] = useState([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
-    const [sortConfig, setSortConfig] = useState({ key: 'id', direction: 'ascending' });
+    const [sortConfig, setSortConfig] = useState({ key: 'parcelId', direction: 'ascending' });
     const [isShipmentModalOpen, setIsShipmentModalOpen] = useState(false);
     const [isAutoShipmentModalOpen, setIsAutoShipmentModalOpen] = useState(false);
     const [selectedParcels, setSelectedParcels] = useState([]);
+    const [expandedParcelId, setExpandedParcelId] = useState(null);
 
     const navigate = useNavigate();
 
@@ -18,50 +20,52 @@ const ParcelTablePage = () => {
     }, []);
 
     // Function to fetch parcels from API
+    // Function to fetch parcels from API
     const fetchParcels = async () => {
         try {
             setLoading(true);
             // Replace with actual API endpoint
-            const response = await fetch('/api/parcels');
+            const response = await fetch('http://localhost:8000/parcels/67c41df8c2ca1289195def43');
             const data = await response.json();
-            setParcels(data);
+
+            // Check what type of data we received
+            console.log("API Response:", data);
+
+            // Handle different response formats
+            let parcelsArray;
+            if (Array.isArray(data)) {
+                // If data is already an array
+                parcelsArray = data;
+            } else if (data && typeof data === 'object') {
+                // If data is an object that might contain parcels array
+                // Check common response structures
+                if (Array.isArray(data.parcels)) {
+                    parcelsArray = data.parcels;
+                } else if (Array.isArray(data.data)) {
+                    parcelsArray = data.data;
+                } else if (data._id) {
+                    // If it's a single parcel object
+                    parcelsArray = [data];
+                } else {
+                    // Last resort - try to convert object values to array
+                    parcelsArray = Object.values(data).filter(item => item && typeof item === 'object');
+                }
+            } else {
+                // Fallback to empty array if nothing works
+                parcelsArray = [];
+            }
+
+            // Add isSelected property to each parcel
+            const parcelsWithSelection = parcelsArray.map(parcel => ({
+                ...parcel,
+                isSelected: false
+            }));
+
+            setParcels(parcelsWithSelection);
             setLoading(false);
         } catch (error) {
             console.error('Error fetching parcels:', error);
             setLoading(false);
-            // For demo purposes, set some example data
-            setParcels([
-                {
-                    id: 1,
-                    trackingNumber: 'PCL-12345',
-                    sender: 'ABC Electronics',
-                    recipient: 'John Smith',
-                    destination: '123 Main St, Boston, MA',
-                    weight: 2.5,
-                    status: 'Received',
-                    isSelected: false
-                },
-                {
-                    id: 2,
-                    trackingNumber: 'PCL-23456',
-                    sender: 'Global Imports',
-                    recipient: 'Jane Doe',
-                    destination: '456 Oak Ave, Chicago, IL',
-                    weight: 1.8,
-                    status: 'Received',
-                    isSelected: false
-                },
-                {
-                    id: 3,
-                    trackingNumber: 'PCL-34567',
-                    sender: 'TechCorp',
-                    recipient: 'Mike Johnson',
-                    destination: '789 Pine Rd, San Francisco, CA',
-                    weight: 3.2,
-                    status: 'Received',
-                    isSelected: false
-                }
-            ]);
         }
     };
 
@@ -76,36 +80,55 @@ const ParcelTablePage = () => {
 
     // Apply sorting to parcels array
     const sortedParcels = [...parcels].sort((a, b) => {
-        if (a[sortConfig.key] < b[sortConfig.key]) {
+        // Handle nested properties with dot notation
+        const getNestedProperty = (obj, path) => {
+            const keys = path.split('.');
+            return keys.reduce((acc, key) => (acc && acc[key] !== undefined) ? acc[key] : undefined, obj);
+        };
+
+        const aValue = getNestedProperty(a, sortConfig.key) || '';
+        const bValue = getNestedProperty(b, sortConfig.key) || '';
+
+        if (aValue < bValue) {
             return sortConfig.direction === 'ascending' ? -1 : 1;
         }
-        if (a[sortConfig.key] > b[sortConfig.key]) {
+        if (aValue > bValue) {
             return sortConfig.direction === 'ascending' ? 1 : -1;
         }
         return 0;
     });
 
     // Apply search filter to parcels
-    const filteredParcels = sortedParcels.filter(parcel =>
-        parcel.id.toString().includes(searchTerm) ||
-        parcel.trackingNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        parcel.status.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        parcel.sender.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        parcel.recipient.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        parcel.destination.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+    const filteredParcels = sortedParcels.filter(parcel => {
+        const searchFields = [
+            parcel.parcelId,
+            parcel.trackingNo,
+            parcel.status,
+            parcel.shippingMethod,
+            parcel.pickupInformation?.city,
+            parcel.deliveryInformation?.deliveryCity,
+            parcel.itemType
+        ];
+
+        return searchFields.some(field =>
+            field && field.toString().toLowerCase().includes(searchTerm.toLowerCase())
+        );
+    });
 
     // Handle search input change
     const handleSearchChange = (e) => {
         setSearchTerm(e.target.value);
     };
 
+    // Toggle row expansion
+    const toggleRowExpansion = (id, e) => {
+        e.stopPropagation(); // Prevent this from triggering the row selection
+        setExpandedParcelId(expandedParcelId === id ? null : id);
+    };
+
     // Open the shipment modal
     const openShipmentModal = () => {
-        if (selectedParcels.length === 0) {
-            alert('Please select at least one parcel to create a shipment');
-            return;
-        }
+        
         setIsShipmentModalOpen(true);
     };
 
@@ -127,9 +150,7 @@ const ParcelTablePage = () => {
     // Handle manual shipment creation
     const handleManualShipment = () => {
         // Navigate to manual shipment page with selected parcel IDs
-        navigate('/manual-shipment', {
-            state: { selectedParcels }
-        });
+        navigate('/staff/shipment-management/manual-shipment-page');
         closeShipmentModal();
     };
 
@@ -137,24 +158,21 @@ const ParcelTablePage = () => {
     const createAutomaticShipment = async (type) => {
         try {
             // Make API call to create shipment
-            const response = await fetch('/api/shipments', {
+            const response = await fetch(`http://localhost:8000/shipments/process/${type}/67c41df8c2ca1289195def43`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({
-                    parcelIds: selectedParcels,
-                    shipmentType: type, // 'standard' or 'express'
-                    createdBy: 'automatic'
+                    parcelIds: selectedParcels
                 }),
             });
 
             if (response.ok) {
-               // const result = await response.json();
                 alert(`${type.charAt(0).toUpperCase() + type.slice(1)} shipment created successfully!`);
 
                 // Remove selected parcels from the table
-                setParcels(parcels.filter(parcel => !selectedParcels.includes(parcel.id)));
+                setParcels(parcels.filter(parcel => !selectedParcels.includes(parcel._id)));
                 setSelectedParcels([]);
             } else {
                 alert('Failed to create shipment. Please try again.');
@@ -168,38 +186,44 @@ const ParcelTablePage = () => {
         closeShipmentModal();
     };
 
-    // Toggle parcel selection
-    const toggleParcelSelection = (id) => {
-        // Update parcels array with selection state
+    // Toggle parcel selection - fixed implementation
+    const toggleParcelSelection = (id, e) => {
+        e.stopPropagation(); // This prevents the row click from handling the event
+
         setParcels(parcels.map(parcel =>
-            parcel.id === id ? { ...parcel, isSelected: !parcel.isSelected } : parcel
+            parcel._id === id ? { ...parcel, isSelected: !parcel.isSelected } : parcel
         ));
 
-        // Update selected parcels array
-        if (selectedParcels.includes(id)) {
-            setSelectedParcels(selectedParcels.filter(parcelId => parcelId !== id));
-        } else {
-            setSelectedParcels([...selectedParcels, id]);
-        }
+        setSelectedParcels(prevSelected => {
+            if (prevSelected.includes(id)) {
+                return prevSelected.filter(parcelId => parcelId !== id);
+            } else {
+                return [...prevSelected, id];
+            }
+        });
     };
 
-    // Select all parcels
-    const selectAllParcels = () => {
-        const allParcelIds = parcels.map(parcel => parcel.id);
-        if (selectedParcels.length === parcels.length) {
-            // If all are selected, deselect all
-            setParcels(parcels.map(parcel => ({ ...parcel, isSelected: false })));
+    // Select all parcels - fixed implementation
+    const selectAllParcels = (e) => {
+        e.stopPropagation(); // Prevent event propagation
+
+        const allSelected = parcels.every(parcel => parcel.isSelected);
+
+        setParcels(parcels.map(parcel => ({
+            ...parcel,
+            isSelected: !allSelected
+        })));
+
+        if (allSelected) {
             setSelectedParcels([]);
         } else {
-            // Otherwise, select all
-            setParcels(parcels.map(parcel => ({ ...parcel, isSelected: true })));
-            setSelectedParcels(allParcelIds);
+            setSelectedParcels(parcels.map(parcel => parcel._id));
         }
     };
 
     return (
         <div className="p-6 bg-gray-50 min-h-screen">
-            <h1 className="text-3xl font-bold text-gray-800 mb-6">All Parcels</h1>
+           
 
             {/* Controls Section */}
             <div className="flex justify-between items-center mb-6">
@@ -246,7 +270,7 @@ const ParcelTablePage = () => {
                                     <div className="flex items-center">
                                         <input
                                             type="checkbox"
-                                            checked={selectedParcels.length === parcels.length && parcels.length > 0}
+                                            checked={parcels.length > 0 && parcels.every(parcel => parcel.isSelected)}
                                             onChange={selectAllParcels}
                                             className="h-4 w-4 text-[#1F818C] focus:ring-[#1F818C] border-gray-300 rounded"
                                         />
@@ -255,44 +279,44 @@ const ParcelTablePage = () => {
                                 <th
                                     scope="col"
                                     className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer"
-                                    onClick={() => handleSort('id')}
+                                    onClick={() => handleSort('parcelId')}
                                 >
-                                    ID {sortConfig.key === 'id' && (sortConfig.direction === 'ascending' ? '↑' : '↓')}
+                                    Parcel ID {sortConfig.key === 'parcelId' && (sortConfig.direction === 'ascending' ? '↑' : '↓')}
                                 </th>
                                 <th
                                     scope="col"
                                     className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer"
-                                    onClick={() => handleSort('trackingNumber')}
+                                    onClick={() => handleSort('trackingNo')}
                                 >
-                                    Tracking # {sortConfig.key === 'trackingNumber' && (sortConfig.direction === 'ascending' ? '↑' : '↓')}
+                                    Tracking # {sortConfig.key === 'trackingNo' && (sortConfig.direction === 'ascending' ? '↑' : '↓')}
                                 </th>
                                 <th
                                     scope="col"
                                     className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer"
-                                    onClick={() => handleSort('sender')}
+                                    onClick={() => handleSort('itemType')}
                                 >
-                                    Sender {sortConfig.key === 'sender' && (sortConfig.direction === 'ascending' ? '↑' : '↓')}
+                                    Item Type {sortConfig.key === 'itemType' && (sortConfig.direction === 'ascending' ? '↑' : '↓')}
                                 </th>
                                 <th
                                     scope="col"
                                     className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer"
-                                    onClick={() => handleSort('recipient')}
+                                    onClick={() => handleSort('pickupInformation.city')}
                                 >
-                                    Recipient {sortConfig.key === 'recipient' && (sortConfig.direction === 'ascending' ? '↑' : '↓')}
+                                    From {sortConfig.key === 'pickupInformation.city' && (sortConfig.direction === 'ascending' ? '↑' : '↓')}
                                 </th>
                                 <th
                                     scope="col"
                                     className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer"
-                                    onClick={() => handleSort('destination')}
+                                    onClick={() => handleSort('deliveryInformation.deliveryCity')}
                                 >
-                                    Destination {sortConfig.key === 'destination' && (sortConfig.direction === 'ascending' ? '↑' : '↓')}
+                                    To {sortConfig.key === 'deliveryInformation.deliveryCity' && (sortConfig.direction === 'ascending' ? '↑' : '↓')}
                                 </th>
                                 <th
                                     scope="col"
                                     className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer"
-                                    onClick={() => handleSort('weight')}
+                                    onClick={() => handleSort('shippingMethod')}
                                 >
-                                    Weight (kg) {sortConfig.key === 'weight' && (sortConfig.direction === 'ascending' ? '↑' : '↓')}
+                                    Shipping Method {sortConfig.key === 'shippingMethod' && (sortConfig.direction === 'ascending' ? '↑' : '↓')}
                                 </th>
                                 <th
                                     scope="col"
@@ -301,41 +325,82 @@ const ParcelTablePage = () => {
                                 >
                                     Status {sortConfig.key === 'status' && (sortConfig.direction === 'ascending' ? '↑' : '↓')}
                                 </th>
+                                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Actions
+                                </th>
                             </tr>
                         </thead>
                         <tbody className="bg-white divide-y divide-gray-200">
                             {filteredParcels.length > 0 ? (
                                 filteredParcels.map(parcel => (
-                                    <tr
-                                        key={parcel.id}
-                                        className={`hover:bg-gray-50 ${parcel.isSelected ? 'bg-cyan-50' : ''}`}
-                                        onClick={() => toggleParcelSelection(parcel.id)}
-                                    >
-                                        <td className="px-6 py-4 whitespace-nowrap">
-                                            <input
-                                                type="checkbox"
-                                                checked={parcel.isSelected || false}
-                                                onChange={() => { }} // Handled by the row click
-                                                className="h-4 w-4 text-[#1F818C] focus:ring-[#1F818C] border-gray-300 rounded"
-                                                onClick={(e) => e.stopPropagation()} // Prevent row click from triggering
-                                            />
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{parcel.id}</td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{parcel.trackingNumber}</td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{parcel.sender}</td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{parcel.recipient}</td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{parcel.destination}</td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{parcel.weight}</td>
-                                        <td className="px-6 py-4 whitespace-nowrap">
-                                            <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
-                                                {parcel.status}
-                                            </span>
-                                        </td>
-                                    </tr>
+                                    <>
+                                        <tr
+                                            key={parcel._id}
+                                            className={`hover:bg-gray-50 ${parcel.isSelected ? 'bg-cyan-50' : ''}`}
+                                        >
+                                            <td className="px-6 py-4 whitespace-nowrap">
+                                                <input
+                                                    type="checkbox"
+                                                    checked={parcel.isSelected || false}
+                                                    onChange={(e) => toggleParcelSelection(parcel._id, e)}
+                                                    className="h-4 w-4 text-[#1F818C] focus:ring-[#1F818C] border-gray-300 rounded"
+                                                />
+                                            </td>
+                                            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{parcel.parcelId}</td>
+                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{parcel.trackingNo}</td>
+                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{parcel.itemType}</td>
+                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{parcel.pickupInformation?.city}</td>
+                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{parcel.deliveryInformation?.deliveryCity}</td>
+                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{parcel.shippingMethod}</td>
+                                            <td className="px-6 py-4 whitespace-nowrap">
+                                                <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
+                                                    ${parcel.status === 'InTransit' ? 'bg-blue-100 text-blue-800' :
+                                                        parcel.status === 'Delivered' ? 'bg-green-100 text-green-800' :
+                                                            parcel.status === 'Processing' ? 'bg-yellow-100 text-yellow-800' :
+                                                                'bg-gray-100 text-gray-800'}`}>
+                                                    {parcel.status}
+                                                </span>
+                                            </td>
+                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                                <button
+                                                    onClick={(e) => toggleRowExpansion(parcel._id, e)}
+                                                    className="text-[#1F818C] hover:text-[#176872] focus:outline-none focus:underline flex items-center"
+                                                >
+                                                    View More
+                                                    {expandedParcelId === parcel._id ?
+                                                        <ChevronUp className="ml-1 w-4 h-4" /> :
+                                                        <ChevronDown className="ml-1 w-4 h-4" />
+                                                    }
+                                                </button>
+                                            </td>
+                                        </tr>
+                                        {expandedParcelId === parcel._id && (
+                                            <tr className="bg-gray-50">
+                                                <td colSpan="9" className="px-6 py-4">
+                                                    <div className="grid grid-cols-2 gap-4">
+                                                        <div>
+                                                            <h4 className="font-medium text-gray-700 mb-2">Package Details</h4>
+                                                            <p><span className="font-medium">QR Code:</span> {parcel.qrCodeNo}</p>
+                                                            <p><span className="font-medium">Item Size:</span> {parcel.itemSize}</p>
+                                                            <p><span className="font-medium">Special Instructions:</span> {parcel.specialInstructions || 'None'}</p>
+                                                           
+                                                        </div>
+                                                        <div>
+                                                            <h4 className="font-medium text-gray-700 mb-2">Delivery Details</h4>
+                                                            <p><span className="font-medium">Submitting Type:</span> {parcel.submittingType}</p>
+                                                            <p><span className="font-medium">Receiving Type:</span> {parcel.receivingType}</p>
+                                                            <p><span className="font-medium">Pickup Address:</span> {parcel.pickupInformation?.address}, {parcel.pickupInformation?.city}</p>
+                                                            <p><span className="font-medium">Delivery Address:</span> {parcel.deliveryInformation?.deliveryAddress}, {parcel.deliveryInformation?.deliveryCity}</p>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        )}
+                                    </>
                                 ))
                             ) : (
                                 <tr>
-                                    <td colSpan="8" className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-center">
+                                    <td colSpan="9" className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-center">
                                         No parcels found
                                     </td>
                                 </tr>
@@ -349,9 +414,9 @@ const ParcelTablePage = () => {
             {isShipmentModalOpen && (
                 <div className="fixed inset-0 bg-black bg-opacity-50 z-40 flex items-center justify-center">
                     <div className="bg-white p-6 rounded-lg shadow-xl max-w-md w-full">
-                        <h2 className="text-xl font-semibold text-gray-800 mb-4">Create Shipment</h2>
+                        <h2 className="text-xl font-semibold text-gray-800 mb-4">Create B2B Shipment</h2>
                         <p className="mb-4 text-gray-600">
-                            How would you like to create the shipment for {selectedParcels.length} selected parcel(s)?
+                            How would you like to create the shipment for selected parcel(s)?
                         </p>
 
                         <div className="flex flex-col space-y-3">
