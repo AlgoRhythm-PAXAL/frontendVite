@@ -1,23 +1,20 @@
 import SectionTitle from "../../components/admin/SectionTitle";
-import { Component } from "../../components/admin/BarChart";
-import PieChartContainer from "../../components/admin/pieCharts/PieChartContainer";
+import PieChartContainer from "../../components/admin/pieCharts/Dashboard-PieChartContainer";
 import AdminList from "../../components/admin/AdminList"
-
-
-
+import { ParcelBarChart } from "../../components/admin/Dashboard-BarChart";
 
 
 const Dashboard = () => {
   return (
-    <div className="flex flex-col mx-5">
+    <div className="flex flex-col mx-5 mb-10 ">
       <SectionTitle title="Dashboard" />
-      <div className="flex flex-col gap-2">
+      <div className="flex flex-col gap-5">
         <div className="flex justify-evenly items-center">
           <PieChartContainer />
         </div>
-        <Component />
+        <ParcelBarChart/>
       </div>
-      <AdminList />
+      {/* <AdminList /> */}
     </div>
   );
 };

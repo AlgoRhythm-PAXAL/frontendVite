@@ -6,7 +6,7 @@ import AdminLayout from "./pages/admin/AdminLayout";
 import Parcels from "./pages/admin/Parcels";
 import Shipments from "./pages/admin/Shipments";
 import AdminLogin from "./pages/admin/AdminLogin";
-import axios from 'axios'
+
 {
   /*User Routes */
 }
@@ -30,7 +30,7 @@ import PaymentSuccess from "./pages/User/PaymentSuccess";
   /*User Routes */
 }
 
-import ProtectedAdminRoute from "./components/admin/ProtectedAdminRoutes"; // Import the protected route
+import ProtectedAdminRoute from "./components/admin/authentication/ProtectedAdminRoutes"; // Import the protected route
 import AdminForgotPassword from "./pages/admin/AdminForgotPassword";
 import AdminVerifyCode from "./pages/admin/AdminVerifyCode";
 import AdminResetPassword from "./pages/admin/AdminResetPassword";

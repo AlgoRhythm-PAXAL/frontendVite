@@ -2,6 +2,7 @@ import { Button } from "@/components/ui/button";
 import SectionTitle from "../SectionTitle";
 import { capitalize } from '../../../utils/formatters'
 import ParcelDetails from './ParcelDetails';
+import UserDetails from './UserDetails'
 
 
 export const EntryDetails = ({ collectionName, entryId, onClose }) => {
@@ -20,6 +21,7 @@ export const EntryDetails = ({ collectionName, entryId, onClose }) => {
       <div className="w-full">
         <div className="w-full justify-center items-center">
           {collectionName === 'parcel' && <ParcelDetails entryId={entryId} />}
+          {collectionName==='user' && <UserDetails entryId={entryId}/>}
         </div>
 
 

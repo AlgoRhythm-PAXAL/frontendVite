@@ -1,5 +1,4 @@
     import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-    import { useState, useEffect } from 'react'
     import TableDistributor from "./DataTable/TableDistributor";
 
 
@@ -146,13 +145,7 @@
     ]
 
     const UserTables = () => {
-
-
-        useEffect(() => {
-
-        }, [])
-
-
+   
         return (
             <div>
                 <Tabs defaultValue="customer" className="w-full h-full">

@@ -15,11 +15,10 @@ import {
 import { useState, useEffect } from 'react'
 import axios from 'axios'
 import {toast} from 'sonner'
+import LoadingAnimation from "../../utils/LoadingAnimation"
 
 
-const chartData = [
-  
-];
+
 
 const chartConfig = {
   parcels: {
@@ -30,27 +29,35 @@ const chartConfig = {
 
 
 
-export  function Component() {
+export  function ParcelBarChart() {
+  const[loading,setLoading]=useState(true);
   const [data, setData] = useState(null);
   const backendUrl=import.meta.env.VITE_BACKEND_URL;
+  
+
+
+  const fetchBarChartData = async () => {
+    try {
+      const response = await axios.get(`${backendUrl}/admin/bar/data`,{withCredentials:true});
+      setData(response.data.chartData); // Ensure state is properly updated
+      setLoading(false);
+    } catch (error) {
+      console.log("Error", error);
+      toast.error('Data fetching error',{description:error.response?.data?.message || 'Please try again later'})
+    }
+  };
+
   useEffect(() => {
-    const fetchBarChartData = async () => {
-      try {
-        const response = await axios.get(`${backendUrl}/admin/bar/data`,{withCredentials:true});
-        setData(response.data.chartData); // Ensure state is properly updated
-        
-      } catch (error) {
-        console.log("Error", error);
-        toast.error('Fetching data went fishing 🎣. No luck yet.',{description:error.response?.data?.message || 'Please try again later'})
-      }
-    };
     fetchBarChartData();
-  }, []); // Dependency array to run only once
+  }, []); 
 
   const totalParcels = React.useMemo(
     () => (data ? data.reduce((acc, curr) => acc + curr.parcelCount, 0) : 0),
     [data]
   );
+  if(loading){
+    return <LoadingAnimation/>
+  }
 
   return (
 
@@ -76,7 +83,7 @@ export  function Component() {
         </CardHeader>
         <CardContent className="px-2 sm:p-6">
           <ChartContainer config={chartConfig} className="aspect-auto h-[250px] w-full">
-            <BarChart data={data || chartData} margin={{ left: 12, right: 12 }}>
+            <BarChart data={data} margin={{ left: 12, right: 12 }}>
               <CartesianGrid vertical={false} />
               <XAxis
                 dataKey="date"

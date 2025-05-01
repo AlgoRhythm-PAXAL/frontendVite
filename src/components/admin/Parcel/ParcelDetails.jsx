@@ -2,6 +2,7 @@ import { capitalize, formatDateTime } from '../../../utils/formatters'
 import TableDistributor from '../UserTables/DataTable/TableDistributor';
 import { useState, useEffect } from 'react';
 import axios from 'axios';
+import LoadingAnimation from '../../../utils/LoadingAnimation';
 
 const parcelColumns = [
   {
@@ -81,7 +82,7 @@ const ParcelDetails = ({ entryId }) => {
 
 
   //Loading and error states handling
-  if (loading) return <div>Loading parcel details...</div>;
+  if(loading)return<LoadingAnimation/>
   if (error) return <div>Error loading details: {error}</div>;
   const {
     _id,
@@ -107,137 +108,194 @@ const ParcelDetails = ({ entryId }) => {
   } = parcel;
 
 
-
   return (
-    <div className="w-full mx-auto px-6 grid grid-rows-2 gap-1">
-
-      {/* Parcel Info */}
-      <div className="grid grid-cols-2">
-        <Section title="Parcel Information">
-          <div className="grid grid-cols-2 gap-6 p-6 mx-6">
-            <Info label="Parcel ID" value={parcelId} />
-            <Info label="Tracking No" value={trackingNo || "N/A"} />
-            <Info label="QR Code No" value={qrCodeNo || "N/A"} />
-            <Info label="Item Type" value={capitalize(itemType)} />
-            <Info label="Item Size" value={capitalize(itemSize)} />
-            <Info label="Shipping Method" value={capitalize(shippingMethod)} />
-            <Info label="Submitting Type" value={capitalize(submittingType)} />
-            <Info label="Receiving Type" value={capitalize(receivingType)} />
-            <Info label="Special Instructions" value={capitalize(specialInstructions || "None")} />
-            <Info label="Status" value={capitalize(status)} />
-            <Info label="Originating Branch" value={capitalize(`${from?.location} branch`)}/>
-            <Info label="Destination Branch" value={capitalize(`${to?.location} branch`)}/>
-          </div>
-        </Section>
+    <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-8">
+      {/* Header Section */}
+      <div className="bg-white rounded-xl shadow-sm p-6">
+       
+        <div className=" flex items-center space-x-4 text-sm text-gray-500">
+          <span>Status: <span className="font-medium text-indigo-600">{capitalize(status)}</span></span>
+          <span>•</span>
+          <span>Last Updated: {formatDateTime(updatedAt)}</span>
+        </div>
       </div>
 
-
-      {/* Payment Details*/}
-      {paymentId && (
-        <Section title="Payment Details">
-          <div className="grid gris-cols-2 gap-6 p-6 mx-6">
-            <Info label="Payment Status" value={capitalize(paymentId?.paymentStatus)} />
-            <Info label="Payment Type" value={capitalize(paymentId?.paymentMethod)} />
-            <Info label="Paid by" value={capitalize(paymentId?.paidBy)} />
-            <Info label="Paid at" value={formatDateTime(paymentId?.paymentDate || paymentId?.createdAt)} />
-          </div>
-        </Section>)}
-
-
-      {/* Sender & Receiver Info */}
-      <div className=" w-full mx-auto grid grid-cols-2 gap-4">
-        {/* Sender Info */}
-        {senderId && (
-          <Section title="Sender Details">
-            <div className="grid grid-cols-2 gap-6 p-6 mx-6">
-              <Info label="Name" value={capitalize(`${senderId?.fName} ${senderId?.lName}` || senderId?.fullname)} />
-              <Info label="Email" value={senderId?.email || '-'} />
-              <Info label="NIC" value={senderId?.nic || '-'} />
-              <Info label="Contact" value={senderId?.contact || '-'} />
-              <Info label="Address" value={capitalize(senderId?.address)} />
-              <Info label="City" value={capitalize(senderId?.city)} />
-              <Info label="District" value={capitalize(senderId?.district)} />
-              <Info label="Province" value={capitalize(senderId?.province)} />
-              <Info label="Zone" value={capitalize(senderId?.zone)} />
+      {/* Main Grid */}
+      <div className="grid lg:grid-cols-2 gap-8">
+        {/* Left Column */}
+        <div className="space-y-8">
+          {/* Parcel Info Card */}
+          <Section title="Parcel Information">
+            <div className="grid grid-cols-2 md:grid-cols-2 gap-4 p-4">
+              <InfoGrid>
+                <Info label="Tracking No" value={trackingNo || "N/A"} />
+                <Info label="Item Type" value={capitalize(itemType)} />
+                <Info label="Item Size" value={capitalize(itemSize)} />
+              </InfoGrid>
+              <InfoGrid>
+                <Info label="Shipping Method" value={capitalize(shippingMethod)} />
+                <Info label="Submitting Type" value={capitalize(submittingType)} />
+                <Info label="Receiving Type" value={capitalize(receivingType)} />
+                <Info label="Special Instructions" value={capitalize(specialInstructions || "None")} />
+              </InfoGrid>
             </div>
           </Section>
-        )}
 
-
-        {/* Receiver Info */}
-        {receiverId && (
-          <Section title="Receiver Details">
-            <div className="grid grid-cols-2 gap-6 p-6 mx-6">
-              <Info label="Name" value={capitalize(receiverId?.receiverFullname)} />
-              <Info label="Email" value={receiverId?.receiverEmail || '-'} />
-              <Info label="Contact" value={receiverId?.receiverContact?.[0] || '-'} />
-              <Info label="Postal Code" value={receiverId?.receiverPostalcode || '-'} />
-              <Info label="Receiver Address" value={receiverId?.receiverNumber || '-'} />
-              <Info label="City" value={capitalize(receiverId?.receiverAddress)} />
-              <Info label="District" value={capitalize(receiverId?.receiverDistrict)} />
-              <Info label="Province" value={capitalize(receiverId?.receiverProvince)} />
-              <Info label="Zone" value={capitalize(receiverId?.receiverZone)} />
-              <Info label="Landmark" value={capitalize(receiverId?.receiverLandmark)} />
+          {/* Branches Card */}
+          <Section title="Branch Information">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4">
+              <InfoGrid>
+                <Info label="Originating Branch" value={capitalize(`${from?.location} branch`)} />
+                <Info label="Destination Branch" value={capitalize(`${to?.location} branch`)} />
+              </InfoGrid>
             </div>
           </Section>
-        )}
+
+          
+        </div>
+
+        {/* Right Column */}
+        <div className="space-y-8">
+
+          {/* QR Code Card */}
+          <Section title="QR Code">
+            <div className="p-4 flex justify-center">
+              <img 
+                src={qrCodeNo || "N/A"} 
+                alt="QR Code" 
+                className="w-48 h-48 object-contain border rounded-lg p-2 bg-gray-50"
+              />
+            </div>
+          </Section>
+         
+
+          {/* Payment Card */}
+          {paymentId && (
+            <Section title="Payment Details">
+              <div className="grid grid-cols-2 gap-4 p-4">
+                <InfoGrid>
+                  <Info label="Payment Status" value={capitalize(paymentId?.paymentStatus)} />
+                  <Info label="Payment Type" value={capitalize(paymentId?.paymentMethod)} />
+                  <Info label="Paid by" value={capitalize(paymentId?.paidBy)} />
+                  <Info label="Paid at" value={formatDateTime(paymentId?.paymentDate || paymentId?.createdAt)} />
+                </InfoGrid>
+              </div>
+            </Section>
+          )}
+        </div>
       </div>
 
-      {/* Pickup and Deliver info */}
-      <div className=" w-full mx-auto  grid grid-cols-2 gap-4">
-        {/* Pickup Info */}
+      {/* Details Grid */}
+      <div className="grid lg:grid-cols-2 gap-8">
+        {/* Sender/Receiver Column */}
+        <div className="space-y-8">
+          {senderId && (
+            <Section title="Sender Information">
+              <DetailGrid>
+                <Info label="Name" value={capitalize(`${senderId?.fName} ${senderId?.lName}` || senderId?.fullname)} />
+                <Info label="Contact" value={senderId?.contact || '-'} />
+                <Info label="Email" value={senderId?.email || '-'} />
+                <Info label="Address" value={capitalize(senderId?.address)} />
+                <Info label="City/District" value={`${capitalize(senderId?.city)} / ${capitalize(senderId?.district)}`} />
+                <Info label="Province/Zone" value={`${capitalize(senderId?.province)} / ${capitalize(senderId?.zone)}`} />
+              </DetailGrid>
+            </Section>
+          )}
+        </div>
+
+        {/* Receiver/Delivery Column */}
+        <div className="space-y-8">
+          {receiverId && (
+            <Section title="Receiver Information">
+              <DetailGrid>
+                <Info label="Name" value={capitalize(receiverId?.receiverFullname)} />
+                <Info label="Contact" value={receiverId?.receiverContact?.[0] || '-'} />
+                <Info label="Email" value={receiverId?.receiverEmail || '-'} />
+                <Info label="Address" value={capitalize(receiverId?.receiverAddress)} />
+                <Info label="City/District" value={`${capitalize(receiverId?.receiverCity)} / ${capitalize(receiverId?.receiverDistrict)}`} />
+                <Info label="Province/Zone" value={`${capitalize(receiverId?.receiverProvince)} / ${capitalize(receiverId?.receiverZone)}`} />
+              </DetailGrid>
+            </Section>
+          )}
+        </div>
+      </div>
+
+      {/* Pickup/Delivery Grid */}
+      <div className="grid lg:grid-cols-2 gap-8">
         {pickupInformation && (
-          <Section title="Pickup Information">
-            <div className="grid grid-cols-2 gap-6 p-6 mx-6">
-              <Info label="Date" value={new Date(pickupInformation?.pickupDate).toLocaleDateString()} />
-              <Info label="Time" value={pickupInformation?.pickupTime} />
+          <Section title="Pickup Details">
+            <DetailGrid>
+              <Info label="Date/Time" value={`${new Date(pickupInformation?.pickupDate).toLocaleDateString()} ${pickupInformation?.pickupTime}`} />
               <Info label="Address" value={capitalize(pickupInformation?.address)} />
-              <Info label="City" value={capitalize(pickupInformation?.city)} />
-              <Info label="District" value={capitalize(pickupInformation?.district)} />
+              <Info label="City/District" value={`${capitalize(pickupInformation?.city)} / ${capitalize(pickupInformation?.district)}`} />
               <Info label="Province" value={capitalize(pickupInformation?.province)} />
-            </div>
+            </DetailGrid>
           </Section>
         )}
 
-        {/* Delivery Info */}
         {deliveryInformation && (
-          <Section title="Delivery Information">
-            <div className="grid grid-cols-2 gap-4 p-6 mx-6">
+          <Section title="Delivery Details">
+            <DetailGrid>
               <Info label="Address" value={capitalize(deliveryInformation?.deliveryAddress)} />
-              <Info label="City" value={capitalize(deliveryInformation?.deliveryCity)} />
-              <Info label="District" value={capitalize(deliveryInformation?.deliveryDistrict)} />
-              <Info label="Province" value={capitalize(deliveryInformation?.deliveryProvince)} />
-              <Info label="Postal Code" value={capitalize(deliveryInformation?.postalCode)} />
-            </div>
+              <Info label="City/District" value={`${capitalize(deliveryInformation?.deliveryCity)} / ${capitalize(deliveryInformation?.deliveryDistrict)}`} />
+              <Info label="Province/Postal" value={`${capitalize(deliveryInformation?.deliveryProvince)} / ${deliveryInformation?.postalCode}`} />
+            </DetailGrid>
           </Section>
         )}
       </div>
 
-      {/* Meta */}
-      <div className="text-sm text-gray-600 mt-6 m-6 my-10">
-        <p>Created At: {new Date(createdAt).toLocaleString()}</p>
-        <p>Updated At: {new Date(updatedAt).toLocaleString()}</p>
+        {/* Timeline Card */}
+        <Section title="Status Timeline">
+            <div className="p-4">
+              <TableDistributor 
+                title='' 
+                entryData={parcelTimeData} 
+                columns={parcelColumns} 
+                disableDateFilter={true}  
+                enableRowClick={false}
+                className="overflow-x-auto"
+              />
+            </div>
+          </Section>
+
+      {/* Metadata */}
+      <div className="bg-gray-50 rounded-lg p-4 text-sm text-gray-500">
+        <div className="flex flex-wrap gap-x-8 gap-y-2">
+          <span>Created: {new Date(createdAt).toLocaleString()}</span>
+          <span>Last Updated: {new Date(updatedAt).toLocaleString()}</span>
+        </div>
       </div>
-
-      {/* Status Tracking Table */}
-
-      <TableDistributor title='Parcel Status Tracking and Assignment Detail' entryData={parcelTimeData} columns={parcelColumns} disableDateFilter={true}  enableRowClick={false}/>
     </div>
   );
 };
 
+// Section 
 const Section = ({ title, children }) => (
-  <div className="bg-white rounded-lg shadow-md p-5 mb-6 overflow-hidden">
-    <h2 className="text-xl font-semibold mb-4 mt-3  mx-4">{title}</h2>
+  <div className="bg-white rounded-xl shadow-sm overflow-hidden">
+    <div className="px-6 py-4 border-b border-gray-100">
+      <h2 className="text-lg font-semibold text-gray-900">{title}</h2>
+    </div>
+    <div className="p-6">{children}</div>
+  </div>
+);
+
+// Info Components
+const InfoGrid = ({ children }) => (
+  <div className="grid grid-rows-2 sm:grid-rows-2 gap-4 md:gap-6">
+    {children}
+  </div>
+);
+
+const DetailGrid = ({ children }) => (
+  <div className="grid grid-cols-1 gap-4 md:gap-6">
     {children}
   </div>
 );
 
 const Info = ({ label, value }) => (
-  <div>
-    <p className="text-gray-600 text-sm">{label}</p>
-    <p className="font-medium">{value}</p>
+  <div className="space-y-1">
+    <dt className="text-sm font-medium text-gray-600">{label}</dt>
+    <dd className="text-gray-900 break-words font-[500]">{value || '-'}</dd>
   </div>
 );
-
 export default ParcelDetails;
