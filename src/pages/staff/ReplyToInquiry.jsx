@@ -2,24 +2,24 @@ import React, { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import InquiryInfo from "../../components/staff/InquiryInfo";
 import axios from "axios";
+import { toast } from "sonner";
 
 const ReplyToInquiry = () => {
   const { inquiryId } = useParams();
   const [isLoaded, setIsLoaded] = useState(false);
   const [reply, setReply] = useState("");
-  const [error, setError] = useState(null);
+  const [isReplying, setIsReplying] = useState(false);
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError(null);
-   
+
     console.log("Replying to inquiry:", inquiryId, reply);
     try {
-
+      setIsReplying(true);
       const response = await axios.post(
         `http://localhost:8000/staff/inquiry-management/reply-to-inquiry/${inquiryId}`,
-        {reply},
+        { reply },
         {
           headers: {
             "Content-Type": "application/json",
@@ -27,20 +27,26 @@ const ReplyToInquiry = () => {
           withCredentials: true,
         }
       );
-console.log("response", response.status);
-      if (response.status === 200 || response.status === 201) {
-        setReply("");
-        alert("Reply submitted successfully!");
+      console.log("response", response.data.success);
+      if (response.data.success) {
+        setIsReplying(false);
+        toast.success("Replied", {
+          description: response.data.message,
+          duration: 4000,
+        });
         navigate(-1);
       }
     } catch (error) {
       console.error("Failed to submit reply:", error);
-      setError(
-        error.response?.data?.message ||
-          "Failed to submit reply. Please try again."
-      );
-      alert("Failed to submit reply. Please try again.");
-    } 
+      const errorMessage =
+        error.response?.data.message ||
+        "Failed to submit reply. Please try again.";
+
+      toast.error("Failed to Reply", {
+        description: errorMessage,
+        duration: 4000,
+      });
+    }
   };
 
   const handleInquiryLoad = () => {
@@ -70,11 +76,17 @@ console.log("response", response.status);
             <div className="flex justify-end space-x-3">
               <button
                 type="submit"
+                disabled={isReplying}
                 className="px-5 py-2.5 bg-Primary text-white rounded-lg font-medium hover:bg-PrimaryDark focus:outline-none focus:ring-2 focus:ring-Primary focus:ring-offset-2 transition-colors"
-                 
-                
               >
-                Send Reply
+                {isReplying ? (
+                  <div className="flex items-center justify-center gap-2">
+                    <span className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></span>
+                    Sending...
+                  </div>
+                ) : (
+                  "Send Reply"
+                )}
               </button>
             </div>
           </form>
