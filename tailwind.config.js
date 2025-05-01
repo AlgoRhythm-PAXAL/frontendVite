@@ -55,7 +55,16 @@ export default {
   				'5': 'hsl(var(--chart-5))'
   			},
 			  
-  		}
+  		},
+		  theme: {
+			screens: {
+			  'lg': {'max': '1000px'},
+			  // => @media (max-width: 1023px) { ... }
+		
+			  'sm': {'max': '639px'},
+			  // => @media (max-width: 639px) { ... }
+			}
+		  }
   	}
   },
   plugins: [require("tailwindcss-animate")],

@@ -1,8 +1,5 @@
 import SectionTitle from "../../components/admin/SectionTitle"
-import { format } from 'date-fns';
-import { DatePickerWithPresets } from "../../components/admin/DatePicker";
-import React from 'react'
-import DemoPage from "../../components/admin/UserTables/DataTable/TableDistributor";
+import TableDistributor from "../../components/admin/UserTables/DataTable/TableDistributor";
 
 const parcelColumns = [
   {
@@ -15,15 +12,15 @@ const parcelColumns = [
   },
   {
     accessorKey: "itemType",
-    header: "Item type"
+    header: "Type"
   },
   {
     accessorKey: "itemSize",
-    header: "Item size"
+    header: "Size"
   },
   {
     accessorKey: "receivingType",
-    header: "Receiving type"
+    header: "Rcv. Type"
   },
   {
     accessorKey: "senderName",
@@ -31,12 +28,9 @@ const parcelColumns = [
   },
   {
     accessorKey: "shipmentMethod",
-    header: "Shipping Method"
+    header: "Shp. Mtd"
   },
-  {
-    accessorKey: "specialInstructions",
-    header: "Special Instructions"
-  },
+  
   {
     accessorKey: "status",
     header: "Current status"
@@ -46,28 +40,6 @@ const parcelColumns = [
     header: "Order placed date"
   },
 ]
-// const Parcels = () => {
-//   const now = new Date();
-//   const formattedDate = format(now, 'MMMM do, yyyy ');
-//   return (
-//     <div className="flex flex-col  mx-8  ">
-//       <SectionTitle title="Parcels" />
-//       <div className="flex flex-col gap-">
-//         <div className="flex items-center justify-between">
-//           <h1 className="text-2xl">On <span className="font-semibold text-2xl">{formattedDate} </span></h1>
-//           <div className="">
-//           <DatePickerWithPresets />
-//           </div>
-//         </div>
-//         <div className="my-8">
-//           {/* <ParcelTable title="Customer" apiEndPoint="http://localhost:8000/admin/parcel/all" /> */}
-//           <DemoPage title='parcel' deleteEnabled={true} updateEnabled={true}/>
-
-//         </div>
-//       </div>
-//     </div>
-//   )
-// }
 
 const Parcels = () => {
 
@@ -75,10 +47,10 @@ const Parcels = () => {
   return (
     <div className="flex flex-col mx-8">
       <SectionTitle title="Parcels" />
-      <div className="flex flex-col gap-">
+      <div className="flex flex-col ">
 
         <div className="my-8">
-          <DemoPage title='parcel' columns={parcelColumns}  deleteEnabled={true} updateEnabled={true} enableRowClick={true} />
+          <TableDistributor title='parcel' columns={parcelColumns}  enableRowClick={true} />
         </div>
       </div>
     </div>
