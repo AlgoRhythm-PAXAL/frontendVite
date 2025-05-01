@@ -31,6 +31,7 @@
     "@stripe/react-stripe-js": "^3.4.0",
     "@stripe/stripe-js": "^6.1.0",
     "axios": "^1.7.9",
+    "bson": "^6.10.3",
     "chart.js": "^4.4.8",
     "chartjs-plugin-datalabels": "^2.2.0",
     "class-variance-authority": "^0.7.1",

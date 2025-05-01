@@ -134,6 +134,9 @@ const App = () => {
             <Route path="inquiry-management/view-replied-inquiries" element={<ViewRepliedInquiries/>}/>
             <Route path="inquiry-management/reply-to-inquiry/:inquiryId" element={<ReplyToInquiry/>}/>
             <Route path="inquiry-management/view-replied-inquiries/:inquiryId" element={<ViewOneRepliedInquiry/>}/>
+            <Route path="shipment-management/parcel-table-page" element={<ParcelTablePage />} />
+          <Route path="shipment-management/manual-shipment-page" element={<ManualShipmentPage />} />
+          
 
           </Route>
         </Route>
