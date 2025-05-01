@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import axios from "axios";
-import ParcelInformation from "../../components/staff/ParcelInformation"
+import ParcelInformation from "../../components/staff/ParcelInformation";
 import PickupSchedules from "../../components/staff/PickupSchedules";
 import { ArrowLeftIcon } from "@heroicons/react/24/outline";
 
@@ -24,8 +24,9 @@ const ViewOnePickup = () => {
             params: {
               parcelId: parcelId,
             },
+            withCredentials: true 
           },
-          { withCredentials: true }
+          
         );
         setHasAssignedSchedule(response.data.isAssigned);
       } catch (error) {
@@ -52,6 +53,7 @@ const ViewOnePickup = () => {
       return;
     }
     try {
+      setIsCheckingAssignment(true)
       const response = await axios.post(
         "http://localhost:8000/staff/lodging-management/register-pickup",
         { parcelId },
@@ -60,59 +62,70 @@ const ViewOnePickup = () => {
 
       console.log("pickup registered successfully", response);
       alert("pickup registered successfully!");
-      navigate(`/staff/lodging-management/view-parcels/invoice/${parcelId}`)
-      
+      navigate(`/staff/lodging-management/view-parcels/invoice/${parcelId}`);
     } catch (error) {
       console.error(error);
+    }finally {
+      setIsCheckingAssignment(false);
     }
   };
 
   return (
     <>
-    <div className="min-h-screen  py-8">
-    <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-      <div className="mb-8 flex items-center justify-between">
-        <div className="flex items-center space-x-4">
-          <button
-            onClick={() => navigate(-1)}
-            className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
-          >
-            <ArrowLeftIcon className="h-6 w-6 text-gray-600" />
-          </button>
-          <h1 className="text-2xl font-bold text-gray-900">
-            Parcel ID: <span className="font-mono text-Primary">{parcelId}</span>
-          </h1>
-        </div>
-        
-      </div>
-      <ParcelInformation parcelId={parcelId} onParcelLoad={handleParcelLoad} />
-
-      {isLoaded && (
+      <div className="min-h-screen  py-8">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-          {parcel?.pickupInformation && (
-            <div className="mt-14">
-              <PickupSchedules
-              pickupDate={parcel.pickupInformation.pickupDate}
-              pickupTimeSlot={parcel.pickupInformation.pickupTime}
-              onAssignmentChange={handleScheduleAssignment}
-              parcelId={parcelId}
-            />
-            </div>
-          )}
-              <div className="flex justify-between items-center ">
+          <div className="mb-8 flex items-center justify-between">
+            <div className="flex items-center space-x-4">
               <button
-              className={`bg-Primary text-white px-6 py-2 rounded-xl
+                onClick={() => navigate(-1)}
+                className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
+              >
+                <ArrowLeftIcon className="h-6 w-6 text-gray-600" />
+              </button>
+              <h1 className="text-2xl font-bold text-gray-900">
+                Parcel ID:{" "}
+                <span className="font-mono text-Primary">{parcelId}</span>
+              </h1>
+            </div>
+          </div>
+          <ParcelInformation
+            parcelId={parcelId}
+            onParcelLoad={handleParcelLoad}
+          />
+
+          {isLoaded && (
+            <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+              {parcel?.pickupInformation && (
+                <div className="mt-14">
+                  <PickupSchedules
+                    pickupDate={parcel.pickupInformation.pickupDate}
+                    pickupTimeSlot={parcel.pickupInformation.pickupTime}
+                    onAssignmentChange={handleScheduleAssignment}
+                    parcelId={parcelId}
+                  />
+                </div>
+              )}
+              <div className="flex justify-end mt-5">
+                <button
+                  className={`bg-Primary text-white px-6 py-2 rounded-xl
                 ${!hasAssignedSchedule ? "opacity-50 cursor-not-allowed" : ""}
               `}
-              onClick={() => registerPickup(parcelId)}
-              disabled={!hasAssignedSchedule}
-            >
-              {isCheckingAssignment ? "Checking..." : "Register"}
-            </button>
-          </div>
+                  onClick={() => registerPickup(parcelId)}
+                  disabled={!hasAssignedSchedule}
+                >
+                  {isCheckingAssignment ? (
+                    <div className="flex items-center justify-center gap-2">
+                      <span className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></span>
+                      Registering...
+                    </div>
+                  ) : (
+                    "Register"
+                  )}
+                </button>
+              </div>
+            </div>
+          )}
         </div>
-      )}
-      </div>
       </div>
     </>
   );

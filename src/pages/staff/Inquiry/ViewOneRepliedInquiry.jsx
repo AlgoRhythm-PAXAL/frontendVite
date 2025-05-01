@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 
-import InquiryReplyInfo from "../../components/staff/InquiryReplyInfo";
+import InquiryReplyInfo from "../../../components/staff/InquiryReplyInfo";
 
 const ViewOneRepliedInquiry = () => {
   const { inquiryId } = useParams();

@@ -60,10 +60,10 @@ import AddNewParcel from "./pages/staff/AddNewParcel";
 import ViewOneDoorStepDeliveryParcel from "./pages/staff/ViewOneDoorstepDeliveryParcel";
 import DoorstepDeliveryParcels from "./pages/staff/DoorstepDeliveryParcels";
 import CollectionCenterDeliveryParcels from "./pages/staff/CollectionCenterDeliveryParcels";
-import NewInquiries from "./pages/staff/NewInquiries";
-import ViewRepliedInquiries from "./pages/staff/ViewRepliedInquiries";
-import ReplyToInquiry from "./pages/staff/ReplyToInquiry";
-import ViewOneRepliedInquiry from "./pages/staff/ViewOneRepliedInquiry";
+import NewInquiries from "./pages/staff/Inquiry/NewInquiries";
+import ViewRepliedInquiries from "./pages/staff/Inquiry/ViewRepliedInquiries";
+import ReplyToInquiry from "./pages/staff/Inquiry/ReplyToInquiry";
+import ViewOneRepliedInquiry from "./pages/staff/Inquiry/ViewOneRepliedInquiry";
 import ViewOneCollectionCenterDeliveryparcel from "./pages/staff/ViewOneCollectionCenterDeliveryParcel";
 
 const App = () => {

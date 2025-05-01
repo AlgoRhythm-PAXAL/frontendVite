@@ -1,7 +1,6 @@
 import { useNavigate, useParams } from "react-router-dom";
 import ParcelInformation from "../../components/staff/ParcelInformation";
 import { useEffect, useState } from "react";
-
 import { ArrowLeftIcon } from "@heroicons/react/24/outline";
 import DeliverySchedules from "../../components/staff/DeliveryScedules";
 import axios from "axios";
@@ -21,7 +20,7 @@ const ViewOneDoorStepDeliveryParcel = () => {
       setIsCheckingAssignment(true);
       try {
         const response = await axios.get(
-          "http://localhost:8000/staff/vehicle-schedules/check-parcel-assignment",
+          "http://localhost:8000/staff/delivery-schedules/check-parcel-assignment",
           {
             params: {
               parcelId: parcelId,
@@ -130,7 +129,7 @@ const ViewOneDoorStepDeliveryParcel = () => {
                   onClick={() => updateParcel(parcelId)}
                   disabled={!hasAssignedSchedule}
                 >
-                  {isCheckingAssignment ? "Checking..." : "Update"}
+                  {isCheckingAssignment ? "Updating..." : "Update"}
                 </button>
               </div>
             </div>
