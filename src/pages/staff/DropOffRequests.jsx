@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import DataTable from "../../components/staff/DataTable";
+import StatsBox from "../../components/staff/StatsBox";
 
 const DropOffRequests = () => {
   const [parcels, setParcels] = useState([]);
@@ -56,30 +57,30 @@ const DropOffRequests = () => {
   ];
 
   return (
-    <div className="mt-5">
-      <div className="flex mb-8">
-    <div className="w-3/5">
-    </div>
-    <div className="w-2/5 flex justify-end mr-11 py-3">
-      <div className="mx-2  border-2 border-gray-200 rounded-lg px-5 py-4 transition-shadow duration-300 hover:shadow-md">
-        <p className="text-gray-400 ">Drop-offs Today</p>
-        <h1 className="font-semibold text-3xl">50</h1>
+    <div className="px-8 py-6">
+      <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-8 gap-4">
+        <div className="flex-1">
+          <h1 className="text-2xl font-bold text-gray-800 mb-1">
+            Drop-off Management
+          </h1>
+          <p className="text-gray-500">
+            View and manage incoming parcel drop-offs
+          </p>
+        </div>
+        <div className="flex gap-4 w-full lg:w-auto">
+          <StatsBox title="Drop-offs Today" value="50" />
+          <StatsBox title="Pending Drop-offs" value="20" />
+        </div>
       </div>
-      <div className="mx-2 border-2 border-gray-200 rounded-lg px-5 py-4 transition-shadow duration-300 hover:shadow-md">
-        <p className="text-gray-400">Pending Drop-offs</p>
-        <h1 className="font-semibold text-3xl">20</h1>
+      <div >
+        <DataTable
+          data={parcels}
+          columns={columns}
+          actions={actions}
+          rowsPerPage={5}
+          textMessage={"No drop-off requests"}
+        />
       </div>
-    </div> 
-   </div>
-   <div className="ml-12 mr-24 ">
-    <DataTable
-      data={parcels}
-      columns={columns}
-      actions={actions}
-      rowsPerPage={6}
-      textMessage={"No drop-off requests"}
-    />
-    </div>
     </div>
   );
 };

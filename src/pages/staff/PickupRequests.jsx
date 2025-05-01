@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { formatDistanceToNow } from "date-fns";
 import axios from "axios";
 import DataTable from "../../components/staff/DataTable";
+import StatsBox from "../../components/staff/StatsBox";
 
 const PickupRequests = () => {
   const [parcels, setParcels] = useState([]);
@@ -69,27 +70,24 @@ const PickupRequests = () => {
   ];
 
   return (
-   < div className=" mt-5 ">
-   <div className="flex mb-8">
-    <div className="w-3/5">
+    <div className="px-8 py-6">
+      <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-8 gap-4">
+      <div className="flex-1">
+        <h2 className="text-2xl font-semibold text-gray-800 mb-2">Pickup Management</h2>
+        <p className="text-gray-500">Manage all pickup requests and schedules</p>
+      </div>
+      
+      <div className="flex gap-4 w-full lg:w-auto">
+        <StatsBox title="Pickups Today" value="50" />
+        <StatsBox title="Pending Pickups" value="20" />
+      </div>
     </div>
-    <div className="w-2/5 flex justify-end mr-11 py-3">
-      <div className="mx-2  border-2 border-gray-200 rounded-lg px-5 py-4 transition-shadow duration-300 hover:shadow-md">
-        <p className="text-gray-400 ">Pickups Today</p>
-        <h1 className="font-semibold text-3xl">50</h1>
-      </div>
-      <div className="mx-2 border-2 border-gray-200 rounded-lg px-5 py-4 transition-shadow duration-300 hover:shadow-md">
-        <p className="text-gray-400">Pending Pickups</p>
-        <h1 className="font-semibold text-3xl">20</h1>
-      </div>
-    </div> 
-   </div>
-   <div className="ml-12 mr-24 ">
+   <div>
      <DataTable
       data={parcels}
       columns={columns}
       actions={actions}
-      rowsPerPage={6}
+      rowsPerPage={5}
       textMessage={"No pickup requests"}
     />
     </div>

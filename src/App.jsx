@@ -40,6 +40,7 @@ import NewInquiries from "./pages/staff/NewInquiries";
 import ViewRepliedInquiries from "./pages/staff/ViewRepliedInquiries";
 import ReplyToInquiry from "./pages/staff/ReplyToInquiry";
 import ViewOneRepliedInquiry from "./pages/staff/ViewOneRepliedInquiry";
+import ViewOneCollectionCenterDeliveryparcel from "./pages/staff/ViewOneCollectionCenterDeliveryParcel";
 
 const App = () => {
   return (
@@ -87,9 +88,11 @@ const App = () => {
             <Route path="lodging-management/view-dropOffs/:parcelId" element={<ViewOneDropOff/>}/>
             <Route path="lodging-management/add-new-parcel" element={<AddNewParcel/>}/>
 
-            <Route path="collection-managemnt/assign-driver" element={<DoorstepDeliveryParcels/>}/>
+            <Route path="collection-management/assign-driver" element={<DoorstepDeliveryParcels/>}/>
             <Route path="collection-management/view-one-doorstep-delivery-parcel/:parcelId" element={<ViewOneDoorStepDeliveryParcel/>}/>
             <Route path="collection-management/view-collection-center-delivery-parcels" element={<CollectionCenterDeliveryParcels/>}/>
+            <Route path="collection-management/view-collection-center-delivery-parcels/:parcelId" element={<ViewOneCollectionCenterDeliveryparcel/>}/>
+
 
             <Route path="inquiry-management/view-new-inquiries" element={<NewInquiries/>}/>
             <Route path="inquiry-management/view-replied-inquiries" element={<ViewRepliedInquiries/>}/>
