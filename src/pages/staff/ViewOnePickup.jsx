@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import axios from "axios";
-import ParcelInfo from "../../components/staff/ParcelInfo";
+import ParcelInformation from "../../components/staff/ParcelInformation"
 import PickupSchedules from "../../components/staff/PickupSchedules";
+import { ArrowLeftIcon } from "@heroicons/react/24/outline";
 
 const ViewOnePickup = () => {
   const { parcelId } = useParams();
@@ -68,20 +69,38 @@ const ViewOnePickup = () => {
 
   return (
     <>
-      <ParcelInfo parcelId={parcelId} onParcelLoad={handleParcelLoad} />
+    <div className="min-h-screen  py-8">
+    <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="mb-8 flex items-center justify-between">
+        <div className="flex items-center space-x-4">
+          <button
+            onClick={() => navigate(-1)}
+            className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
+          >
+            <ArrowLeftIcon className="h-6 w-6 text-gray-600" />
+          </button>
+          <h1 className="text-2xl font-bold text-gray-900">
+            Parcel ID: <span className="font-mono text-Primary">{parcelId}</span>
+          </h1>
+        </div>
+        
+      </div>
+      <ParcelInformation parcelId={parcelId} onParcelLoad={handleParcelLoad} />
 
       {isLoaded && (
-        <div className="mx-12">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           {parcel?.pickupInformation && (
-            <PickupSchedules
+            <div className="mt-14">
+              <PickupSchedules
               pickupDate={parcel.pickupInformation.pickupDate}
               pickupTimeSlot={parcel.pickupInformation.pickupTime}
               onAssignmentChange={handleScheduleAssignment}
               parcelId={parcelId}
             />
+            </div>
           )}
-          <div className="flex justify-end mr-16 mb-12">
-            <button
+              <div className="flex justify-between items-center ">
+              <button
               className={`bg-Primary text-white px-6 py-2 rounded-xl
                 ${!hasAssignedSchedule ? "opacity-50 cursor-not-allowed" : ""}
               `}
@@ -93,6 +112,8 @@ const ViewOnePickup = () => {
           </div>
         </div>
       )}
+      </div>
+      </div>
     </>
   );
 };

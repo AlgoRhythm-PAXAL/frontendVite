@@ -434,13 +434,13 @@ const AddNewParcel = () => {
                       Delivery Address*
                     </label>
                     <textarea
-                      {...register("deliveryAddress", {
+                      {...register("deliveryInformation.deliveryAddress", {
                         required: selectedDeliveryMethod === "doorstep",
                       })}
                       rows={2}
                       className="w-full px-4 py-2 border rounded-md focus:ring-2 focus:ring-Primary focus:border-Primary"
                     />
-                    {errors.deliveryAddress && (
+                    {errors.deliveryInformation?.deliveryAddress && (
                       <p className="mt-1 text-sm text-red-600">
                         Delivery address is required
                       </p>
@@ -453,12 +453,12 @@ const AddNewParcel = () => {
                         Province*
                       </label>
                       <input
-                        {...register("deliveryProvince", {
+                        {...register("deliveryInformation.deliveryProvince", {
                           required: selectedDeliveryMethod === "doorstep",
                         })}
                         className="w-full px-4 py-2 border rounded-md focus:ring-2 focus:ring-Primary focus:border-Primary"
                       />
-                      {errors.deliveryProvince && (
+                      {errors.deliveryInformation?.deliveryProvince && (
                         <p className="mt-1 text-sm text-red-600">
                           This field is required
                         </p>
@@ -470,12 +470,12 @@ const AddNewParcel = () => {
                         District*
                       </label>
                       <input
-                        {...register("deliveryDistrict", {
+                        {...register("deliveryInformation.deliveryDistrict", {
                           required: selectedDeliveryMethod === "doorstep",
                         })}
                         className="w-full px-4 py-2 border rounded-md focus:ring-2 focus:ring-Primary focus:border-Primary"
                       />
-                      {errors.deliveryDistrict && (
+                      {errors.deliveryInformation?.deliveryDistrict && (
                         <p className="mt-1 text-sm text-red-600">
                           This field is required
                         </p>
@@ -489,12 +489,12 @@ const AddNewParcel = () => {
                         City*
                       </label>
                       <input
-                        {...register("deliveryCity", {
+                        {...register("deliveryInformation.deliveryCity", {
                           required: selectedDeliveryMethod === "doorstep",
                         })}
                         className="w-full px-4 py-2 border rounded-md focus:ring-2 focus:ring-Primary focus:border-Primary"
                       />
-                      {errors.deliveryCity && (
+                      {errors.deliveryInformation?.deliveryCity && (
                         <p className="mt-1 text-sm text-red-600">
                           This field is required
                         </p>
@@ -506,12 +506,12 @@ const AddNewParcel = () => {
                         Postal Code*
                       </label>
                       <input
-                        {...register("postalCode", {
+                        {...register("deliveryInformation.postalCode", {
                           required: selectedDeliveryMethod === "doorstep",
                         })}
                         className="w-full px-4 py-2 border rounded-md focus:ring-2 focus:ring-Primary focus:border-Primary"
                       />
-                      {errors.postalCode && (
+                      {errors.deliveryInformation?.postalCode && (
                         <p className="mt-1 text-sm text-red-600">
                           This field is required
                         </p>
