@@ -1,6 +1,8 @@
 import { Outlet } from "react-router-dom";
 
 import NavigationBar from "../../components/staff/NavigationBar";
+import Sidebar from "../../components/staff/LeftBar";
+
 
 const StaffLayout = () => {
   return (
@@ -8,7 +10,7 @@ const StaffLayout = () => {
     <NavigationBar/>
     <div className="flex w-full ">
       <div className="w-2/12 ">
-        {/*add side bar here*/}
+        <Sidebar/>
       </div>
       <div className="w-10/12">
         <Outlet /> 

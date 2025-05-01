@@ -65,6 +65,8 @@ import ViewRepliedInquiries from "./pages/staff/Inquiry/ViewRepliedInquiries";
 import ReplyToInquiry from "./pages/staff/Inquiry/ReplyToInquiry";
 import ViewOneRepliedInquiry from "./pages/staff/Inquiry/ViewOneRepliedInquiry";
 import ViewOneCollectionCenterDeliveryparcel from "./pages/staff/ViewOneCollectionCenterDeliveryParcel";
+import ParcelTablePage from "./pages/staff/ParcelTablePage/parcelTablePage";
+import ManualShipmentPage from "./pages/staff/ManualShipmentPage/manualShipmentPage"
 
 const App = () => {
   return (
