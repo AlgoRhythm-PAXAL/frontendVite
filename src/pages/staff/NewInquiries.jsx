@@ -38,7 +38,6 @@ const NewInquiries = () => {
         }),
     },
     { label: "Tracking Number", key: "parcelTrackingNo" },
-    
   ];
 
   const actions = [
@@ -53,27 +52,29 @@ const NewInquiries = () => {
 
   return (
     <div className="px-8 py-6">
-    <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-8 gap-4">
-    <div className="flex-1">
-      <h2 className="text-2xl font-semibold text-gray-800 mb-2">Inquiry Management</h2>
-      <p className="text-gray-500">Manage all parcel inquiries</p>
+      <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-8 gap-4">
+        <div className="flex-1">
+          <h2 className="text-2xl font-semibold text-gray-800 mb-2">
+            Inquiry Management
+          </h2>
+          <p className="text-gray-500">Manage all parcel inquiries</p>
+        </div>
+
+        <div className="flex gap-4 w-full lg:w-auto">
+          <StatsBox title="Inquiries Today" value="50" />
+          <StatsBox title="Pending Inquiries" value="20" />
+        </div>
+      </div>
+      <div>
+        <DataTable
+          data={inquiries}
+          columns={columns}
+          actions={actions}
+          rowsPerPage={6}
+          textMessage={"No new inquiries"}
+        />
+      </div>
     </div>
-    
-    <div className="flex gap-4 w-full lg:w-auto">
-      <StatsBox title="Inquiries Today" value="50" />
-      <StatsBox title="Pending Inquiries" value="20" />
-    </div>
-  </div>
-   <div >
-     <DataTable
-      data={inquiries}
-      columns={columns}
-      actions={actions}
-      rowsPerPage={6}
-      textMessage={"No new inquiries"}
-    />
-    </div>
-   </div>
   );
 };
 
