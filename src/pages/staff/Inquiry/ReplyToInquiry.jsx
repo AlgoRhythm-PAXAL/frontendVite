@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import InquiryInfo from "../../components/staff/InquiryInfo";
+import InquiryInfo from "../../../components/staff/InquiryInfo";
 import axios from "axios";
 import { toast } from "sonner";
 

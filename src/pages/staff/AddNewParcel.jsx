@@ -3,6 +3,9 @@ import axios from "axios";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import BranchSelector from "../../components/staff/BranchSelector";
+import { toast } from "sonner";
+import ProvinceSelector from "../../components/staff/ProvinceSelector";
+import DistrictSelector from "../../components/staff/DistrictSelector";
 
 const AddNewParcel = () => {
   const {
@@ -10,9 +13,8 @@ const AddNewParcel = () => {
     handleSubmit,
     watch,
     formState: { errors },
-    setValue
+    setValue,
   } = useForm();
-
 
   const selectedDeliveryMethod = watch("receivingType");
   const navigate = useNavigate();
@@ -23,6 +25,9 @@ const AddNewParcel = () => {
     "to",
     "shippingMethod",
   ]);
+
+  const [provinceOne, setSelectedProvinceOne] = useState("");
+  const [provinceTwo, setSelectedProvinceTwo] = useState("");
 
   // Fetch payment amount
   const fetchPaymentAmount = async () => {
@@ -52,11 +57,9 @@ const AddNewParcel = () => {
   }, [itemSize, from, to, shippingMethod]); // re-run on any change
 
   const onSubmit = async (data) => {
-    
     try {
       const formData = {
         ...data,
-       
       };
 
       console.log("Data being sent to the server: ", formData);
@@ -69,12 +72,25 @@ const AddNewParcel = () => {
           withCredentials: true,
         }
       );
-      alert("Parcel Registered successfully!");
-      console.log(response.data)
-      navigate(`/staff/lodging-management/view-parcels/invoice/${response.data.parcelId}`);
+      console.log(response.data);
+      toast.success("Parcel registration Successful", {
+        description: `Parcel ID: ${response.data.parcelId}`,
+        duration: 4000,
+      });
+      navigate(
+        `/staff/lodging-management/view-parcels/invoice/${response.data.parcelId}`
+      );
     } catch (error) {
       console.error("Error submitting parcel data: ", error);
-      alert("Parcel registration failed");
+      const errorMessage =
+        error.response?.message ||
+        "Failed to register a new parcel. Please try again.";
+
+      toast.error("Parcel Registration Error", {
+        description: errorMessage,
+        duration: 4000,
+        
+      });
     }
   };
 
@@ -127,12 +143,18 @@ const AddNewParcel = () => {
                   NIC*
                 </label>
                 <input
-                  {...register("nic", { required: true })}
+                  {...register("nic", {
+                    required: "This field is required",
+                    pattern: {
+                      value: /^([0-9]{9}[vV]|[0-9]{12})$/,
+                      message: "Invalid NIC",
+                    },
+                  })}
                   className="w-full px-4 py-2 border rounded-md focus:ring-2 focus:ring-Primary focus:border-Primary"
                 />
                 {errors.nic && (
                   <p className="mt-1 text-sm text-red-600">
-                    This field is required
+                    {errors.nic.message}
                   </p>
                 )}
               </div>
@@ -142,12 +164,18 @@ const AddNewParcel = () => {
                   Mobile*
                 </label>
                 <input
-                  {...register("contact", { required: true })}
+                  {...register("contact", {
+                    required: "this field is required",
+                    pattern: {
+                      value: /^0[1-9][0-9]{8}$/,
+                      message: "Invalid mobile number",
+                    },
+                  })}
                   className="w-full px-4 py-2 border rounded-md focus:ring-2 focus:ring-Primary focus:border-Primary"
                 />
-                {errors.contact && (
+                { errors.contact  && (
                   <p className="mt-1 text-sm text-red-600">
-                    This field is required
+                    {errors.contact.message}
                   </p>
                 )}
               </div>
@@ -160,7 +188,9 @@ const AddNewParcel = () => {
                 </label>
                 <input
                   type="email"
-                  {...register("email", { required: true })}
+                  {...register("email", {
+                    required: true,
+                  })}
                   className="w-full px-4 py-2 border rounded-md focus:ring-2 focus:ring-Primary focus:border-Primary"
                 />
                 {errors.email && (
@@ -196,18 +226,20 @@ const AddNewParcel = () => {
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     District
                   </label>
-                  <input
-                    {...register("district")}
-                    className="w-full px-4 py-2 border rounded-md focus:ring-2 focus:ring-Primary focus:border-Primary"
+                  <DistrictSelector
+                    register={register}
+                    name="district"
+                    selectedProvince={provinceOne}
                   />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Province
                   </label>
-                  <input
-                    {...register("province")}
-                    className="w-full px-4 py-2 border rounded-md focus:ring-2 focus:ring-Primary focus:border-Primary"
+                  <ProvinceSelector
+                    register={register}
+                    name="province"
+                    onChange={(e) => setSelectedProvinceOne(e.target.value)}
                   />
                 </div>
               </div>
@@ -242,12 +274,18 @@ const AddNewParcel = () => {
                   Mobile*
                 </label>
                 <input
-                  {...register("receiverContact", { required: true })}
+                  {...register("receiverContact", {
+                    required: "This field is required",
+                    pattern: {
+                      value: /^0[1-9][0-9]{8}$/,
+                      message: "Invalid mobile number",
+                    },
+                  })}
                   className="w-full px-4 py-2 border rounded-md focus:ring-2 focus:ring-Primary focus:border-Primary"
                 />
-                {errors.receiverContact && (
+                { errors.receiverContact && (
                   <p className="mt-1 text-sm text-red-600">
-                    This field is required
+                    {errors.receiverContact.message}
                   </p>
                 )}
               </div>
@@ -309,13 +347,13 @@ const AddNewParcel = () => {
                   className="w-full px-4 py-2 border rounded-md focus:ring-2 focus:ring-Primary focus:border-Primary"
                 >
                   <option value="">Select Type</option>
-                  <option value="paper">Paper</option>
                   <option value="Glass">Glass</option>
-                  <option value="wood">Wood</option>
-                  <option value="fabrics">Fabrics</option>
-                  <option value="plastic">Plastic</option>
-                  <option value="chemicals">Chemicals</option>
-                  <option value="clay">Clay</option>
+                  <option value="Flowers">Flowers</option>
+                  <option value="Document">Document</option>
+                  <option value="Clothing">Clothing</option>
+                  <option value="Electronics">Electronics</option>
+                  <option value="Food">Food</option>
+                  <option value="Other">Other</option>
                 </select>
                 {errors.itemType && (
                   <p className="mt-1 text-sm text-red-600">
@@ -452,12 +490,15 @@ const AddNewParcel = () => {
                       <label className="block text-sm font-medium text-gray-700 mb-1">
                         Province*
                       </label>
-                      <input
-                        {...register("deliveryInformation.deliveryProvince", {
-                          required: selectedDeliveryMethod === "doorstep",
-                        })}
-                        className="w-full px-4 py-2 border rounded-md focus:ring-2 focus:ring-Primary focus:border-Primary"
+
+                      <ProvinceSelector
+                        register={register}
+                        name="deliveryInformation.deliveryProvince"
+                        required={selectedDeliveryMethod === "doorstep"}
+                        errors={errors}
+                        onChange={(e) => setSelectedProvinceTwo(e.target.value)}
                       />
+
                       {errors.deliveryInformation?.deliveryProvince && (
                         <p className="mt-1 text-sm text-red-600">
                           This field is required
@@ -469,12 +510,13 @@ const AddNewParcel = () => {
                       <label className="block text-sm font-medium text-gray-700 mb-1">
                         District*
                       </label>
-                      <input
-                        {...register("deliveryInformation.deliveryDistrict", {
-                          required: selectedDeliveryMethod === "doorstep",
-                        })}
-                        className="w-full px-4 py-2 border rounded-md focus:ring-2 focus:ring-Primary focus:border-Primary"
+                      <DistrictSelector
+                        register={register}
+                        name="deliveryInformation.deliveryDistrict"
+                        required={selectedDeliveryMethod === "doorstep"}
+                        selectedProvince={provinceTwo}
                       />
+
                       {errors.deliveryInformation?.deliveryDistrict && (
                         <p className="mt-1 text-sm text-red-600">
                           This field is required

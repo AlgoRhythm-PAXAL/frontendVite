@@ -2,11 +2,17 @@ import React, { useEffect, useState } from "react";
 import DataTable from "../../components/staff/DataTable";
 import axios from "axios";
 import { useParams } from "react-router-dom";
+import { toast } from "sonner";
 
-const PickupSchedules = ({ pickupDate, pickupTimeSlot, onAssignmentChange, parcelId  }) => {
+const PickupSchedules = ({
+  pickupDate,
+  pickupTimeSlot,
+  onAssignmentChange,
+  parcelId,
+}) => {
   const [pickupSchedules, setPickupSchedules] = useState([]);
   const [selectedScheduleId, setSelectedScheduleId] = useState(null);
-  
+  const [isCreating, setIsCreating] = useState(false);
 
   useEffect(() => {
     getPickupSchedules();
@@ -14,7 +20,7 @@ const PickupSchedules = ({ pickupDate, pickupTimeSlot, onAssignmentChange, parce
       onAssignmentChange(selectedScheduleId !== null);
     }
   }, [selectedScheduleId, onAssignmentChange]);
-  
+
   /* get all the availble pickup schdeuls for the date and time */
   const getPickupSchedules = async () => {
     try {
@@ -25,8 +31,10 @@ const PickupSchedules = ({ pickupDate, pickupTimeSlot, onAssignmentChange, parce
             pickupDate: pickupDate,
             pickupTime: pickupTimeSlot,
           },
+          withCredentials: true
         },
-        { withCredentials: true }
+        
+        
       );
 
       setPickupSchedules(response.data);
@@ -76,6 +84,7 @@ const PickupSchedules = ({ pickupDate, pickupTimeSlot, onAssignmentChange, parce
   }
   const addNewPickupSchedule = async (parcelId) => {
     try {
+      setIsCreating(true);
       const response = await axios.post(
         "http://localhost:8000/staff/vehicle-schedules/new-pickup-schedule",
         { parcelId },
@@ -84,17 +93,28 @@ const PickupSchedules = ({ pickupDate, pickupTimeSlot, onAssignmentChange, parce
       console.log(response);
       if (response.data.success) {
         const newSchedule = response.data.newSchedule;
-        setSelectedScheduleId( newSchedule._id);
-
+        console.log(newSchedule)
+        setSelectedScheduleId(newSchedule._id);
+        toast.success("New Schedule created", {
+          description: response.data.message,
+          duration: 2000,
+        });
         await getPickupSchedules();
-        alert('New schedule created successfully!');
-    }
-  } catch (error) {
+      }
+    } catch (error) {
       console.log("Error in creating a new schedule", error);
+      const errorMessage =
+        error.response?.data.message ||
+        "Failed to Create a schedule Please try again.";
+
+      toast.error("Failed to Create", {
+        description: errorMessage,
+        duration: 4000,
+      });
+    } finally {
+      setIsCreating(false);
     }
   };
-
-  
 
   const columns = [
     {
@@ -122,16 +142,18 @@ const PickupSchedules = ({ pickupDate, pickupTimeSlot, onAssignmentChange, parce
         const isSelected = selectedScheduleId === (row._id || row.scheduleId);
         return (
           <button
-          className={`
-            ${isSelected
-              ? "bg-white font-semibold text-Primary border-2 border-Primary"
-              : "bg-Primary font-semibold text-white border-2 border-Primary"
+            className={`
+            ${
+              isSelected
+                ? "bg-white font-semibold text-Primary border-2 border-Primary"
+                : "bg-Primary font-semibold text-white border-2 border-Primary"
             }
             px-7 py-2 rounded-lg transition-all duration-200 ease-in-out
             focus:outline-none focus:ring-2 focus:ring-Primary-light
-            ${selectedScheduleId !== null && !isSelected
-              ? " cursor-not-allowed bg-gray-400 text-white border-gray-300 font-semibold"
-              : "hover:shadow-md"
+            ${
+              selectedScheduleId !== null && !isSelected
+                ? " cursor-not-allowed bg-gray-400 text-white border-gray-300 font-semibold"
+                : "hover:shadow-md"
             }
           `}
             onClick={() =>
@@ -153,7 +175,7 @@ const PickupSchedules = ({ pickupDate, pickupTimeSlot, onAssignmentChange, parce
   const getRowClassName = (row) => {
     return selectedScheduleId === (row._id || row.scheduleId)
       ? "bg-green-100"
-      : ""
+      : "";
   };
 
   return (
@@ -163,8 +185,16 @@ const PickupSchedules = ({ pickupDate, pickupTimeSlot, onAssignmentChange, parce
         onClick={() => addNewPickupSchedule(parcelId)}
         disabled={selectedScheduleId !== null}
       >
-        + New Schedule
+        {isCreating ? (
+          <div className="flex items-center justify-center gap-2">
+            <span className="animate-spin rounded-full h-5 w-5 border-b-2 border-Primary"></span>
+            Creating...
+          </div>
+        ) : (
+          "+ New Schedule"
+        )}
       </button>
+
       <DataTable
         data={pickupSchedules}
         columns={columns}
@@ -172,7 +202,6 @@ const PickupSchedules = ({ pickupDate, pickupTimeSlot, onAssignmentChange, parce
         rowsPerPage={4}
         getRowClassName={getRowClassName}
       />
-      
     </div>
   );
 };
