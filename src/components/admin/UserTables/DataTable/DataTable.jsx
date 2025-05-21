@@ -1,11 +1,21 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo } from "react";
 import {
   flexRender,
   getCoreRowModel,
   getPaginationRowModel,
   getFilteredRowModel,
   useReactTable,
-} from '@tanstack/react-table';
+} from "@tanstack/react-table";
+import {
+  Dialog,
+  DialogTrigger,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+  DialogDescription,
+} from "@/components/ui/dialog";
+
 import {
   Table,
   TableBody,
@@ -18,8 +28,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { DatePickerWithPresets } from "../../DatePicker";
-import { format, isSameDay } from 'date-fns';
-import { ArrowDownUp } from 'lucide-react';
+import { format, isSameDay } from "date-fns";
+import { ArrowDownUp } from "lucide-react";
+import {toast} from 'sonner'
+import axios from 'axios'
 
 export function DataTable({
   title,
@@ -34,33 +46,75 @@ export function DataTable({
   updateText = "Update",
   showAllLabel = "Show All Entries",
   disableDateFilter = false,
-  enableRowClick =true,
-  onRowClick
+  enableRowClick = true,
+  onRowClick,
 }) {
-  const [globalFilter, setGlobalFilter] = useState('');
+  const [globalFilter, setGlobalFilter] = useState("");
   const [selectedDate, setSelectedDate] = useState(new Date());
-  const [sortOrder, setSortOrder] = useState('desc');
+  const [sortOrder, setSortOrder] = useState("desc");
   const [showAll, setShowAll] = useState(disableDateFilter);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [rowToDelete, setRowToDelete] = useState(null);
+  const backendURL = import.meta.env.VITE_BACKEND_URL;
+
+  const handleDeleteClick = (rowData) => {
+    console.log(rowData)
+    setRowToDelete(rowData);
+    setDeleteDialogOpen(true);
+  };
+
+  
+  // In DataTable component
+  const confirmDelete = async () => {
+  if (!rowToDelete) return;
+
+  const toastId = toast.loading('Deleting branch...');
+  try {
+
+    const response = await axios.delete(`${backendURL}/admin/delete/branch/${rowToDelete._id}`,
+      { withCredentials: true }
+    );
+
+    toast.success(response.data.message || 'Branch deleted successfully', {
+      id: toastId,
+    });
+    setTimeout(() => window.location.reload(), 1000);
+  } catch (error) {
+    // 4. Show error notification
+    toast.error(error.response?.data?.message || 'Deletion failed', {
+      id: toastId,
+    });
+  } finally {
+    // 5. Close dialog after all operations
+    setDeleteDialogOpen(false);
+    setRowToDelete(null);
+  }
+};
 
   // Memoized filtered and sorted data
   const filteredData = useMemo(() => {
-    const baseData = disableDateFilter || showAll 
-      ? data 
-      : data.filter(item => item?.createdAt && isSameDay(new Date(item.createdAt), selectedDate));
+    const baseData =
+      disableDateFilter || showAll
+        ? data
+        : data.filter(
+            (item) =>
+              item?.createdAt &&
+              isSameDay(new Date(item.createdAt), selectedDate)
+          );
 
     return [...baseData].sort((a, b) => {
       // Only sort if showing all entries or date filter is disabled
       if (!disableDateFilter && !showAll) return 0;
       const dateA = new Date(a?.createdAt).getTime();
       const dateB = new Date(b?.createdAt).getTime();
-      return sortOrder === 'desc' ? dateB - dateA : dateA - dateB;
+      return sortOrder === "desc" ? dateB - dateA : dateA - dateB;
     });
   }, [data, selectedDate, sortOrder, showAll, disableDateFilter]);
 
   const enhancedColumns = useMemo(() => {
     const actionColumn = {
-      id: 'actions',
-      header: 'Actions',
+      id: "actions",
+      header: "Actions",
       cell: ({ row }) => (
         <div className="flex space-x-2 max-w-20">
           {updateEnabled && (
@@ -77,8 +131,8 @@ export function DataTable({
             <Button
               variant="destructive"
               size="sm"
-              onClick={() => onDelete?.(row.original)}
-              className="hover:bg-red-50"
+              onClick={() => handleDeleteClick(row.original)}
+              
             >
               {deleteText}
             </Button>
@@ -89,17 +143,25 @@ export function DataTable({
 
     return [
       {
-        id: 'rowNumber',
-        header: '#',
+        id: "rowNumber",
+        header: "#",
         cell: ({ row, table }) => {
           const { pageIndex, pageSize } = table.getState().pagination;
           return pageIndex * pageSize + row.index + 1;
         },
       },
       ...columns,
-      ...(deleteEnabled || updateEnabled ? [actionColumn] : [])
+      ...(deleteEnabled || updateEnabled ? [actionColumn] : []),
     ];
-  }, [columns, deleteEnabled, updateEnabled, onDelete, onUpdate, deleteText, updateText]);
+  }, [
+    columns,
+    deleteEnabled,
+    updateEnabled,
+    onDelete,
+    onUpdate,
+    deleteText,
+    updateText,
+  ]);
 
   const table = useReactTable({
     data: filteredData,
@@ -111,7 +173,7 @@ export function DataTable({
     getCoreRowModel: getCoreRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
-    globalFilterFn: 'includesString',
+    globalFilterFn: "includesString",
   });
 
   return (
@@ -119,20 +181,24 @@ export function DataTable({
       {/* Header Section */}
       <div className="flex flex-col space-y-4 sm:flex-row sm:justify-between sm:items-center">
         <div className="space-y-2">
-          {title && <h2 className="text-2xl font-semibold text-gray-900">{title}</h2>}
+          {title && (
+            <h2 className="text-2xl font-semibold text-gray-900">{title}</h2>
+          )}
           {!disableDateFilter && !showAll && (
             <div className="flex items-center space-x-2">
-              <span className="text-sm font-medium text-gray-500">Showing entries from:</span>
+              <span className="text-sm font-medium text-gray-500">
+                Showing entries from:
+              </span>
               <span className="text-sm font-semibold text-gray-700">
-                {format(selectedDate, 'MMMM do, yyyy')}
+                {format(selectedDate, "MMMM do, yyyy")}
               </span>
             </div>
           )}
         </div>
-        
+
         <div className="flex flex-col space-y-2 sm:flex-row sm:space-y-0 sm:space-x-2">
           {!disableDateFilter && !showAll && (
-            <DatePickerWithPresets 
+            <DatePickerWithPresets
               onDateChange={setSelectedDate}
               className="w-full sm:w-48"
             />
@@ -151,33 +217,43 @@ export function DataTable({
         <div className="flex items-center gap-4">
           {!disableDateFilter && (
             <div className="flex items-center space-x-2">
-              <Switch 
+              <Switch
                 id="show-all"
                 checked={showAll}
                 onCheckedChange={setShowAll}
               />
-              <label htmlFor="show-all" className="text-sm font-medium text-gray-700">
+              <label
+                htmlFor="show-all"
+                className="text-sm font-medium text-gray-700"
+              >
                 {showAllLabel}
               </label>
             </div>
           )}
-          
+
           {(showAll || disableDateFilter) && (
             <div className="flex items-center space-x-2">
               <ArrowDownUp className="h-4 w-4 text-gray-500" />
-              <span className="text-sm font-medium text-gray-700">Sort Order:</span>
-              <Switch 
+              <span className="text-sm font-medium text-gray-700">
+                Sort Order:
+              </span>
+              <Switch
                 id="sort-order"
-                checked={sortOrder === 'desc'}
-                onCheckedChange={(checked) => setSortOrder(checked ? 'desc' : 'asc')}
+                checked={sortOrder === "desc"}
+                onCheckedChange={(checked) =>
+                  setSortOrder(checked ? "desc" : "asc")
+                }
               />
-              <label htmlFor="sort-order" className="text-sm font-medium text-gray-700">
-                {sortOrder === 'desc' ? 'Newest First' : 'Oldest First'}
+              <label
+                htmlFor="sort-order"
+                className="text-sm font-medium text-gray-700"
+              >
+                {sortOrder === "desc" ? "Newest First" : "Oldest First"}
               </label>
             </div>
           )}
         </div>
-        
+
         <div className="text-sm text-gray-500">
           Showing {filteredData.length} entries
         </div>
@@ -190,11 +266,14 @@ export function DataTable({
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id}>
                 {headerGroup.headers.map((header) => (
-                  <TableHead 
+                  <TableHead
                     key={header.id}
                     className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap"
                   >
-                    {flexRender(header.column.columnDef.header, header.getContext())}
+                    {flexRender(
+                      header.column.columnDef.header,
+                      header.getContext()
+                    )}
                   </TableHead>
                 ))}
               </TableRow>
@@ -203,17 +282,26 @@ export function DataTable({
           <TableBody className="bg-white divide-y divide-gray-200">
             {table.getRowModel().rows?.length ? (
               table.getRowModel().rows.map((row) => (
-                <TableRow 
-                  key={row.id} 
-                  className={`hover:bg-gray-50 ${enableRowClick && onRowClick ? 'cursor-pointer' : ''}`}
-                  onClick={enableRowClick ?() => onRowClick?.(collectionName, row.original.itemId):undefined}
+                <TableRow
+                  key={row.id}
+                  className={`hover:bg-gray-50 ${
+                    enableRowClick && onRowClick ? "cursor-pointer" : ""
+                  }`}
+                  onClick={
+                    enableRowClick
+                      ? () => onRowClick?.(collectionName, row.original.itemId)
+                      : undefined
+                  }
                 >
                   {row.getVisibleCells().map((cell) => (
-                    <TableCell 
+                    <TableCell
                       key={cell.id}
                       className="px-3 py-2 text-sm text-gray-900 max-w-[200px] truncate"
                     >
-                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                      {flexRender(
+                        cell.column.columnDef.cell,
+                        cell.getContext()
+                      )}
                     </TableCell>
                   ))}
                 </TableRow>
@@ -221,23 +309,24 @@ export function DataTable({
             ) : (
               // Empty state unchanged
               <TableRow>
-                <TableCell 
-                  colSpan={table.getAllColumns().length} 
+                <TableCell
+                  colSpan={table.getAllColumns().length}
                   className="px-3 py-4 text-center text-sm text-gray-500"
                 >
-                  {showAll || disableDateFilter ? 'No entries found' : 'No entries found for selected date'}
+                  {showAll || disableDateFilter
+                    ? "No entries found"
+                    : "No entries found for selected date"}
                 </TableCell>
               </TableRow>
             )}
           </TableBody>
-          
         </Table>
       </div>
 
       {/* Pagination Section */}
       <div className="flex items-center justify-between px-2">
         <div className="text-sm text-gray-700">
-          Page {table.getState().pagination.pageIndex + 1} of{' '}
+          Page {table.getState().pagination.pageIndex + 1} of{" "}
           {table.getPageCount()}
         </div>
         <div className="flex space-x-2">
@@ -261,6 +350,30 @@ export function DataTable({
           </Button>
         </div>
       </div>
+
+      <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Are you sure you want to delete {rowToDelete?.location}?</DialogTitle>
+            <DialogDescription>
+              This action cannot be undone. This will permanently delete this
+              entry.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setDeleteDialogOpen(false)}
+            >
+              Cancel
+            </Button>
+            <Button variant="destructive" onClick={confirmDelete}>
+              {" "}
+              Delete
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
@@ -354,11 +467,9 @@ export function DataTable({
 //     globalFilterFn: 'includesString',
 //   });
 
-
 //    const [selectedDate, setSelectedDate] = useState(new Date());
 //     const formattedDate = format(selectedDate, 'MMMM do, yyyy ');
 //   return (
-
 
 //     <div className="">
 //       {title && (
@@ -413,8 +524,8 @@ export function DataTable({
 //               ))
 //             ) : (
 //               <TableRow>
-//                 <TableCell 
-//                   colSpan={table.getAllColumns().length} 
+//                 <TableCell
+//                   colSpan={table.getAllColumns().length}
 //                   className="h-24 text-center"
 //                 >
 //                   No results.
@@ -564,9 +675,6 @@ export function DataTable({
 //   );
 // }
 
-
-
-
 // import {
 //     // ColumnDef,
 //     flexRender,
@@ -574,7 +682,7 @@ export function DataTable({
 //     getPaginationRowModel,
 //     useReactTable,
 //   } from '@tanstack/react-table';
-  
+
 //   import {
 //     Table,
 //     TableBody,
@@ -585,7 +693,7 @@ export function DataTable({
 //   } from "@/components/ui/table";
 
 //   import { Button } from "@/components/ui/button"
-  
+
 //   export function DataTable({ columns, data }) {
 //     const table = useReactTable({
 //       data,
