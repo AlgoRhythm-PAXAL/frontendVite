@@ -1,4 +1,9 @@
-import { capitalize, formatDateTime } from "../../../utils/formatters";
+import {
+  capitalize,
+  formatDateTime,
+  camelToSentenceCase,
+  getStatusStyle,
+} from "../../../utils/formatters";
 import TableDistributor from "../UserTables/DataTable/TableDistributor";
 import { useState, useEffect } from "react";
 import axios from "axios";
@@ -107,21 +112,22 @@ const ParcelDetails = ({ entryId }) => {
     updatedAt,
     paymentId,
   } = parcel;
+  const { color, icon } = getStatusStyle(status);
 
   return (
     <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-8">
       {/* Header Section */}
-      <div className="bg-white rounded-xl shadow-sm p-6">
-        <div className=" flex items-center space-x-4 text-sm text-gray-500">
-          <span>
-            Status:{" "}
-            <span className="font-medium text-indigo-600">
-              {capitalize(status)}
-            </span>
-          </span>
-          <span>•</span>
-          <span>Last Updated: {formatDateTime(updatedAt)}</span>
-        </div>
+      <div className="flex items-center justify-end space-x-4 text-md text-gray-700">
+        <span className="font-medium">
+          Last Updated: {formatDateTime(updatedAt)}
+        </span>
+        <span>•</span>
+        <span
+          className={`inline-flex items-center gap-2 px-4 py-2 rounded-full border shadow-sm font-semibold ${color}`}
+        >
+          <span>{icon}</span>
+          <span>{camelToSentenceCase(status)}</span>
+        </span>
       </div>
 
       {/* Main Grid */}
@@ -130,7 +136,7 @@ const ParcelDetails = ({ entryId }) => {
         <div className="space-y-8">
           {/* Parcel Info Card */}
           <Section title="Parcel Information">
-            <div className="grid grid-cols-3 md:grid-cols-2 gap-4 p-4">
+            <div className="grid grid-cols-2 md:grid-cols-2 gap-4 p-4">
               <InfoGrid>
                 <Info label="Tracking No" value={trackingNo || "N/A"} />
                 <Info label="Item Type" value={capitalize(itemType)} />
@@ -153,13 +159,6 @@ const ParcelDetails = ({ entryId }) => {
                   label="Special Instructions"
                   value={capitalize(specialInstructions || "None")}
                 />
-              </InfoGrid>
-              <InfoGrid>
-                <Info label="Address" value={deliveryInformation?.deliveryAddress} />
-                <Info label="City" value={deliveryInformation?.deliveryCity} />
-                <Info label="District" value={deliveryInformation?.deliveryDistrict} />
-                <Info label="Province" value={deliveryInformation?.deliveryProvince} />
-                <Info label="Postal Code" value={deliveryInformation?.postalCode} />
               </InfoGrid>
             </div>
           </Section>
@@ -262,11 +261,11 @@ const ParcelDetails = ({ entryId }) => {
               <DetailGrid>
                 <Info
                   label="Name"
-                  value={capitalize(receiverId?.receiverFullName)}
+                  value={capitalize(receiverId?.receiverFullname)}
                 />
                 <Info
                   label="Contact"
-                  value={receiverId?.receiverContact || "-"}
+                  value={receiverId?.receiverContact?.[0] || "-"}
                 />
                 <Info label="Email" value={receiverId?.receiverEmail || "-"} />
                 <Info
