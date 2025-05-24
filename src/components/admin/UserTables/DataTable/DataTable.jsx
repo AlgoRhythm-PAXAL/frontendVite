@@ -98,7 +98,6 @@ export function DataTable({
   };
 
   const handleEditClick = (rowData) => {
-    console.log(rowData)
     setRowToDelete(rowData);
     setFormData({rowData});
     setUpdateDialogOpen(true);
@@ -440,54 +439,6 @@ export function DataTable({
           </DialogFooter>
         </DialogContent>
       </Dialog>
-      {/* <Dialog open={updateDialogOpen} onOpenChange={setUpdateDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Update Branch Details</DialogTitle>
-            <DialogDescription>
-              Modify the branch location and contact information.
-            </DialogDescription>
-          </DialogHeader>
-
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Location</label>
-              <Input
-                value={formData.location}
-                onChange={(e) =>
-                  setFormData({ ...formData, location: e.target.value })
-                }
-                placeholder="Enter branch location"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Contact Number</label>
-              <Input
-                value={formData.contact}
-                onChange={(e) =>
-                  setFormData({ ...formData, contact: e.target.value })
-                }
-                placeholder="Enter contact number"
-                pattern="[0-9]{10}"
-              />
-              <p className="text-xs text-gray-500">
-                Sri Lankan format: 07XXXXXXXX
-              </p>
-            </div>
-          </div>
-
-          <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => setUpdateDialogOpen(false)}
-            >
-              Cancel
-            </Button>
-            <Button onClick={handleUpdate}>Save Changes</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog> */}
     </div>
   );
 }

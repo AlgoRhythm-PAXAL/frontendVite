@@ -48,8 +48,6 @@ export default function TableDistributor({
         let apiEndpoint;
         if (user === "admin") {
           apiEndpoint = `${backendURL}/${user}/all`;
-        } else if (user === "branche") {
-          apiEndpoint = `${backendURL}/admin/branch/all`;
         } else if (user === "parcel status tracking and assignment detail") {
           apiEndpoint = `${backendURL}/admin/track/statuses`;
         } else {
