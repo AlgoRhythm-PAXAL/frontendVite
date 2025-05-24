@@ -30,8 +30,8 @@ import { Switch } from "@/components/ui/switch";
 import { DatePickerWithPresets } from "../../DatePicker";
 import { format, isSameDay } from "date-fns";
 import { ArrowDownUp } from "lucide-react";
-import {toast} from 'sonner'
-import axios from 'axios'
+import { toast } from "sonner";
+import axios from "axios";
 
 export function DataTable({
   title,
@@ -46,50 +46,84 @@ export function DataTable({
   updateText = "Update",
   showAllLabel = "Show All Entries",
   disableDateFilter = false,
+  sorting = true,
   enableRowClick = true,
   onRowClick,
+  updateAPI,
+  deleteAPI,
+  renderUpdateForm,
 }) {
   const [globalFilter, setGlobalFilter] = useState("");
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [sortOrder, setSortOrder] = useState("desc");
   const [showAll, setShowAll] = useState(disableDateFilter);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [updateDialogOpen, setUpdateDialogOpen] = useState(false);
   const [rowToDelete, setRowToDelete] = useState(null);
-  const backendURL = import.meta.env.VITE_BACKEND_URL;
+  const [formData, setFormData] = useState({});
+
+  const [pagination, setPagination] = useState({
+    pageIndex: 0,
+    pageSize: 20, // Set default page size to 20
+  });
 
   const handleDeleteClick = (rowData) => {
-    console.log(rowData)
     setRowToDelete(rowData);
     setDeleteDialogOpen(true);
   };
 
-  
-  // In DataTable component
-  const confirmDelete = async () => {
-  if (!rowToDelete) return;
+  const handleDelete = async () => {
+    if (!rowToDelete) return;
 
-  const toastId = toast.loading('Deleting branch...');
-  try {
+    const toastId = toast.loading(`Deleting ${title}...`);
+    try {
+      const response = await axios.delete(`${deleteAPI}/${rowToDelete._id}`, {
+        withCredentials: true,
+      });
 
-    const response = await axios.delete(`${backendURL}/admin/delete/branch/${rowToDelete._id}`,
-      { withCredentials: true }
-    );
+      toast.success(response.data.message || `${title} deleted successfully`, {
+        id: toastId,
+      });
+      setTimeout(() => window.location.reload(), 1000);
+    } catch (error) {
+      // 4. Show error notification
+      toast.error(error.response?.data?.message || "Deletion failed", {
+        id: toastId,
+      });
+    } finally {
+      // 5. Close dialog after all operations
+      setDeleteDialogOpen(false);
+      setRowToDelete(null);
+    }
+  };
 
-    toast.success(response.data.message || 'Branch deleted successfully', {
-      id: toastId,
-    });
-    setTimeout(() => window.location.reload(), 1000);
-  } catch (error) {
-    // 4. Show error notification
-    toast.error(error.response?.data?.message || 'Deletion failed', {
-      id: toastId,
-    });
-  } finally {
-    // 5. Close dialog after all operations
-    setDeleteDialogOpen(false);
-    setRowToDelete(null);
-  }
-};
+  const handleEditClick = (rowData) => {
+    console.log(rowData)
+    setRowToDelete(rowData);
+    setFormData({rowData});
+    setUpdateDialogOpen(true);
+  };
+
+  const handleUpdate = async () => {
+    const toastId = toast.loading("Saving changes...");
+    try {
+      const response = await axios.put(
+        `${updateAPI}/${rowToDelete._id}`,
+        formData,
+        { withCredentials: true }
+      );
+      toast.success(response.data.message || `${title} updated successfully`, {
+        id: toastId,
+      });
+
+      setUpdateDialogOpen(false);
+      setTimeout(() => window.location.reload(), 1000);
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Update failed", {
+        id: toastId,
+      });
+    }
+  };
 
   // Memoized filtered and sorted data
   const filteredData = useMemo(() => {
@@ -121,7 +155,7 @@ export function DataTable({
             <Button
               variant="outline"
               size="sm"
-              onClick={() => onUpdate?.(row.original)}
+              onClick={() => handleEditClick(row.original)}
               className="hover:bg-blue-50"
             >
               {updateText}
@@ -132,7 +166,6 @@ export function DataTable({
               variant="destructive"
               size="sm"
               onClick={() => handleDeleteClick(row.original)}
-              
             >
               {deleteText}
             </Button>
@@ -168,7 +201,9 @@ export function DataTable({
     columns: enhancedColumns,
     state: {
       globalFilter,
+      pagination: { pageIndex: 0, pageSize: 20 },
     },
+    onPaginationChange: setPagination,
     onGlobalFilterChange: setGlobalFilter,
     getCoreRowModel: getCoreRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
@@ -231,7 +266,7 @@ export function DataTable({
             </div>
           )}
 
-          {(showAll || disableDateFilter) && (
+          {(showAll || disableDateFilter) && sorting && (
             <div className="flex items-center space-x-2">
               <ArrowDownUp className="h-4 w-4 text-gray-500" />
               <span className="text-sm font-medium text-gray-700">
@@ -354,7 +389,9 @@ export function DataTable({
       <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Are you sure you want to delete {rowToDelete?.location}?</DialogTitle>
+            <DialogTitle>
+              Are you sure you want to delete {rowToDelete?.location}?
+            </DialogTitle>
             <DialogDescription>
               This action cannot be undone. This will permanently delete this
               entry.
@@ -367,404 +404,90 @@ export function DataTable({
             >
               Cancel
             </Button>
-            <Button variant="destructive" onClick={confirmDelete}>
+            <Button variant="destructive" onClick={handleDelete}>
               {" "}
               Delete
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <Dialog open={updateDialogOpen} onOpenChange={setUpdateDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Update {title} Details</DialogTitle>
+            <DialogDescription>
+              Modify the details for this entry.
+            </DialogDescription>
+          </DialogHeader>
+
+          {renderUpdateForm ? (
+            renderUpdateForm({ formData, setFormData, rowData: rowToDelete })
+          ) : (
+            <div className="text-sm text-gray-500">
+              No update form provided.
+            </div>
+          )}
+
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setUpdateDialogOpen(false)}
+            >
+              Cancel
+            </Button>
+            <Button onClick={handleUpdate}>Save Changes</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      {/* <Dialog open={updateDialogOpen} onOpenChange={setUpdateDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Update Branch Details</DialogTitle>
+            <DialogDescription>
+              Modify the branch location and contact information.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Location</label>
+              <Input
+                value={formData.location}
+                onChange={(e) =>
+                  setFormData({ ...formData, location: e.target.value })
+                }
+                placeholder="Enter branch location"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Contact Number</label>
+              <Input
+                value={formData.contact}
+                onChange={(e) =>
+                  setFormData({ ...formData, contact: e.target.value })
+                }
+                placeholder="Enter contact number"
+                pattern="[0-9]{10}"
+              />
+              <p className="text-xs text-gray-500">
+                Sri Lankan format: 07XXXXXXXX
+              </p>
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setUpdateDialogOpen(false)}
+            >
+              Cancel
+            </Button>
+            <Button onClick={handleUpdate}>Save Changes</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog> */}
     </div>
   );
 }
-
-// import { useState, useMemo } from 'react';
-// import {
-//   flexRender,
-//   getCoreRowModel,
-//   getPaginationRowModel,
-//   getFilteredRowModel,
-//   useReactTable,
-// } from '@tanstack/react-table';
-// import {
-//   Table,
-//   TableBody,
-//   TableCell,
-//   TableHead,
-//   TableHeader,
-//   TableRow,
-// } from "@/components/ui/table";
-// import { Button } from "@/components/ui/button";
-// import { Input } from "@/components/ui/input";
-// import { DatePickerWithPresets } from "../../DatePicker";
-// import { format } from 'date-fns';
-
-// export function DataTable({
-//   title,
-//   columns,
-//   data,
-//   onDelete,
-//   onUpdate,
-//   deleteEnabled = false,
-//   updateEnabled = false,
-//   deleteText = "Delete",
-//   updateText = "Update"
-// }) {
-//   const [globalFilter, setGlobalFilter] = useState('');
-
-//   const enhancedColumns = useMemo(() => {
-//     const actionColumn = {
-//       id: 'actions',
-//       header: 'Actions',
-//       cell: ({ row }) => (
-//         <div className="flex space-x-2 max-w-20">
-//           {updateEnabled && (
-//             <Button
-//               variant="outline"
-//               size="sm"
-//               onClick={() => onUpdate?.(row.original)}
-//             >
-//               {updateText}
-//             </Button>
-//           )}
-//           {deleteEnabled && (
-//             <Button
-//               variant="destructive"
-//               size="sm"
-//               onClick={() => onDelete?.(row.original)}
-//             >
-//               {deleteText}
-//             </Button>
-//           )}
-//         </div>
-//       ),
-//     };
-
-//     return [
-//       {
-//         id: 'rowNumber',
-//         header: '#',
-//         cell: ({ row, table }) => {
-//           const { pageIndex, pageSize } = table.getState().pagination;
-//           return pageIndex * pageSize + row.index + 1;
-//         },
-//       },
-//       ...columns,
-//       ...(deleteEnabled || updateEnabled ? [actionColumn] : [])
-//     ];
-//   }, [columns, deleteEnabled, updateEnabled, onDelete, onUpdate, deleteText, updateText]);
-
-//   const table = useReactTable({
-//     data,
-//     columns: enhancedColumns,
-//     state: {
-//       globalFilter,
-//     },
-//     onGlobalFilterChange: setGlobalFilter,
-//     getCoreRowModel: getCoreRowModel(),
-//     getPaginationRowModel: getPaginationRowModel(),
-//     getFilteredRowModel: getFilteredRowModel(),
-//     globalFilterFn: 'includesString',
-//   });
-
-//    const [selectedDate, setSelectedDate] = useState(new Date());
-//     const formattedDate = format(selectedDate, 'MMMM do, yyyy ');
-//   return (
-
-//     <div className="">
-//       {title && (
-//         <h2 className="text-2xl font-semibold mb-4">{title}</h2>
-//       )}
-//       <div className="flex items-center justify-between">
-//                 <h1 className="text-2xl">
-//                   On <span className="font-semibold text-2xl">{formattedDate}</span>
-//                 </h1>
-//                 <div className="">
-//                   <DatePickerWithPresets onDateChange={setSelectedDate} />
-//                 </div>
-//               </div>
-//       <div className="flex items-center py-4">
-//         <Input
-//           placeholder="Search all columns..."
-//           value={globalFilter}
-//           onChange={(e) => setGlobalFilter(e.target.value)}
-//           className="max-w-sm"
-//         />
-//       </div>
-
-//       <div className="rounded-md border">
-//         <Table>
-//           <TableHeader>
-//             {table.getHeaderGroups().map((headerGroup) => (
-//               <TableRow key={headerGroup.id}>
-//                 {headerGroup.headers.map((header) => (
-//                   <TableHead key={header.id}>
-//                     {flexRender(
-//                       header.column.columnDef.header,
-//                       header.getContext()
-//                     )}
-//                   </TableHead>
-//                 ))}
-//               </TableRow>
-//             ))}
-//           </TableHeader>
-//           <TableBody>
-//             {table.getRowModel().rows?.length ? (
-//               table.getRowModel().rows.map((row) => (
-//                 <TableRow
-//                   key={row.id}
-//                   data-state={row.getIsSelected() && "selected"}
-//                 >
-//                   {row.getVisibleCells().map((cell) => (
-//                     <TableCell key={cell.id}>
-//                       {flexRender(cell.column.columnDef.cell, cell.getContext())}
-//                     </TableCell>
-//                   ))}
-//                 </TableRow>
-//               ))
-//             ) : (
-//               <TableRow>
-//                 <TableCell
-//                   colSpan={table.getAllColumns().length}
-//                   className="h-24 text-center"
-//                 >
-//                   No results.
-//                 </TableCell>
-//               </TableRow>
-//             )}
-//           </TableBody>
-//         </Table>
-//       </div>
-
-//       <div className="flex items-center justify-end space-x-2 py-4">
-//         <Button
-//           variant="outline"
-//           size="sm"
-//           onClick={() => table.previousPage()}
-//           disabled={!table.getCanPreviousPage()}
-//         >
-//           Previous
-//         </Button>
-//         <Button
-//           variant="outline"
-//           size="sm"
-//           onClick={() => table.nextPage()}
-//           disabled={!table.getCanNextPage()}
-//         >
-//           Next
-//         </Button>
-//       </div>
-//     </div>
-//   );
-// }
-
-// import { useState } from 'react';
-// import {
-//   flexRender,
-//   getCoreRowModel,
-//   getPaginationRowModel,
-//   getFilteredRowModel,
-//   useReactTable,
-// } from '@tanstack/react-table';
-
-// import {
-//   Table,
-//   TableBody,
-//   TableCell,
-//   TableHead,
-//   TableHeader,
-//   TableRow,
-// } from "@/components/ui/table";
-// import { Button } from "@/components/ui/button";
-// import { Input } from "@/components/ui/input"; // Make sure you have an Input component or use standard HTML input
-
-// export function DataTable({ title,columns, data }) {
-//   const [globalFilter, setGlobalFilter] = useState('');
-
-//   const table = useReactTable({
-//     data,
-//     columns,
-//     state: {
-//       globalFilter,
-//     },
-//     onGlobalFilterChange: setGlobalFilter,
-//     getCoreRowModel: getCoreRowModel(),
-//     getPaginationRowModel: getPaginationRowModel(),
-//     getFilteredRowModel: getFilteredRowModel(),
-//     globalFilterFn: 'includesString', // Simple string inclusion filter
-//   });
-
-//   return (
-//     <div className="">
-//       {/* Search Input */}
-
-//       {title && (
-//         <h2 className="text-2xl font-semibold mb-4">{title}</h2>
-//       )}
-//       <div className="flex items-center py-4">
-//         <Input
-//           placeholder="Search all columns..."
-//           value={globalFilter}
-//           onChange={(e) => setGlobalFilter(e.target.value)}
-//           className="max-w-sm"
-//         />
-//       </div>
-
-//       {/* Table */}
-//       <div className="rounded-md border">
-//         <Table>
-//           <TableHeader>
-//             {table.getHeaderGroups().map((headerGroup) => (
-//               <TableRow key={headerGroup.id}>
-//                 {headerGroup.headers.map((header) => (
-//                   <TableHead key={header.id}>
-//                     {flexRender(
-//                       header.column.columnDef.header,
-//                       header.getContext()
-//                     )}
-//                   </TableHead>
-//                 ))}
-//               </TableRow>
-//             ))}
-//           </TableHeader>
-//           <TableBody>
-//             {table.getRowModel().rows?.length ? (
-//               table.getRowModel().rows.map((row) => (
-//                 <TableRow
-//                   key={row.id}
-//                   data-state={row.getIsSelected() && "selected"}
-//                 >
-//                   {row.getVisibleCells().map((cell) => (
-//                     <TableCell key={cell.id}>
-//                       {flexRender(cell.column.columnDef.cell, cell.getContext())}
-//                     </TableCell>
-//                   ))}
-//                 </TableRow>
-//               ))
-//             ) : (
-//               <TableRow>
-//                 <TableCell colSpan={columns.length} className="h-24 text-center">
-//                   No results.
-//                 </TableCell>
-//               </TableRow>
-//             )}
-//           </TableBody>
-//         </Table>
-//       </div>
-
-//       {/* Pagination */}
-//       <div className="flex items-center justify-end space-x-2 py-4">
-//         <Button
-//           variant="outline"
-//           size="sm"
-//           onClick={() => table.previousPage()}
-//           disabled={!table.getCanPreviousPage()}
-//         >
-//           Previous
-//         </Button>
-//         <Button
-//           variant="outline"
-//           size="sm"
-//           onClick={() => table.nextPage()}
-//           disabled={!table.getCanNextPage()}
-//         >
-//           Next
-//         </Button>
-//       </div>
-//     </div>
-//   );
-// }
-
-// import {
-//     // ColumnDef,
-//     flexRender,
-//     getCoreRowModel,
-//     getPaginationRowModel,
-//     useReactTable,
-//   } from '@tanstack/react-table';
-
-//   import {
-//     Table,
-//     TableBody,
-//     TableCell,
-//     TableHead,
-//     TableHeader,
-//     TableRow,
-//   } from "@/components/ui/table";
-
-//   import { Button } from "@/components/ui/button"
-
-//   export function DataTable({ columns, data }) {
-//     const table = useReactTable({
-//       data,
-//       columns,
-//       getCoreRowModel: getCoreRowModel(),
-//       getPaginationRowModel: getPaginationRowModel(),
-//     });
-//     return (
-//       <div className="">
-//         <div className="rounded-md border">
-//         <Table>
-//           <TableHeader>
-//             {table.getHeaderGroups().map((headerGroup) => (
-//               <TableRow key={headerGroup.id}>
-//                 {headerGroup.headers.map((header) => {
-//                   return (
-//                     <TableHead key={header.id}>
-//                       {header.isPlaceholder
-//                         ? null
-//                         : flexRender(
-//                             header.column.columnDef.header,
-//                             header.getContext()
-//                           )}
-//                     </TableHead>
-//                   );
-//                 })}
-//               </TableRow>
-//             ))}
-//           </TableHeader>
-//           <TableBody>
-//             {table.getRowModel().rows?.length ? (
-//               table.getRowModel().rows.map((row) => (
-//                 <TableRow
-//                   key={row.id}
-//                   data-state={row.getIsSelected() && "selected"}
-//                 >
-//                   {row.getVisibleCells().map((cell) => (
-//                     <TableCell key={cell.id}>
-//                       {flexRender(cell.column.columnDef.cell, cell.getContext())}
-//                     </TableCell>
-//                   ))}
-//                 </TableRow>
-//               ))
-//             ) : (
-//               <TableRow>
-//                 <TableCell colSpan={columns.length} className="h-24 text-center">
-//                   No results.
-//                 </TableCell>
-//               </TableRow>
-//             )}
-//           </TableBody>
-//         </Table>
-//       </div>
-//         <div className="flex items-center justify-end space-x-2 py-4">
-//         <Button
-//           variant="outline"
-//           size="sm"
-//           onClick={() => table.previousPage()}
-//           disabled={!table.getCanPreviousPage()}
-//         >
-//           Previous
-//         </Button>
-//         <Button
-//           variant="outline"
-//           size="sm"
-//           onClick={() => table.nextPage()}
-//           disabled={!table.getCanNextPage()}
-//         >
-//           Next
-//         </Button>
-//       </div>
-//       </div>
-//     );
-//   }

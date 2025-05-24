@@ -3,6 +3,16 @@ import SectionTitle from "../../components/admin/SectionTitle";
 import TableDistributor from "../../components/admin/UserTables/DataTable/TableDistributor";
 import { useState, useEffect } from "react";
 import axios from 'axios'
+import {
+  Dialog,
+  DialogTrigger,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+  DialogDescription,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
 
 const branchColumns = [
   {
@@ -32,6 +42,7 @@ const branchColumns = [
 const Branches = () => {
   const [data, setData] = useState([]);
   const [loading,setLoading]=useState(true)
+   const backendURL = import.meta.env.VITE_BACKEND_URL;
 
   const fetchData = async () => {
   setLoading(true)
@@ -90,20 +101,65 @@ const Branches = () => {
     fetchData();
   }, []);
 
+  const updateAPI = `${backendURL}/admin/branch/update`
+  const deleteAPI = `${backendURL}/admin/delete/branch`
+
+const renderUpdateForm = ({ formData, setFormData,rowData }) => {
+
+    return(
+      <>
+      <div className="space-y-4">
+        <div className="space-y-2">
+          <label className="text-sm font-medium">Location</label>
+          <Input
+            value={formData.location !== undefined ? formData.location : rowData?.location || ""}
+            onChange={(e) =>
+              setFormData({ ...formData, location: e.target.value })
+            }
+            placeholder="Enter branch location"
+          />
+        </div>
+        <div className="space-y-2">
+          <label className="text-sm font-medium">Contact Number</label>
+          <Input
+            value={formData.contact !== undefined ? formData.contact : rowData?.contact || ""}
+            onChange={(e) =>
+              setFormData({ ...formData, contact: e.target.value })
+            }
+            placeholder="Enter contact number"
+            pattern="[0-9]{10}"
+          />
+          <p className="text-xs text-gray-500">
+            Sri Lankan format: 07XXXXXXXX
+          </p>
+        </div>
+      </div>
+    </>
+    )
+};
+
+
+
+
   return (
     <div className="mx-8">
       <SectionTitle title="Branches" />
       <div className="flex flex-col gap-12">
-        <BranchRegistrationForm />
         <TableDistributor
           title="branche"
           columns={branchColumns}
           disableDateFilter={true}
           enableRowClick={false}
           deleteEnabled={true}
+          updateEnabled={true}
+          updateText="Edit"
+          sorting={false}
           entryData={data}
+          updateAPI= {updateAPI}
+          deleteAPI = {deleteAPI}
+          renderUpdateForm={renderUpdateForm}
         />
-        
+        <BranchRegistrationForm />
       </div>
     </div>
   );
