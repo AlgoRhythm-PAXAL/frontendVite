@@ -421,7 +421,7 @@ export function DataTable({
           </DialogHeader>
 
           {renderUpdateForm ? (
-            renderUpdateForm({ formData, setFormData, rowData: rowToDelete })
+            renderUpdateForm( formData, setFormData,  rowToDelete )
           ) : (
             <div className="text-sm text-gray-500">
               No update form provided.

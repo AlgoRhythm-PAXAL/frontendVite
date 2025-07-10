@@ -12,19 +12,19 @@ import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 
-const RenderVehicleUpdateForm = ({ formData, setFormData, rowData }) => {
-  const [data, setData] = useState([]);
+const RenderVehicleUpdateForm = (formData, setFormData, rowData) => {
+  const [branches, setBranches] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const backendURL = import.meta.env.VITE_BACKEND_URL;
 
   useEffect(() => {
     const fetchBranches = async () => {
       try {
-        const response = await axios.get(`${backendURL}/admin/branch/all`, {
+        const response = await axios.get(`${backendURL}/api/admin/branches`, {
           withCredentials: true,
           timeout: 10000,
         });
-        setData(response.data.userData);
+        setBranches(response.data.userData || []);
       } catch (error) {
         const errorMessage = error.response?.data?.message || error.message;
         console.error("Error fetching vehicles:", error);
@@ -97,7 +97,7 @@ const RenderVehicleUpdateForm = ({ formData, setFormData, rowData }) => {
                 formData.assignedBranch !== undefined
                   ? formData.assignedBranch
                   : (() => {
-                      const matched = data.find(
+                      const matched = branches.find(
                         (branch) => branch.location === rowData?.assignedBranch
                       );
                       return matched ? matched._id : "";
@@ -111,8 +111,8 @@ const RenderVehicleUpdateForm = ({ formData, setFormData, rowData }) => {
                 <SelectValue placeholder="Select Branch" />
               </SelectTrigger>
               <SelectContent>
-                {Array.isArray(data) &&
-                  data.map((branch) => (
+                {Array.isArray(branches) &&
+                  branches.map((branch) => (
                     <SelectItem key={branch._id} value={branch._id}>
                       {branch.location}
                     </SelectItem>
@@ -169,15 +169,15 @@ const RenderVehicleUpdateForm = ({ formData, setFormData, rowData }) => {
         <div className="space-y-2">
           <Label className="text-sm font-medium">Available</Label>
           <Switch
-            checked={formData.available || false}
-            value={
+            checked={
               formData.available !== undefined
                 ? formData.available
                 : rowData?.available || false
             }
-            onCheckedChange={(checked) =>
-              setFormData({ ...formData, available: checked })
-            }
+            onCheckedChange={(checked) => {
+              console.log(checked);
+              setFormData({ ...formData, available: checked });
+            }}
           />
         </div>
       </div>

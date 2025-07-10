@@ -33,6 +33,8 @@ const parcelColumns = [
 ];
 
 const ParcelDetails = ({ entryId }) => {
+
+  
   const backendURL = import.meta.env.VITE_BACKEND_URL;
   const [entryData, setEntryData] = useState(null);
   const [parcelTimeData, setParcelTimeData] = useState(null);
@@ -43,7 +45,7 @@ const ParcelDetails = ({ entryId }) => {
     const fetchDetails = async () => {
       try {
         const response = await axios.get(
-          `${backendURL}/admin/parcel/${entryId}`,
+          `${backendURL}/api/admin/parcels/${entryId}`,
           { withCredentials: true }
         );
         const Data = response.data.data;
@@ -62,7 +64,7 @@ const ParcelDetails = ({ entryId }) => {
     const fetchPTime = async () => {
       try {
         const response = await axios.get(
-          `${backendURL}/admin/track/statuses/${entryId}`,
+          `${backendURL}/api/admin/parcels/track/${entryId}`,
           { withCredentials: true }
         );
         const tempTimeData = response.data.timeData;

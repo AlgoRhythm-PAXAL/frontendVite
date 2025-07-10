@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import axios from "axios";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faUserSlash } from "@fortawesome/free-solid-svg-icons"; // Changed icon for variety
-import ProfilePicture from './ImageUpload/ProfilePicture'
+import ProfilePicture from '../ImageUpload/ProfilePicture'
 
 const AdminList = () => {
     const [adminData, setAdminData] = useState([]); // Store an array of admins

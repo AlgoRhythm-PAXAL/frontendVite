@@ -2,6 +2,7 @@ import FormField from "../FormField";
 import { useState, useEffect } from "react";
 import axios from "axios";
 import { toast } from 'sonner'
+const backendUrl = import.meta.env.VITE_BACKEND_URL;
 
 const VehicleRegistrationForm = () => {
     const [formData, setFormData] = useState({
@@ -18,9 +19,9 @@ const VehicleRegistrationForm = () => {
 
     useEffect(() => {
         const fetchBranches = async () => {
-            const backendUrl = import.meta.env.VITE_BACKEND_URL;
+            
             try {
-                const response = await axios.get(`${backendUrl}/admin/branch/all`, { 
+                const response = await axios.get(`${backendUrl}/api/admin/branches`, { 
                     withCredentials: true, 
                     timeout: 10000 
                 });
@@ -53,10 +54,8 @@ const VehicleRegistrationForm = () => {
             if (!formData.vehicleType) {
                 throw new Error('Please select a vehicle type');
             }
-
-            const backendUrl = import.meta.env.VITE_BACKEND_URL;
             const response = await axios.post(
-                `${backendUrl}/admin/vehicle/register`,
+                `${backendUrl}/api/admin/vehicles`,
                 formData,
                 { withCredentials: true, timeout: 15000 }
             );

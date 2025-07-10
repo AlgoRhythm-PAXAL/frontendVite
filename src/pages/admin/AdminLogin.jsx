@@ -6,6 +6,7 @@ import { useNavigate } from "react-router-dom";
 import { Link } from "react-router-dom";
 import { toast } from "sonner";
 import formValidator from "../../utils/formValidator.js";
+const backendURL = import.meta.env.VITE_BACKEND_URL;
 
 const AdminLogin = () => {
   const [formData, setFormData] = useState({ email: "", password: "" });
@@ -17,7 +18,6 @@ const AdminLogin = () => {
 
     // ✅ Validate email and password using formValidator
     const isEmailValid = formValidator.validateEmail(formData.email);
-    
 
     if (!isEmailValid || !formData.password) {
       return; // 🛑 Stop if validation fails
@@ -25,7 +25,7 @@ const AdminLogin = () => {
     setIsLoading(true);
     try {
       const response = await axios.post(
-        "http://localhost:8000/admin/login",
+        `${backendURL}/api/admin/auth/login`,
         formData,
         {
           withCredentials: true,
