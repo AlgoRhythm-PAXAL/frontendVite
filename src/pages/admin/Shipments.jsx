@@ -67,6 +67,7 @@ const Shipments = () => {
           deleteAPI={deleteAPI}
           entryData={data}
           renderUpdateForm={RenderShipmentUpdateForm}
+          enableRowClick={false}
         />
       </div>
     </div>
