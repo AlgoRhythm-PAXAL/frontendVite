@@ -36,8 +36,8 @@ const vehicleColumns = [
 const Vehicle = () => {
   const backendURL = import.meta.env.VITE_BACKEND_URL;
   const [data,setData]=useState([])
-  const deleteAPI = `${backendURL}/admin/delete/vehicle`
-  const updateAPI = `${backendURL}/admin/vehicle/update`
+  const deleteAPI = `${backendURL}/api/admin/vehicles`
+  const updateAPI = `${backendURL}/api/admin/vehicles`
 
 
 
@@ -45,7 +45,7 @@ const Vehicle = () => {
 
   const fetchData = async () => {
     try {
-      const response = await axios.get(`${backendURL}/admin/vehicle/all`, {withCredentials: true,});
+      const response = await axios.get(`${backendURL}/api/admin/vehicles`, {withCredentials: true,});
       setData(response.data.userData)
       
     } catch (error) {

@@ -43,54 +43,24 @@ export default function TableDistributor({
         setData(Array.isArray(entryData) ? entryData : [entryData]);
         return;
       }
-
+      if(!user) return
       try {
-        let apiEndpoint;
-        if (user === "admin") {
-          apiEndpoint = `${backendURL}/${user}/all`;
-        } else if (user === "parcel status tracking and assignment detail") {
-          apiEndpoint = `${backendURL}/admin/track/statuses`;
-        } else {
-          apiEndpoint = `${backendURL}/admin/${user}/all`;
-        }
-
+        let apiEndpoint= `${backendURL}/api/admin/users/${user}`;
         const response = await axios.get(apiEndpoint, {
           withCredentials: true,
         });
         const rawData = response.data.userData || response.data;
         const updatedData = rawData.map((item) => {
-          const itemId =
-            item.parcelId ||
-            item.userId ||
-            item.driverId ||
-            item.staffId ||
-            item.branchId ||
-            item.adminId ||
-            item.vehicleId ||
-            item.id;
-          let formattedCreatedAt;
-          if (user === "parcel") {
-            formattedCreatedAt = new Date(item.createdAt).toLocaleString(
-              "en-US",
-              {
-                year: "numeric",
-                month: "short",
-                day: "numeric",
-                hour: "2-digit",
-                minute: "2-digit",
-                hour12: true,
-              }
-            );
-          } else {
-            formattedCreatedAt = new Date(item.createdAt).toLocaleDateString(
-              "en-US",
-              {
-                year: "numeric",
-                month: "short",
-                day: "numeric",
-              }
-            );
-          }
+          const itemId =item.vehicleId || item.id;
+          let formattedCreatedAt = new Date(item.createdAt).toLocaleDateString(
+            "en-US",
+            {
+              year: "numeric",
+              month: "short",
+              day: "numeric",
+            }
+          );
+
           return {
             ...item,
             itemId, // add the resolved itemId

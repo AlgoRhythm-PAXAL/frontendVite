@@ -4,6 +4,7 @@ import { useState } from 'react'
 import LOGO from '../../../assets/Velox-Logo.png'
 import { useNavigate } from "react-router-dom"
 import { Link } from 'react-router-dom'
+const backendURL = import.meta.env.VITE_BACKEND_URL;
 
 const ForgotPassword = () => {
 
@@ -15,7 +16,7 @@ const ForgotPassword = () => {
         e.preventDefault(); // Prevents form from reloading
 
         try {
-            const response = await axios.post('http://localhost:8000/admin/forgotPassword', formData);
+            const response = await axios.post(`${backendURL}/api/admin/auth/forgot-password`, formData);
             console.log("OTP sent to email:", response.data);
             // alert("Verification code sent to your email."); // Show success message
             navigate("/admin/verify-OTP", { state: { email: formData.email } });

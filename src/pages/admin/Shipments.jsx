@@ -1,8 +1,8 @@
 import SectionTitle from "../../components/admin/SectionTitle";
 import TableDistributor from "../../components/admin/UserTables/DataTable/TableDistributor";
-import {useState,useEffect} from 'react'
-import axios from 'axios'
-import RenderShipmentUpdateForm from '../../components/admin/Shipment/RenderShipmentUpdateForm'
+import { useState, useEffect } from "react";
+import axios from "axios";
+import RenderShipmentUpdateForm from "../../components/admin/Shipment/RenderShipmentUpdateForm";
 
 const shipmentColumns = [
   {
@@ -31,27 +31,24 @@ const shipmentColumns = [
   },
 ];
 
-
-
-
 const Shipments = () => {
-
-  const [data,setData]=useState([])
+  const [data, setData] = useState([]);
   const backendURL = import.meta.env.VITE_BACKEND_URL;
-  const updateAPI = `${backendURL}/admin//shipment/update`
-  const deleteAPI = `${backendURL}/admin/delete/shipment`
+  const updateAPI = `${backendURL}/api/admin/shipments`;
+  const deleteAPI = `${backendURL}/api/admin/shipments`;
 
-  const fetchData=async()=>{
-    const response = await axios.get(`${backendURL}/admin/shipment/all`,{withCredentials:true})
-    const shipments = response.data.userData
-    console.log(shipments)
-    setData(shipments)
-  }
+  const fetchData = async () => {
+    const response = await axios.get(`${backendURL}/api/admin/shipments`, {
+      withCredentials: true,
+    });
+    const shipments = response.data.userData;
+    console.log(shipments);
+    setData(shipments);
+  };
 
-  useEffect(()=>{
+  useEffect(() => {
     fetchData();
-  },[])
-
+  }, []);
 
   return (
     <div className="flex flex-col  mx-8  ">

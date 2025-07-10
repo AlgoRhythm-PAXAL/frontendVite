@@ -2,12 +2,13 @@ import FormField from "./FormField";
 import { useState, useEffect } from "react";
 import axios from "axios";
 import { toast } from "sonner";
+const backendUrl = import.meta.env.VITE_BACKEND_URL;
 
 const UserRegistrationForm = () => {
   const [formData, setFormData] = useState({
     name: "",
     nic: "",
-    password: "paxal123",
+    password: "Password will genereate ramdomly",
     email: "",
     contactNo: "",
     userType: "",
@@ -22,9 +23,8 @@ const UserRegistrationForm = () => {
 
   useEffect(() => {
     const fetchBranches = async () => {
-      const backendUrl = import.meta.env.VITE_BACKEND_URL;
       try {
-        const response = await axios.get(`${backendUrl}/admin/branch/all`, {
+        const response = await axios.get(`${backendUrl}/api/admin/branches`, {
           withCredentials: true,
           timeout: 10000,
         });
@@ -52,9 +52,9 @@ const UserRegistrationForm = () => {
 
 
      const fetchVehicles = async (value) => {
-      const backendUrl = import.meta.env.VITE_BACKEND_URL;
+      
       try {
-        const response = await axios.get(`${backendUrl}/admin/vehicle/${value}`, {
+        const response = await axios.get(`${backendUrl}/api/admin/vehicles/branch/${value}`, {
           withCredentials: true,
           timeout: 10000,
         });
@@ -70,11 +70,10 @@ const UserRegistrationForm = () => {
       }
     };
 
-    if (name === "branchId" && value) {
+    if (name === "branchId" && value  && formData.userType == "driver") {
       try {
-        const response = await fetchVehicles(value);
-        console.log(response.data)
-        setVehicles(response.data);
+        await fetchVehicles(value);
+        
       } catch (error) {
         console.error("Error fetching vehicles:", error);
       }
@@ -95,12 +94,8 @@ const UserRegistrationForm = () => {
         throw new Error("License ID is required for drivers");
       }
 
-      let apiURL = "";
-      if (formData.userType === "driver" || formData.userType === "staff") {
-        apiURL = `http://localhost:8000/admin/${formData.userType}/register`;
-      } else {
-        apiURL = `http://localhost:8000/${formData.userType}/register`;
-      }
+      let apiURL = `${backendUrl}/api/admin/users/${formData.userType}/register`;
+      
       const response = await axios.post(apiURL, formData, {
         withCredentials: true,
         timeout: 15000,

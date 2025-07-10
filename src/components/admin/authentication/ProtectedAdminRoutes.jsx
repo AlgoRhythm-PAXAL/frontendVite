@@ -23,7 +23,7 @@ const ProtectedAdminRoute = () => {
       
       try {
         // Call logout endpoint to invalidate server-side tokens
-        await axios.post(`${backendURL}/admin/logout`, {}, { 
+        await axios.post(`${backendURL}/api/admin/auth/logout`, {}, { 
           withCredentials: true,
         });
       } catch (error) {
@@ -54,7 +54,7 @@ const ProtectedAdminRoute = () => {
   const refreshAccessToken = useCallback(async () => {
     try {
       const response = await axios.post(
-        `${backendURL}/admin/refresh`,
+        `${backendURL}/api/admin/auth/refresh`,
         {},
         { withCredentials: true }
       );
@@ -116,7 +116,7 @@ const ProtectedAdminRoute = () => {
         }
         
         // Check admin status on backend
-        const response = await axios.get(`${backendURL}/admin/status`, {
+        const response = await axios.get(`${backendURL}/api/admin/auth/status`, {
           withCredentials: true,
           timeout: 8000,
         });
@@ -204,132 +204,3 @@ export default ProtectedAdminRoute;
 
 
 
-
-
-
-// import { Navigate, Outlet } from "react-router-dom";
-// import axios from "axios";
-// import { useEffect, useState, useRef, useCallback } from "react";
-// import { toast } from "sonner";
-// import { useNavigate } from "react-router-dom";
-
-// const ProtectedAdminRoute = () => {
-//   const [isAuthenticated, setIsAuthenticated] = useState(null);
-//   const backendURL = import.meta.env.VITE_BACKEND_URL;
-//   const navigate = useNavigate();
-//   const inactivityTimer = useRef(null);
-//   const INACTIVITY_TIMEOUT = 15*60*1000; // 15 minutes
-
-//   // Logout handler
-//   const handleLogout = useCallback(
-//     async () => {
-//       try {await axios.post( `${backendURL}/admin/logout`, {}, { withCredentials: true, } );
-//       } catch (error) {
-//         console.error("Logout error:", error);
-//       } finally {
-//         toast.warning("Session expired due to inactivity");
-//         setIsAuthenticated(false);
-//         navigate("/admin/login", { replace: true });
-//       }
-//     },
-//     [backendURL, navigate]
-//   );
-
-//   // Reset inactivity timer on user activity
-//   const resetInactivityTimer = useCallback(() => {
-//     if (inactivityTimer.current) clearTimeout(inactivityTimer.current);
-//     inactivityTimer.current = setTimeout(() => {
-//       handleLogout();
-//     }, INACTIVITY_TIMEOUT);
-//   }, [handleLogout]);
-
-//   // Activity detection handler
-//   const handleActivity = useCallback(() => {
-//     if (isAuthenticated) {
-//       resetInactivityTimer();
-//       verifySession(false);
-//     }
-//   }, [isAuthenticated, resetInactivityTimer]);
-
-//   const adminRefreshAccessToken = useCallback(async () => {
-//     try {
-//       const response = await axios.post(
-//         `${backendURL}/admin/refresh`,
-//         {},
-//         { withCredentials: true }
-//       );
-//       return response.data.expiresAt;
-//     } catch (err) {
-//       if (err.response?.status === 401) {
-//         handleLogout("Session expired. Please log in again.");
-//       }
-//       return null;
-//     }
-//   }, [backendURL, handleLogout]);
-
-//   const scheduleTokenRefresh = useCallback(
-//     (expiresAt) => {
-//       const timeout = expiresAt - Date.now() - 5000; // 5-second buffer
-//       if (timeout > 0) {
-//         setTimeout(async () => {
-//           const newExpiresAt = await adminRefreshAccessToken();
-//           if (newExpiresAt) scheduleTokenRefresh(newExpiresAt);
-//         }, timeout);
-//       }
-//     },
-//     [adminRefreshAccessToken]
-//   );
-
-//   const verifySession = useCallback(
-//     async (initialCheck = true) => {
-//       try {
-//         const response = await axios.get(`${backendURL}/admin/status`, {
-//           withCredentials: true,
-//           timeout: 5000,
-//         });
-
-//         if (!isAuthenticated) setIsAuthenticated(true);
-//         scheduleTokenRefresh(response.data.expiresAt);
-//       } catch (error) {
-//         if (initialCheck) {
-//           const newExpiresAt = await adminRefreshAccessToken();
-//           if (newExpiresAt) return verifySession(false);
-//         }
-//         handleLogout();
-//       }
-//     },
-//     [
-//       backendURL,
-//       adminRefreshAccessToken,
-//       scheduleTokenRefresh,
-//       isAuthenticated,
-//       handleLogout,
-//     ]
-//   );
-
-//   useEffect(() => {
-//     // Set up activity listeners
-//     const events = ["mousemove", "keydown", "scroll", "click"];
-//     events.forEach((event) => window.addEventListener(event, handleActivity));
-
-//     // Initial verification
-//     verifySession();
-//     resetInactivityTimer();
-
-//     // Cleanup
-//     return () => {
-//       events.forEach((event) =>
-//         window.removeEventListener(event, handleActivity)
-//       );
-//       if (inactivityTimer.current) clearTimeout(inactivityTimer.current);
-//     };
-//   }, [handleActivity, verifySession, resetInactivityTimer]);
-
-//   if (isAuthenticated === null) {
-//     return <div className="m-auto">Loading...</div>;
-//   }
-
-//   return isAuthenticated ? <Outlet /> : <Navigate to="/admin/login" replace />;
-// };
-
-// export default ProtectedAdminRoute;

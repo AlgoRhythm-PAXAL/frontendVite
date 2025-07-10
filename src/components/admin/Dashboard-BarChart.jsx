@@ -1,66 +1,63 @@
-import * as React from "react"
-import { Bar, BarChart, CartesianGrid, XAxis } from "recharts"
+import * as React from "react";
+import { Bar, BarChart, CartesianGrid, XAxis } from "recharts";
 import {
   Card,
   CardContent,
   CardHeader,
   CardTitle,
   CardDescription,
-} from "@/components/ui/card"
+} from "@/components/ui/card";
 import {
   ChartContainer,
   ChartTooltip,
   ChartTooltipContent,
-} from "@/components/ui/chart"
-import { useState, useEffect } from 'react'
-import axios from 'axios'
-import {toast} from 'sonner'
-import LoadingAnimation from "../../utils/LoadingAnimation"
-
-
-
+} from "@/components/ui/chart";
+import { useState, useEffect } from "react";
+import axios from "axios";
+import { toast } from "sonner";
+import LoadingAnimation from "../../utils/LoadingAnimation";
 
 const chartConfig = {
   parcels: {
     label: "Daily Parcels",
     color: "hsl(var(--chart-1))",
   },
-}
+};
 
-
-
-export  function ParcelBarChart() {
-  const[loading,setLoading]=useState(true);
+export function ParcelBarChart() {
+  const [loading, setLoading] = useState(true);
   const [data, setData] = useState(null);
-  const backendUrl=import.meta.env.VITE_BACKEND_URL;
-  
-
+  const backendUrl = import.meta.env.VITE_BACKEND_URL;
 
   const fetchBarChartData = async () => {
     try {
-      const response = await axios.get(`${backendUrl}/admin/bar/data`,{withCredentials:true});
+      const response = await axios.get(
+        `${backendUrl}/api/admin/dashboard/bar-chart`,
+        { withCredentials: true }
+      );
       setData(response.data.chartData); // Ensure state is properly updated
       setLoading(false);
     } catch (error) {
       console.log("Error", error);
-      toast.error('Data fetching error',{description:error.response?.data?.message || 'Please try again later'})
+      toast.error("Data fetching error", {
+        description: error.response?.data?.message || "Please try again later",
+      });
     }
   };
 
   useEffect(() => {
     fetchBarChartData();
-  }, []); 
+  }, []);
 
   const totalParcels = React.useMemo(
     () => (data ? data.reduce((acc, curr) => acc + curr.parcelCount, 0) : 0),
     [data]
   );
-  if(loading){
-    return <LoadingAnimation/>
+  if (loading) {
+    return <LoadingAnimation />;
   }
 
   return (
-
     <div className="w-full">
       <Card>
         <CardHeader className="flex flex-col items-stretch space-y-0 border-b p-0 sm:flex-row">
@@ -82,7 +79,10 @@ export  function ParcelBarChart() {
           </div>
         </CardHeader>
         <CardContent className="px-2 sm:p-6">
-          <ChartContainer config={chartConfig} className="aspect-auto h-[250px] w-full">
+          <ChartContainer
+            config={chartConfig}
+            className="aspect-auto h-[250px] w-full"
+          >
             <BarChart data={data} margin={{ left: 12, right: 12 }}>
               <CartesianGrid vertical={false} />
               <XAxis
@@ -92,7 +92,10 @@ export  function ParcelBarChart() {
                 tickMargin={8}
                 minTickGap={32}
                 tickFormatter={(value) =>
-                  new Date(value).toLocaleDateString("en-US", { month: "short", day: "numeric" })
+                  new Date(value).toLocaleDateString("en-US", {
+                    month: "short",
+                    day: "numeric",
+                  })
                 }
               />
               <ChartTooltip
