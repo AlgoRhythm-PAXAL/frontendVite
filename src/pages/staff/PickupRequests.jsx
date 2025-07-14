@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { formatDistanceToNow } from "date-fns";
 import axios from "axios";
@@ -7,6 +7,11 @@ import StatsBox from "../../components/staff/StatsBox";
 
 const PickupRequests = () => {
   const [parcels, setParcels] = useState([]);
+  const [pickupStats, setPickupStats] = useState({
+    pickupsToday: 0,
+    pendingPickups: 0,
+  });
+
   const navigate = useNavigate();
 
   const getPickupParcels = async () => {
@@ -22,8 +27,22 @@ const PickupRequests = () => {
     }
   };
 
+  const getPickupStats = async () => {
+    try {
+      const response = await axios.get(
+        "http://localhost:8000/staff/lodging-management/get-pickup-stats",
+        { withCredentials: true }
+      );
+
+      setPickupStats(response.data);
+    } catch (error) {
+      console.error("Error fetching pickup stats:", error);
+    }
+  }
+
   useEffect(() => {
     getPickupParcels();
+    getPickupStats();
   }, []);
 
   const columns = [
@@ -78,8 +97,8 @@ const PickupRequests = () => {
       </div>
       
       <div className="flex gap-4 w-full lg:w-auto">
-        <StatsBox title="Pickups Today" value="50" />
-        <StatsBox title="Pending Pickups" value="20" />
+        <StatsBox title="Pickups Today" value={pickupStats.pickupsToday} />
+        <StatsBox title="Pending Pickups" value={pickupStats.pendingPickups} />
       </div>
     </div>
    <div>

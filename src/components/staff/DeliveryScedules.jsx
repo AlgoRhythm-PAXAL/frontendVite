@@ -3,11 +3,17 @@ import DataTable from "../../components/staff/DataTable";
 import axios from "axios";
 import toast from "react-hot-toast";
 
+const timeSlots = ["08:00 - 12:00", "13:00 - 17:00"];
+
 const DeliverySchedules = ({ onAssignmentChange, parcelId }) => {
   const [deliverySchedules, setDeliverySchedules] = useState([]);
   const [selectedScheduleId, setSelectedScheduleId] = useState(null);
   const [isProcessingNormal, setIsProcessingNormal] = useState(false);
   const [isProcessingExpress, setIsProcessingExpress] = useState(false);
+
+  const [showExpressForm, setShowExpressForm] = useState(false);
+  const [selectedDate, setSelectedDate] = useState("");
+  const [selectedTimeSlot, setSelectedTimeSlot] = useState(timeSlots[0]);
 
   useEffect(() => {
     getDeliverySchedules();
@@ -88,9 +94,9 @@ const DeliverySchedules = ({ onAssignmentChange, parcelId }) => {
       console.log("Error in creating a new schedule", error);
       const errorMessage =
         error.response?.data.message ||
-        "Failed to submit reply. Please try again.";
+        "Failed to create a new delivery schedule. Please try again.";
 
-      toast.error("Failed to Reply", {
+      toast.error("Failed to Create a new delivery schedule", {
         description: errorMessage,
         duration: 4000,
       });
@@ -100,23 +106,41 @@ const DeliverySchedules = ({ onAssignmentChange, parcelId }) => {
   };
 
   // Create a express delivery schedule for express parcels
-  const addNewExpressDeliverySchedule = async (req, res) => {
+  const addNewExpressDeliverySchedule = async () => {
     try {
       const response = await axios.post(
         "http://localhost:8000/staff/delivery-schedules/new-express-delivery-schedule",
-        { parcelId },
+        { parcelId,
+          deliveryDate: selectedDate,
+          timeSlot: selectedTimeSlot,
+        },
         { withCredentials: true }
       );
-      console.log(response);
+      console.log("Express Schedule response", response);
       if (response.data.success) {
+        
         const newSchedule = response.data.newSchedule;
         setSelectedScheduleId(newSchedule._id);
 
         await getDeliverySchedules();
-        alert("New express delivery schedule created successfully!");
+        toast.success("New express delivery schedule created", {
+          description: response.data.message,
+          duration: 3000,
+        
+        })
+
+        setShowExpressForm(false);
       }
     } catch (error) {
       console.log("Error in creating a new express delivery schedule", error);
+      const errorMessage =
+        error.response?.data.message ||
+        "Failed to create a new express delivery schedule. Please try again.";
+
+      toast.error("Failed to Create a new express delivery schedule", {
+        description: errorMessage,
+        duration: 4000,
+      });
     } finally {
       setIsProcessingExpress(false);
     }
@@ -198,6 +222,50 @@ const DeliverySchedules = ({ onAssignmentChange, parcelId }) => {
 
   return (
     <>
+     {showExpressForm && (
+        <div className="fixed inset-0 bg-black bg-opacity-40 z-50 flex justify-center items-center">
+          <div className="bg-white p-6 rounded-xl shadow-lg w-96">
+            <h2 className="text-xl font-semibold mb-4">Create Express Schedule</h2>
+            <label className="block mb-2 font-medium">Select Date:</label>
+            <input
+              type="date"
+              className="w-full mb-4 p-2 border rounded"
+              value={selectedDate}
+              onChange={(e) => setSelectedDate(e.target.value)}
+            />
+            <label className="block mb-2 font-medium">Select Time Slot:</label>
+            <select
+              className="w-full mb-4 p-2  border rounded"
+              value={selectedTimeSlot}
+              onChange={(e) => setSelectedTimeSlot(e.target.value)}
+            >
+              {timeSlots.map((slot) => (
+                <option key={slot} value={slot}>
+                  {slot}
+                </option>
+              ))}
+            </select>
+            <div className="flex justify-end gap-4">
+              <button
+                className="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400"
+                onClick={() => {
+                  setShowExpressForm(false);
+                  setIsProcessingExpress(false);
+                }}
+              >
+                Cancel
+              </button>
+              <button
+                className="px-4 py-2 bg-Primary text-white rounded hover:bg-Primary-dark"
+                onClick={() => addNewExpressDeliverySchedule(parcelId)}
+              >
+                Confirm
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="flex gap-4 mb-4">
         <button
           className="bg-white text-Primary font-semibold border-2 border-Primary  px-4 py-2 rounded-xl hover:bg-green-50 hover:shadow-lg hover:shadow-slate-200 "
@@ -220,28 +288,22 @@ const DeliverySchedules = ({ onAssignmentChange, parcelId }) => {
             "+ New Delivery Schedule"
           )}
         </button>
+
         <button
           className="bg-white text-Primary font-semibold border-2 border-Primary  px-4 py-2 rounded-xl hover:bg-green-50 hover:shadow-lg hover:shadow-slate-200"
           onClick={() => {
-            setIsProcessingExpress(true);
-            addNewExpressDeliverySchedule(parcelId);
+             setIsProcessingExpress(true);
+            setShowExpressForm(true); // Show the popup.
           }}
           disabled={
             isProcessingNormal ||
             isProcessingExpress ||
             selectedScheduleId !== null
           }
-        >
-          {isProcessingExpress ? (
-            <div className="flex items-center justify-center gap-2">
-              <span className="animate-spin rounded-full h-5 w-5 border-b-2 border-Primary"></span>
-              Creating...
-            </div>
-          ) : (
-            "+ New Express Schedule"
-          )}
+        >+ New Express Schedule       
         </button>
       </div>
+
       <DataTable
         data={deliverySchedules}
         columns={columns}

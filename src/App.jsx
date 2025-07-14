@@ -65,6 +65,7 @@ import ViewRepliedInquiries from "./pages/staff/Inquiry/ViewRepliedInquiries";
 import ReplyToInquiry from "./pages/staff/Inquiry/ReplyToInquiry";
 import ViewOneRepliedInquiry from "./pages/staff/Inquiry/ViewOneRepliedInquiry";
 import ViewOneCollectionCenterDeliveryparcel from "./pages/staff/ViewOneCollectionCenterDeliveryParcel";
+import Scanner from "./pages/staff/Scanner";
 
 const App = () => {
   return (
@@ -128,6 +129,8 @@ const App = () => {
             <Route path="collection-management/view-one-doorstep-delivery-parcel/:parcelId" element={<ViewOneDoorStepDeliveryParcel/>}/>
             <Route path="collection-management/view-collection-center-delivery-parcels" element={<CollectionCenterDeliveryParcels/>}/>
             <Route path="collection-management/view-collection-center-delivery-parcels/:parcelId" element={<ViewOneCollectionCenterDeliveryparcel/>}/>
+            <Route path="collection-management/scan-qr-code" element={<Scanner/>}/>
+
 
 
             <Route path="inquiry-management/view-new-inquiries" element={<NewInquiries/>}/>

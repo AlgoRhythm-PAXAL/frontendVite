@@ -7,6 +7,10 @@ import StatsBox from "../../components/staff/StatsBox";
 
 const CollectionCenterDeliveryParcels = () => {
   const [parcels, setParcels] = useState([]);
+   const [deliveryStats, setDeliveryStats] = useState({
+      pendingCollectionCenterDeliveries: 0
+        
+      });
   const navigate = useNavigate();
 
   const getCollectionCenterDeliveryParcels = async () => {
@@ -21,6 +25,21 @@ const CollectionCenterDeliveryParcels = () => {
       console.error(err);
     }
   };
+ const getDeliveryStats = async () => {
+    try {
+      console.log("Fetching collection-center delivery stats...");
+      const response = await axios.get(
+        "http://localhost:8000/staff/collection-management/get-collection-center-delivery-stats",
+        { withCredentials: true }
+      );
+
+      console.log("Collection-center Delivery Stats:", response.data);
+      setDeliveryStats(response.data);
+    } catch (error) {
+      console.error("Error fetching collection-center delivery stats:", error);
+    }
+  }
+
 
   useEffect(() => {
     getCollectionCenterDeliveryParcels();
@@ -110,7 +129,7 @@ const CollectionCenterDeliveryParcels = () => {
         </div>
 
         <div className="flex gap-4 w-full lg:w-auto">
-          <StatsBox title="Pending Deliveries" value="20" />
+          <StatsBox title="Pending Deliveries" value={deliveryStats.pendingCollectionCenterDeliveries} />
         </div>
       </div>
       <div>

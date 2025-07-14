@@ -29,14 +29,14 @@ const ViewOneDropOff = () => {
         }
       );
 
-      if (response.success) {
-        toast.success("Drop-off parcel collected", {
-          description: response.message,
-          duration: 4000,
-        });
+      console.log(response.success);
 
-        navigate(`/staff/lodging-management/view-parcels/invoice/${parcelId}`);
-      }
+      toast.success("Drop-off parcel collected", {
+        description: response.message,
+        duration: 4000,
+      });
+
+      navigate(`/staff/lodging-management/view-parcels/invoice/${parcelId}`);
     } catch (error) {
       console.log("Error in drop-off parcel collecting", error);
       const errorMessage =

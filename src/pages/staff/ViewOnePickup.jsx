@@ -1,9 +1,10 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import axios from "axios";
 import ParcelInformation from "../../components/staff/ParcelInformation";
 import PickupSchedules from "../../components/staff/PickupSchedules";
 import { ArrowLeftIcon } from "@heroicons/react/24/outline";
+import { toast } from "sonner";
 
 const ViewOnePickup = () => {
   const { parcelId } = useParams();
@@ -24,9 +25,8 @@ const ViewOnePickup = () => {
             params: {
               parcelId: parcelId,
             },
-            withCredentials: true 
-          },
-          
+            withCredentials: true,
+          }
         );
         setHasAssignedSchedule(response.data.isAssigned);
       } catch (error) {
@@ -53,7 +53,7 @@ const ViewOnePickup = () => {
       return;
     }
     try {
-      setIsCheckingAssignment(true)
+      setIsCheckingAssignment(true);
       const response = await axios.post(
         "http://localhost:8000/staff/lodging-management/register-pickup",
         { parcelId },
@@ -61,11 +61,15 @@ const ViewOnePickup = () => {
       );
 
       console.log("pickup registered successfully", response);
-      alert("pickup registered successfully!");
+      toast.success("Pickup registered successfully!", {
+        description: response.message,
+        duration: 4000,
+      });
+
       navigate(`/staff/lodging-management/view-parcels/invoice/${parcelId}`);
     } catch (error) {
-      console.error(error);
-    }finally {
+      console.error("pickup registering error", error);
+    } finally {
       setIsCheckingAssignment(false);
     }
   };

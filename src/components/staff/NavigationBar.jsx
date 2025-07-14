@@ -9,11 +9,10 @@ const NavigationBar = () => {
   const [staff, setStaff] = useState(null);
   const [loading, setLoading] = useState(true);
   const [notifications, setNotifications] = useState(false);
-  const [isProfileOpen, setIsProfileOpen] = useState(false);
+
   const dropdownRef = useRef(null);
   const navigate = useNavigate();
 
-  // Get the logged in staff memeber information
   const getStaffInfo = async () => {
     try {
       const response = await axios.get(
@@ -28,38 +27,15 @@ const NavigationBar = () => {
     }
   };
 
-  // logout
-  const handleLogout = async () => {
-    try {
-      await axios.post(
-        "http://localhost:8000/staff/logout",
-        {},
-        {
-          withCredentials: true,
-        }
-      );
-      navigate("/staff/login");
-    } catch (error) {
-      console.error("Logout error:", error);
-      const errorMessage =
-        error.response?.data?.message || "Logout failed. Please try again.";
 
-      toast.error("Logout Failed", {
-        description: errorMessage,
-        duration: 4000,
-      });
-    }
-  };
 
   useEffect(() => {
     getStaffInfo();
-
     const handleClickOutside = (event) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
         setIsProfileOpen(false);
       }
     };
-
     document.addEventListener("mousedown", handleClickOutside);
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
@@ -71,10 +47,10 @@ const NavigationBar = () => {
   }
 
   return (
-    <nav className="w-full bg-white shadow-sm border-b border-gray-200 sticky top-0 z-50">
-      <div className="mx-auto px-4 md:px-8">
-        <div className="flex items-center justify-between h-16">
-          {/* Left Side -  PAXAL Logo */}
+    <nav className="w-full bg-white shadow-sm border-b border-gray-200 fixed top-0 z-50 h-16">
+      <div className="mx-auto px-4 md:px-8 h-full">
+        <div className="flex items-center justify-between h-full">
+          {/* Left Side - Logo */}
           <div className="flex-shrink-0 flex items-center">
             <img className="w-20 h-auto ml-10" src={Logo} alt="Company Logo" />
           </div>
@@ -84,19 +60,13 @@ const NavigationBar = () => {
             {/* Notification Bell */}
             <button
               type="button"
-              className="relative p-2 text-gray-500 hover:text-gray-700 focus:outline-none focus:ring-2 focus:ring-Primary"
+              className="relative p-2 text-gray-500 hover:text-gray-700 focus:outline-none"
             >
               <BellIcon className="h-6 w-6" />
-              <span
-                className={
-                  notifications
-                    ? "absolute top-0 right-0 inline-block w-2 h-2 bg-red-500 rounded-full"
-                    : "absolute top-0 right-0 inline-block w-2 h-2  rounded-full"
-                }
-              ></span>
+              <span className={`absolute top-0 right-0 inline-block w-2 h-2 rounded-full ${notifications ? 'bg-red-500' : ''}`}></span>
             </button>
 
-            {/* Logged in Staff Information */}
+            {/* Staff Information */}
             <div className="hidden md:block text-right">
               <p className="text-sm font-medium text-gray-700">
                 {staff?.branchId?.location} Branch
@@ -105,9 +75,10 @@ const NavigationBar = () => {
             </div>
 
             {/* Profile Section */}
-            <div className="relative flex items-center space-x-2" ref={dropdownRef}>
+            <div className="relative flex items-center space-x-2" >
               <button
-                onClick={() => setIsProfileOpen(!isProfileOpen)}
+                onClick={() => {
+                      navigate("/staff/profile");}}
                 className="flex items-center focus:outline-none"
               >
                 <img
@@ -117,26 +88,8 @@ const NavigationBar = () => {
                 />
               </button>
 
-              {/* Dropdown Menu */}
-              {isProfileOpen && (
-                <div className="absolute right-0 mt-32 w-40 bg-white/90  rounded-md shadow-lg py-1 border border-gray-200 z-50">
-                  <button
-                    onClick={() => {
-                      navigate("/staff/profile");
-                      setIsProfileOpen(false);
-                    }}
-                    className="block w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 text-left"
-                  >
-                    View Profile
-                  </button>
-                  <button
-                    onClick={handleLogout}
-                    className="block w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 text-left"
-                  >
-                    Log Out
-                  </button>
-                </div>
-              )}
+              
+              
             </div>
           </div>
         </div>

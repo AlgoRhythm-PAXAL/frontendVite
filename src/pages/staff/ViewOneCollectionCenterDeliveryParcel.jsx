@@ -17,7 +17,7 @@ const ViewOneCollectionCenterDeliveryparcel = () => {
   const handleDelivery = async () => {
     try {
       const response = await axios.post(
-        "http://localhost:8000/staff/collection-management//update-parcel-as-delivered",
+        "http://localhost:8000/staff/collection-management/update-parcel-as-delivered",
         { parcelId },
         { withCredentials: true }
       );

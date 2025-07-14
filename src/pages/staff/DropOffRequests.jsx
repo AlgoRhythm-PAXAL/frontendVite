@@ -6,6 +6,10 @@ import StatsBox from "../../components/staff/StatsBox";
 
 const DropOffRequests = () => {
   const [parcels, setParcels] = useState([]);
+  const [dropOffsStats, setdropOffsStats] = useState({
+    dropOffsToday: 0,
+    pendingDropOffs: 0,
+  });
   const navigate = useNavigate();
 
   const getDropOffParcels = async () => {
@@ -21,8 +25,22 @@ const DropOffRequests = () => {
     }
   };
 
+  const getDropOffsStats = async () => {
+    try {
+      const response = await axios.get(
+        "http://localhost:8000/staff/lodging-management/get-dropoffs-stats",
+        { withCredentials: true }
+      );
+
+      setdropOffsStats(response.data);
+    } catch (error) {
+      console.error("Error fetching drop-offs stats:", error);
+    }
+  }
+
   useEffect(() => {
     getDropOffParcels();
+    getDropOffsStats();
   }, []);
 
   const columns = [
@@ -68,8 +86,8 @@ const DropOffRequests = () => {
           </p>
         </div>
         <div className="flex gap-4 w-full lg:w-auto">
-          <StatsBox title="Drop-offs Today" value="50" />
-          <StatsBox title="Pending Drop-offs" value="20" />
+          <StatsBox title="Drop-offs Today" value={dropOffsStats.dropOffsToday} />
+          <StatsBox title="Pending Drop-offs" value={dropOffsStats.pendingDropOffs} />
         </div>
       </div>
       <div >

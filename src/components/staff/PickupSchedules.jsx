@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
 import DataTable from "../../components/staff/DataTable";
 import axios from "axios";
-import { useParams } from "react-router-dom";
 import { toast } from "sonner";
 
 const PickupSchedules = ({
