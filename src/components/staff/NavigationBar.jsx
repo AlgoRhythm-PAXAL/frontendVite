@@ -52,7 +52,9 @@ const NavigationBar = () => {
         <div className="flex items-center justify-between h-full">
           {/* Left Side - Logo */}
           <div className="flex-shrink-0 flex items-center">
-            <img className="w-20 h-auto ml-10" src={Logo} alt="Company Logo" />
+            <img className="w-20 h-auto ml-10" src={Logo} alt="Company Logo" 
+            onClick={() => {
+                      navigate("/staff/main-menu");}}/>
           </div>
 
           {/* Right Side - Info and Profile */}

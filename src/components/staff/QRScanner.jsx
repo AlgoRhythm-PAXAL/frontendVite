@@ -19,6 +19,7 @@ const QRScanner = ({ onClose }) => {
         setStatusMessage(`Updating parcel status for ${decodedText}...`);
 
         try {
+          scanner.clear();
           const response = await axios.put(
             "http://localhost:8000/staff/collection-management/qr-code/update-to-parcel-arrived",
             { decodedText },
@@ -31,12 +32,13 @@ const QRScanner = ({ onClose }) => {
             setTimeout(() => onClose(), 2000);
           }
         } catch (error) {
+          scanner.clear();
 console.error("Error updating parcel status:", error);
           toast.error("Failed to update parcel status");
           setStatusMessage("Failed to update status. Try again.");
         }
 
-        scanner.clear();
+        
       },
       (error) => {
         console.warn("QR scan error:", error);

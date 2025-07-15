@@ -66,6 +66,7 @@ import ReplyToInquiry from "./pages/staff/Inquiry/ReplyToInquiry";
 import ViewOneRepliedInquiry from "./pages/staff/Inquiry/ViewOneRepliedInquiry";
 import ViewOneCollectionCenterDeliveryparcel from "./pages/staff/ViewOneCollectionCenterDeliveryParcel";
 import Scanner from "./pages/staff/Scanner";
+import StaffProfile from "./pages/staff/StaffProfile";
 
 const App = () => {
   return (
@@ -115,6 +116,7 @@ const App = () => {
         {/* Protected Staff Routes */}
         <Route path="/staff" element={<ProtectedStaffRoute/>}>
           <Route path="/staff/main-menu" element={<StaffMainMenu/>}/>
+          <Route path="/staff/profile" element={<StaffProfile/>}/>
           <Route path="/staff" element={<StaffLayout/>}>
             <Route path="lodging-management/view-parcels" element={<ViewParcels/>}/>
             <Route path="lodging-management/view-pickups" element={<PickupRequests/>}/>
