@@ -50,6 +50,7 @@ const ParcelDetails = ({ entryId }) => {
         );
         const Data = response.data.data;
         if (Data) {
+          setLoading(false);
           setEntryData(Data);
         } else {
           throw new Error("No data received");
@@ -75,9 +76,17 @@ const ParcelDetails = ({ entryId }) => {
           handledBy: item?.handledBy,
           note: item?.note,
         }));
+      if (!Array.isArray(TimeData) || TimeData.length === 0 || !TimeData[0].status || !TimeData[0].time || !TimeData[0].location || !TimeData[0].handledBy || !TimeData[0].note) {
+          throw new Error("No tracking data available for this parcel."); 
+        }
         if (TimeData.length === 0) {
           throw new Error("No tracking data available for this parcel.");
         }
+        console.log("TimeData:", TimeData);
+        if (TimeData.length > 0) {
+          TimeData[0].status = camelToSentenceCase(TimeData[0].status);
+        }
+        setLoading(false);
         setParcelTimeData(TimeData);
       } catch (error) {
         setError(error.message);
@@ -236,8 +245,7 @@ const ParcelDetails = ({ entryId }) => {
                 <Info
                   label="Name"
                   value={capitalize(
-                    `${senderId?.fName} ${senderId?.lName}` ||
-                      senderId?.fullname
+                    `${senderId?.fName} ${senderId?.lName}`
                   )}
                 />
                 <Info label="Contact" value={senderId?.contact || "-"} />
@@ -267,14 +275,14 @@ const ParcelDetails = ({ entryId }) => {
               <DetailGrid>
                 <Info
                   label="Name"
-                  value={capitalize(receiverId?.receiverFullname)}
+                  value={capitalize(receiverId?.receiverFullName)}
                 />
                 <Info
                   label="Contact"
                   value={receiverId?.receiverContact?.[0] || "-"}
                 />
                 <Info label="Email" value={receiverId?.receiverEmail || "-"} />
-                <Info
+                {/* <Info
                   label="Address"
                   value={capitalize(receiverId?.receiverAddress)}
                 />
@@ -289,7 +297,7 @@ const ParcelDetails = ({ entryId }) => {
                   value={`${capitalize(
                     receiverId?.receiverProvince
                   )} / ${capitalize(receiverId?.receiverZone)}`}
-                />
+                /> */}
               </DetailGrid>
             </Section>
           )}
