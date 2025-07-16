@@ -65,9 +65,10 @@ import ViewRepliedInquiries from "./pages/staff/Inquiry/ViewRepliedInquiries";
 import ReplyToInquiry from "./pages/staff/Inquiry/ReplyToInquiry";
 import ViewOneRepliedInquiry from "./pages/staff/Inquiry/ViewOneRepliedInquiry";
 import ViewOneCollectionCenterDeliveryparcel from "./pages/staff/ViewOneCollectionCenterDeliveryParcel";
+import ParcelTablePage from "./pages/staff/ParcelTablePage/parcelTablePage";
+import ManualShipmentPage from "./pages/staff/ManualShipmentPage/manualShipmentPage"
 import Scanner from "./pages/staff/Scanner";
 import StaffProfile from "./pages/staff/StaffProfile";
-
 const App = () => {
   return (
     <Router>
@@ -139,6 +140,9 @@ const App = () => {
             <Route path="inquiry-management/view-replied-inquiries" element={<ViewRepliedInquiries/>}/>
             <Route path="inquiry-management/reply-to-inquiry/:inquiryId" element={<ReplyToInquiry/>}/>
             <Route path="inquiry-management/view-replied-inquiries/:inquiryId" element={<ViewOneRepliedInquiry/>}/>
+            <Route path="shipment-management/parcel-table-page" element={<ParcelTablePage />} />
+          <Route path="shipment-management/manual-shipment-page" element={<ManualShipmentPage />} />
+          
 
           </Route>
         </Route>
