@@ -13,6 +13,7 @@ export default {
   		colors: {
 			Background: '#F4F4F9',
 			Primary: '#1f818c',
+			PrimaryHover: '#135D65',
   			background: 'hsl(var(--background))',
   			foreground: 'hsl(var(--foreground))',
   			card: {
@@ -52,8 +53,18 @@ export default {
   				'3': 'hsl(var(--chart-3))',
   				'4': 'hsl(var(--chart-4))',
   				'5': 'hsl(var(--chart-5))'
-  			}
-  		}
+  			},
+			  
+  		},
+		  theme: {
+			screens: {
+			  'lg': {'max': '1000px'},
+			  // => @media (max-width: 1023px) { ... }
+		
+			  'sm': {'max': '639px'},
+			  // => @media (max-width: 639px) { ... }
+			}
+		  }
   	}
   },
   plugins: [require("tailwindcss-animate")],
