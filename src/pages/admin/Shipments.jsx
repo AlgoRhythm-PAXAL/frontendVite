@@ -3,6 +3,7 @@ import TableDistributor from "../../components/admin/UserTables/DataTable/TableD
 import { useState, useEffect } from "react";
 import axios from "axios";
 import RenderShipmentUpdateForm from "../../components/admin/Shipment/RenderShipmentUpdateForm";
+import LoadingAnimation from "../../utils/LoadingAnimation";
 
 const shipmentColumns = [
   {
@@ -33,6 +34,7 @@ const shipmentColumns = [
 
 const Shipments = () => {
   const [data, setData] = useState([]);
+  const [loading,setLoading] = useState(true);
   const backendURL = import.meta.env.VITE_BACKEND_URL;
   const updateAPI = `${backendURL}/api/admin/shipments`;
   const deleteAPI = `${backendURL}/api/admin/shipments`;
@@ -42,8 +44,8 @@ const Shipments = () => {
       withCredentials: true,
     });
     const shipments = response.data.userData;
-    console.log(shipments);
     setData(shipments);
+    setLoading(false)
   };
 
   useEffect(() => {
@@ -53,6 +55,7 @@ const Shipments = () => {
   return (
     <div className="flex flex-col  mx-8  ">
       <SectionTitle title="Shipments" />
+      {loading?<LoadingAnimation/>:
       <div className="flex flex-col gap-">
         <TableDistributor
           title="shipment"
@@ -67,6 +70,7 @@ const Shipments = () => {
           enableRowClick={false}
         />
       </div>
+      }
     </div>
   );
 };

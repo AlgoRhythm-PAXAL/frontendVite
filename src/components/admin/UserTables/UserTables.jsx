@@ -4,7 +4,7 @@
 
     const driverColumns = [
         {
-            accessorKey: "itemId",
+            accessorKey: "driverId",
             header: "Driver ID"
         },
         {
@@ -49,10 +49,10 @@
         // },
     ];
     const staffColumns = [
-        {
-            accessorKey: "itemId",
-            header: "Staff ID"
-        },
+        // {
+        //     accessorKey: "itemId",
+        //     header: "Staff ID"
+        // },
         {
             accessorKey: "name",
             header: "Name"
@@ -88,10 +88,10 @@
 
     ]
     const adminColumns = [
-        {
-            accessorKey: "itemId",
-            header: "Admin ID"
-        },
+        // {
+        //     accessorKey: "adminId",
+        //     header: "Admin ID"
+        // },
         {
             accessorKey: "name",
             header: "Name"
@@ -114,10 +114,10 @@
         },
     ]
     const customerColumns = [
-        {
-            accessorKey: "userId",
-            header: "Customer Id"
-        },
+        // {
+        //     accessorKey: "userId",
+        //     header: "Customer Id"
+        // },
         {
             accessorKey: "name",
             header: "Name"
@@ -155,10 +155,10 @@
                         <TabsTrigger value="driver">Driver</TabsTrigger>
                         <TabsTrigger value="admin">Admin</TabsTrigger>
                     </TabsList>
-                    <TabsContent value="customer"><TableDistributor title='customer' columns={customerColumns} disableDateFilter={true} /></TabsContent>
-                    <TabsContent value="staff"><TableDistributor title='staff' columns={staffColumns} disableDateFilter={true} /></TabsContent>
-                    <TabsContent value="driver"><TableDistributor title='driver' columns={driverColumns} disableDateFilter={true} /></TabsContent>
-                    <TabsContent value="admin"><TableDistributor title='admin' columns={adminColumns} disableDateFilter={true} /></TabsContent>
+                    <TabsContent value="customer"><TableDistributor title='customer' columns={customerColumns} disableDateFilter={true} enableRowClick={true}/></TabsContent>
+                    <TabsContent value="staff"><TableDistributor title='staff' columns={staffColumns} disableDateFilter={true} enableRowClick={true}/></TabsContent>
+                    <TabsContent value="driver"><TableDistributor title='driver' columns={driverColumns} disableDateFilter={true} enableRowClick={true} /></TabsContent>
+                    <TabsContent value="admin"><TableDistributor title='admin' columns={adminColumns} disableDateFilter={true} enableRowClick={true}/></TabsContent>
                 </Tabs>
 
             </div>

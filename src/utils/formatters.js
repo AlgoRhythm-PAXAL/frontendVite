@@ -1,5 +1,5 @@
 export const capitalize = (str) => {
-  if (!str) return "-";
+  if (!str || typeof str !== 'string') return "-";
   return (
     str
       .split(" ")
