@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import DataTable from "../../components/staff/DataTable";
 import axios from "axios";
+import StatsBox from "../../components/staff/StatsBox";
 
 const ViewParcels = () => {
   const [parcels, setParcels] = useState([]);
@@ -61,13 +62,28 @@ const ViewParcels = () => {
   ];
 
   return (
-    <DataTable
-      data={parcels}
-      columns={columns}
-      actions={actions}
-      rowsPerPage={6}
-      textMessage={"No parcel found"}
-    />
+    <div className="px-8 py-6">
+      <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-8 gap-4">
+        <div className="flex-1">
+          <h1 className="text-2xl font-bold text-gray-800 mb-1">
+            Parcel Management
+          </h1>
+          <p className="text-gray-500">
+            View and manage all parcels in the branch
+          </p>
+        </div>
+        
+      </div>
+      <div>
+        <DataTable
+          data={parcels}
+          columns={columns}
+          actions={actions}
+          rowsPerPage={6}
+          textMessage={"No parcel found"}
+        />
+      </div>
+    </div>
   );
 };
 
