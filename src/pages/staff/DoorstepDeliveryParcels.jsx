@@ -7,6 +7,10 @@ import StatsBox from "../../components/staff/StatsBox";
 
 const DoorstepDeliveryParcels = () => {
   const [parcels, setParcels] = useState([]);
+   const [deliveryStats, setDeliveryStats] = useState({
+    pendingDoorstepDeliveries: 0
+      
+    });
   const navigate = useNavigate();
 
   const getDoorstepDeliveryParcels = async () => {
@@ -22,8 +26,26 @@ const DoorstepDeliveryParcels = () => {
     }
   };
 
+  
+  const getDeliveryStats = async () => {
+    try {
+      console.log("Fetching door-step delivery stats...");
+      const response = await axios.get(
+        "http://localhost:8000/staff/collection-management/get-doorstep-delivery-stats",
+        { withCredentials: true }
+      );
+
+      console.log("Door-step Delivery Stats:", response.data);
+      setDeliveryStats(response.data);
+    } catch (error) {
+      console.error("Error fetching door-step delivery stats:", error);
+    }
+  }
+
+
   useEffect(() => {
     getDoorstepDeliveryParcels();
+    getDeliveryStats();
   }, []);
 
   const columns = [
@@ -76,7 +98,7 @@ const DoorstepDeliveryParcels = () => {
         </div>
 
         <div className="flex gap-4 w-full lg:w-auto">
-          <StatsBox title="Pending Deliveries" value="50" />
+          <StatsBox title="Pending Deliveries" value={deliveryStats.pendingDoorstepDeliveries} />
         </div>
       </div>
       <div>

@@ -6,6 +6,10 @@ import StatsBox from "../../../components/staff/StatsBox";
 
 const NewInquiries = () => {
   const [inquiries, setInquiries] = useState([]);
+   const [inquiryStats, setInquiryStats] = useState({
+    inquiriesToday: 0,
+    pendingInquiries: 0,
+  });
   const navigate = useNavigate();
 
   const getNewInquiries = async () => {
@@ -21,8 +25,24 @@ const NewInquiries = () => {
     }
   };
 
+  const getInquiryStats = async () => {
+    try {
+      console.log("Fetching inquiry stats...");
+      const response = await axios.get(
+        "http://localhost:8000/staff/inquiry-management/get-inquiry-stats",
+        { withCredentials: true }
+      );
+
+      console.log("Inquiry Stats:", response.data);
+      setInquiryStats(response.data);
+    } catch (error) {
+      console.error("Error fetching inquiry stats:", error);
+    }
+  }
+
   useEffect(() => {
     getNewInquiries();
+    getInquiryStats();
   }, []);
 
   const columns = [
@@ -61,8 +81,8 @@ const NewInquiries = () => {
         </div>
 
         <div className="flex gap-4 w-full lg:w-auto">
-          <StatsBox title="Inquiries Today" value="50" />
-          <StatsBox title="Pending Inquiries" value="20" />
+          <StatsBox title="Inquiries Today" value={inquiryStats.inquiriesToday} />
+          <StatsBox title="Pending Inquiries" value={inquiryStats.pendingInquiries} />
         </div>
       </div>
       <div>

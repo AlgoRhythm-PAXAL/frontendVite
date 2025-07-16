@@ -65,7 +65,10 @@ import ViewRepliedInquiries from "./pages/staff/Inquiry/ViewRepliedInquiries";
 import ReplyToInquiry from "./pages/staff/Inquiry/ReplyToInquiry";
 import ViewOneRepliedInquiry from "./pages/staff/Inquiry/ViewOneRepliedInquiry";
 import ViewOneCollectionCenterDeliveryparcel from "./pages/staff/ViewOneCollectionCenterDeliveryParcel";
-
+import ParcelTablePage from "./pages/staff/ParcelTablePage/parcelTablePage";
+import ManualShipmentPage from "./pages/staff/ManualShipmentPage/manualShipmentPage"
+import Scanner from "./pages/staff/Scanner";
+import StaffProfile from "./pages/staff/StaffProfile";
 const App = () => {
   return (
     <Router>
@@ -114,6 +117,7 @@ const App = () => {
         {/* Protected Staff Routes */}
         <Route path="/staff" element={<ProtectedStaffRoute/>}>
           <Route path="/staff/main-menu" element={<StaffMainMenu/>}/>
+          <Route path="/staff/profile" element={<StaffProfile/>}/>
           <Route path="/staff" element={<StaffLayout/>}>
             <Route path="lodging-management/view-parcels" element={<ViewParcels/>}/>
             <Route path="lodging-management/view-pickups" element={<PickupRequests/>}/>
@@ -128,6 +132,8 @@ const App = () => {
             <Route path="collection-management/view-one-doorstep-delivery-parcel/:parcelId" element={<ViewOneDoorStepDeliveryParcel/>}/>
             <Route path="collection-management/view-collection-center-delivery-parcels" element={<CollectionCenterDeliveryParcels/>}/>
             <Route path="collection-management/view-collection-center-delivery-parcels/:parcelId" element={<ViewOneCollectionCenterDeliveryparcel/>}/>
+            <Route path="collection-management/scan-qr-code" element={<Scanner/>}/>
+
 
 
             <Route path="inquiry-management/view-new-inquiries" element={<NewInquiries/>}/>

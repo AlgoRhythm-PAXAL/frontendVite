@@ -14,8 +14,7 @@ const ViewOneDoorStepDeliveryParcel = () => {
 
   const navigate = useNavigate();
 
-  useEffect(() => {
-    const checkAssignment = async () => {
+  const checkAssignment = async () => {
       if (!parcelId) return;
       setIsCheckingAssignment(true);
       try {
@@ -25,9 +24,11 @@ const ViewOneDoorStepDeliveryParcel = () => {
             params: {
               parcelId: parcelId,
             },
+             withCredentials: true 
           },
-          { withCredentials: true }
+        
         );
+        console.log("Assignment check response:", response.data);
         setHasAssignedSchedule(response.data.isAssigned);
       } catch (error) {
         console.error("Assignment check failed:", error);
@@ -35,6 +36,8 @@ const ViewOneDoorStepDeliveryParcel = () => {
         setIsCheckingAssignment(false);
       }
     };
+
+  useEffect(() => {
     checkAssignment();
   }, [parcelId]);
 
@@ -57,13 +60,13 @@ const ViewOneDoorStepDeliveryParcel = () => {
         { withCredentials: true }
       );
 
-      if (response.success) {
+      console.log("Parcel is assigned to a delivery schedule", response)
         toast.success("Parcel is assigned to a delivery schedule", {
           description: response.message,
           duration: 4000,
         });
         navigate(-1);
-      }
+      
     } catch (error) {
       console.error(error);
       const errorMessage =

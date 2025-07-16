@@ -25,11 +25,19 @@ const SideBar = () => {
     const menuOptions = [
         {
             title: "Lodging Management",
-            items: ["Create Lodging", "View Lodgings"]
+            items: [
+                { title: "View Pickups", path: "/staff/lodging-management/view-pickups" },
+                { title: "View Drop-offs", path: "/staff/lodging-management/view-dropOffs" },
+                { title: "View Parcels", path: "/staff/lodging-management/view-parcels" },
+                { title: "Add Parcels", path: "/staff/lodging-management/add-new-parcel" },
+
+            ]
         },
         {
             title: "Collection Management",
-            items: ["Create Collection", "View Collections"]
+            items: [{ title: "View doorstep parcels", path: "/staff/collection-management/assign-driver" },
+                { title: "View collection-center parcels", path: "/staff/collection-management/view-collection-center-delivery-parcels" },
+               ]
         },
         {
             title: "Shipment Management",
@@ -41,7 +49,11 @@ const SideBar = () => {
         },
         {
             title: "Inquiry Management",
-            items: ["Create Inquiry", "View Inquiries"]
+            items: [
+                { title: "View new inquiries", path: "/staff/inquiry-management/view-new-inquiries" },
+                { title: "View inquiry history", path: "/staff/inquiry-management/view-replied-inquiries" },
+              
+            ]
         }
     ];
 
