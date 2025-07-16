@@ -4,10 +4,12 @@ import ParcelInformation from "../../components/staff/ParcelInformation";
 import { ArrowLeftIcon } from "@heroicons/react/24/outline";
 import axios from "axios";
 import { toast } from "sonner";
+import { set } from "date-fns";
 
 const ViewOneCollectionCenterDeliveryparcel = () => {
   const { parcelId } = useParams();
   const [isLoaded, setIsLoaded] = useState(false);
+  const [delivering, setDelivering] = useState(false);
   const navigate = useNavigate();
 
   const handleParcelLoad = () => {
@@ -16,35 +18,38 @@ const ViewOneCollectionCenterDeliveryparcel = () => {
 
   const handleDelivery = async () => {
     try {
+      setDelivering(true);
       const response = await axios.post(
         "http://localhost:8000/staff/collection-management/update-parcel-as-delivered",
         { parcelId },
         { withCredentials: true }
       );
 
-      if (response.success) {
-        toast.success("Parcel Delivery Successful", {
-          description: response.message,
-          duration: 4000,
-        });
-
-        navigate(-1);
-      }
-
-      
-    } catch (error) {
-      console.log("Error in delivery update", error);
-      const errorMessage =
-        error.response.message ||
-        "Parcel Delivery failed. Please try again.";
-
-      toast.error("Parcel not Delivered", {
-        description: errorMessage,
+       console.log(response);
+    if (response.data.success) {
+      toast.success("Parcel Delivery Successful", {
+        description: response.message,
         duration: 4000,
       });
-    }
-  };
 
+      navigate(-1);
+    }
+
+      
+     } catch (error) {
+      
+      console.log("Error in delivery update", error);
+      const errorMessage =
+        error.response?.message ||
+        "Parcel Delivery failed. Please try again.";
+ toast.error("Parcel not Delivered", {
+      description: errorMessage,
+      duration: 4000,
+    });
+  } finally {
+    setDelivering(false);
+  }
+};
   return (
     <>
       <div className="min-h-screen  py-8">
@@ -71,6 +76,7 @@ const ViewOneCollectionCenterDeliveryparcel = () => {
           {isLoaded && (
             <div className="flex justify-between items-center mt-10 mx-8">
               <button
+              disabled={delivering}
                 onClick={() => navigate(-1)}
                 className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md 
                     text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 
@@ -80,10 +86,18 @@ const ViewOneCollectionCenterDeliveryparcel = () => {
                 Back to List
               </button>
               <button
+              disabled={delivering}
                 className="bg-Primary text-white px-6 py-2 rounded-xl hover:shadow-green-600 hover:shadow-sm hover:border-2 hover:border-Primary"
                 onClick={() => handleDelivery(parcelId)}
               >
-                Delivered
+                {delivering ? (
+                <div className="flex items-center justify-center gap-2">
+                  <span className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></span>
+                  Updating..
+                </div>
+              ) : (
+                "Delivered"
+              )}
               </button>
             </div>
           )}

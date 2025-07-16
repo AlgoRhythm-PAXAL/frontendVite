@@ -26,6 +26,7 @@ const AddNewParcel = () => {
     "shippingMethod",
   ]);
 
+  const [registering, setRegistering] = useState(false);
   const [provinceOne, setSelectedProvinceOne] = useState("");
   const [provinceTwo, setSelectedProvinceTwo] = useState("");
 
@@ -42,9 +43,11 @@ const AddNewParcel = () => {
               to,
               shippingMethod,
             },
+            withCredentials: true,
           }
         );
-        setValue("amount", response.data.paymentAmount);
+        const formattedAmount = response.data.paymentAmount.toFixed(2);
+        setValue("amount", formattedAmount);
       }
     } catch (error) {
       console.error("Error fetching payment amount", error);
@@ -62,6 +65,7 @@ const AddNewParcel = () => {
         ...data,
       };
 
+      setRegistering(true);
       console.log("Data being sent to the server: ", formData);
 
       const response = await axios.post(
@@ -81,6 +85,7 @@ const AddNewParcel = () => {
         `/staff/lodging-management/view-parcels/invoice/${response.data.parcelId}`
       );
     } catch (error) {
+      setRegistering(false);
       console.error("Error submitting parcel data: ", error);
       const errorMessage =
         error.response?.message ||
@@ -615,6 +620,7 @@ const AddNewParcel = () => {
         <div className="flex justify-end space-x-4 mt-8">
           <button
             type="button"
+            disabled={registering}
             onClick={() => reset()}
             className="px-6 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-Primary"
           >
@@ -622,9 +628,18 @@ const AddNewParcel = () => {
           </button>
           <button
             type="submit"
+            disabled={registering}
             className="px-6 py-2 bg-Primary text-white rounded-md hover:bg-PrimaryHover focus:outline-none focus:ring-2 focus:ring-Primary focus:ring-offset-2"
           >
-            Register Parcel
+             {registering ? (
+                <div className="flex items-center justify-center gap-2">
+                  <span className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></span>
+                  Registering..
+                </div>
+              ) : (
+                "Register Parcel"
+              )}
+            
           </button>
         </div>
       </form>

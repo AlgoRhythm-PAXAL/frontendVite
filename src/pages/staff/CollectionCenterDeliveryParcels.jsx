@@ -4,9 +4,13 @@ import { formatDistanceToNow } from "date-fns";
 import axios from "axios";
 import DataTable from "../../components/staff/DataTable";
 import StatsBox from "../../components/staff/StatsBox";
+import ConfirmPopup from "../../components/staff/ConfirmPopup";
 
 const CollectionCenterDeliveryParcels = () => {
   const [parcels, setParcels] = useState([]);
+  const [delivering, setDelivering] = useState(false);
+  const [dialogOpen, setDialogOpen] = useState(false);
+const [selectedParcelId, setSelectedParcelId] = useState(null);
    const [deliveryStats, setDeliveryStats] = useState({
       pendingCollectionCenterDeliveries: 0
         
@@ -19,8 +23,7 @@ const CollectionCenterDeliveryParcels = () => {
         "http://localhost:8000/staff/collection-management/get-all-collection-center-delivery-parcels",
         { withCredentials: true }
       );
-
-      setParcels(response.data);
+      setParcels(response.data.parcels);
     } catch (err) {
       console.error(err);
     }
@@ -43,23 +46,34 @@ const CollectionCenterDeliveryParcels = () => {
 
   useEffect(() => {
     getCollectionCenterDeliveryParcels();
+    getDeliveryStats();
   }, []);
+const openConfirmDialog = (parcelId) => {
+  setSelectedParcelId(parcelId);
+  setDialogOpen(true);
+};
+
 
   const handleDelivery = async () => {
     try {
+      
+  setDelivering(true);
+
+  setDelivering(true);
       const response = await axios.post(
         "http://localhost:8000/staff/collection-management//update-parcel-as-delivered",
-        { parcelId },
+        { parcelId : selectedParcelId},
         { withCredentials: true }
       );
 
-      if (response.success) {
+      if (response.data.success) {
         toast.success("Parcel Delivery Successful", {
           description: response.data.message,
           duration: 4000,
         });
       }
     } catch (error) {
+     
       console.log("Error in delivery update", error);
       const errorMessage =
         error.response?.data?.message ||
@@ -69,6 +83,12 @@ const CollectionCenterDeliveryParcels = () => {
         description: errorMessage,
         duration: 4000,
       });
+    }finally {
+      setDialogOpen(false);
+      setDelivering(false);
+      setSelectedParcelId(null);
+      getCollectionCenterDeliveryParcels(); 
+      getDeliveryStats(); 
     }
   };
 
@@ -101,9 +121,9 @@ const CollectionCenterDeliveryParcels = () => {
       label: "Delivered",
       className:
         "bg-Primary text-white font-semibold px-5 py-2 rounded-lg hover:shadow-md transition-all duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-Primary-light",
-      onClick: (row) => {
-        handleDelivery;
-      },
+      disabled: setDelivering,
+        onClick: (row) => openConfirmDialog(row.parcelId),
+      
     },
     {
       label: "View ",
@@ -117,6 +137,7 @@ const CollectionCenterDeliveryParcels = () => {
   ];
 
   return (
+    <>
     <div className="px-8 py-6">
       <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-8 gap-4">
         <div className="flex-1">
@@ -142,6 +163,14 @@ const CollectionCenterDeliveryParcels = () => {
         />
       </div>
     </div>
+  <ConfirmPopup
+  isOpen={dialogOpen}
+  onClose={() => setDialogOpen(false)}
+  onConfirm={handleDelivery}
+  title="Confirm Delivery"
+  message="Are you sure you want to mark this parcel as delivered?"
+/>
+</>
   );
 };
 

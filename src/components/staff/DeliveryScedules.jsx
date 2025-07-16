@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import DataTable from "../../components/staff/DataTable";
 import axios from "axios";
 import toast from "react-hot-toast";
+import { set } from "date-fns";
 
 const timeSlots = ["08:00 - 12:00", "13:00 - 17:00"];
 
@@ -14,6 +15,7 @@ const DeliverySchedules = ({ onAssignmentChange, parcelId }) => {
   const [showExpressForm, setShowExpressForm] = useState(false);
   const [selectedDate, setSelectedDate] = useState("");
   const [selectedTimeSlot, setSelectedTimeSlot] = useState(timeSlots[0]);
+  const[confirming, setConfirming] = useState(false);
 
   useEffect(() => {
     getDeliverySchedules();
@@ -108,6 +110,7 @@ const DeliverySchedules = ({ onAssignmentChange, parcelId }) => {
   // Create a express delivery schedule for express parcels
   const addNewExpressDeliverySchedule = async () => {
     try {
+      setConfirming(true);
       const response = await axios.post(
         "http://localhost:8000/staff/delivery-schedules/new-express-delivery-schedule",
         { parcelId,
@@ -143,6 +146,7 @@ const DeliverySchedules = ({ onAssignmentChange, parcelId }) => {
       });
     } finally {
       setIsProcessingExpress(false);
+      setConfirming(false);
     }
   };
 
@@ -247,6 +251,7 @@ const DeliverySchedules = ({ onAssignmentChange, parcelId }) => {
             </select>
             <div className="flex justify-end gap-4">
               <button
+              disabled={confirming}
                 className="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400"
                 onClick={() => {
                   setShowExpressForm(false);
@@ -256,10 +261,18 @@ const DeliverySchedules = ({ onAssignmentChange, parcelId }) => {
                 Cancel
               </button>
               <button
+              disabled={confirming}
                 className="px-4 py-2 bg-Primary text-white rounded hover:bg-Primary-dark"
                 onClick={() => addNewExpressDeliverySchedule(parcelId)}
               >
-                Confirm
+                {confirming ? (
+                <div className="flex items-center justify-center gap-2">
+                  <span className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></span>
+                  Creating..
+                </div>
+              ) : (
+                "Confirm"
+              )}
               </button>
             </div>
           </div>

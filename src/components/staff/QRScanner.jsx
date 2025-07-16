@@ -27,7 +27,7 @@ const QRScanner = ({ onClose }) => {
           );
           console.log(response);
           if (response.data.success) {
-            toast.success(`Parcel ${decodedText} marked as delivered`);
+            toast.success(`Parcel ${decodedText} marked as arrived`);
             setStatusMessage("Status updated successfully.");
             setTimeout(() => onClose(), 2000);
           }
@@ -35,7 +35,7 @@ const QRScanner = ({ onClose }) => {
           scanner.clear();
 console.error("Error updating parcel status:", error);
           toast.error("Failed to update parcel status");
-          setStatusMessage("Failed to update status. Try again.");
+          setStatusMessage(error.response.data.message);
         }
 
         
