@@ -99,7 +99,7 @@ export function DataTable({
 
   const handleEditClick = (rowData) => {
     setRowToDelete(rowData);
-    setFormData({rowData});
+    setFormData({ rowData });
     setUpdateDialogOpen(true);
   };
 
@@ -323,7 +323,12 @@ export function DataTable({
                   }`}
                   onClick={
                     enableRowClick
-                      ? () => onRowClick?.(collectionName, row.original.itemId)
+                      ? () =>
+                          onRowClick?.(
+                            collectionName,
+                            row.original._id,
+                            row.original.parcelId || row.original.driverId || row.original.userId || row.original.vehicleId || row.original.staffId || row.original.adminId 
+                          )
                       : undefined
                   }
                 >
@@ -421,7 +426,7 @@ export function DataTable({
           </DialogHeader>
 
           {renderUpdateForm ? (
-            renderUpdateForm( formData, setFormData,  rowToDelete )
+            renderUpdateForm(formData, setFormData, rowToDelete)
           ) : (
             <div className="text-sm text-gray-500">
               No update form provided.

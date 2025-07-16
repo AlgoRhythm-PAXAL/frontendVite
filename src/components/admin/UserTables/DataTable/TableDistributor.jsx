@@ -43,15 +43,15 @@ export default function TableDistributor({
         setData(Array.isArray(entryData) ? entryData : [entryData]);
         return;
       }
-      if(!user) return
+      if (!user) return;
       try {
-        let apiEndpoint= `${backendURL}/api/admin/users/${user}`;
+        let apiEndpoint = `${backendURL}/api/admin/users/${user}`;
         const response = await axios.get(apiEndpoint, {
           withCredentials: true,
         });
         const rawData = response.data.userData || response.data;
         const updatedData = rawData.map((item) => {
-          const itemId =item.vehicleId || item.id;
+          const itemId = item.id;
           let formattedCreatedAt = new Date(item.createdAt).toLocaleDateString(
             "en-US",
             {
@@ -72,7 +72,6 @@ export default function TableDistributor({
             }),
           };
         });
-
         setData(updatedData);
         setLoading(false);
       } catch (error) {
@@ -83,8 +82,13 @@ export default function TableDistributor({
     fetchData();
   }, [entryData, user, backendURL]);
 
-  const handleRowClick = (collection, itemId) => {
-    setSelectedEntry({ collection, itemId });
+  const handleRowClick = (collection, itemId, givenId) => {
+    if (!enableRowClick) return;
+    if (!itemId) {
+      console.warn("No itemId provided for row click.");
+      return;
+    }
+    setSelectedEntry({ collection, itemId, givenId });
   };
   if (loading && !entryData) {
     return <LoadingAnimation />;
@@ -110,14 +114,15 @@ export default function TableDistributor({
       />
 
       {/* Modal Opening */}
+      {/* Modal Opening */}
       <Modal open={!!selectedEntry} onClose={() => setSelectedEntry(null)}>
-        {selectedEntry && (
-          <EntryDetails
-            collectionName={selectedEntry.collection}
-            entryId={selectedEntry.itemId}
-            onClose={() => setSelectedEntry(null)}
-          />
-        )}
+        {selectedEntry &&
+          EntryDetails(
+            selectedEntry.collection,
+            selectedEntry.itemId,
+            () => setSelectedEntry(null),
+            selectedEntry.givenId
+          )}
       </Modal>
     </div>
   );

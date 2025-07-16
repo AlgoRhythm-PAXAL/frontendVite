@@ -72,13 +72,17 @@ const ParcelDetails = ({ entryId }) => {
           status: capitalize(item?.status),
           time: formatDateTime(item?.time),
           location: item?.location,
-          handledBy: item.handledBy,
-          note: item.note,
+          handledBy: item?.handledBy,
+          note: item?.note,
         }));
-        console.log(TimeData);
+        if (TimeData.length === 0) {
+          throw new Error("No tracking data available for this parcel.");
+        }
         setParcelTimeData(TimeData);
       } catch (error) {
         setError(error.message);
+      } finally {
+        setLoading(false);
       }
     };
 
@@ -185,7 +189,7 @@ const ParcelDetails = ({ entryId }) => {
         {/* Right Column */}
         <div className="space-y-8">
           {/* QR Code Card */}
-          <Section title="QR Code">
+          {qrCodeNo && <Section title="QR Code">
             <div className="p-4 flex justify-center">
               <img
                 src={qrCodeNo || "N/A"}
@@ -193,7 +197,7 @@ const ParcelDetails = ({ entryId }) => {
                 className="w-48 h-48 object-contain border rounded-lg p-2 bg-gray-50"
               />
             </div>
-          </Section>
+          </Section>}
 
           {/* Payment Card */}
           {paymentId && (
