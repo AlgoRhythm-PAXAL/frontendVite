@@ -31,7 +31,7 @@ export const EntryDetails = (collectionName, entryId, onClose, givenId) => {
       {/* Adjusted to use the givenId prop for display */}
       <div className="flex justify-between items-center m-6 ">
         <SectionTitle
-          title={`${capitalize(collectionName)} Details | ${givenId}`}
+          title={`${capitalize(collectionName)} Details | ${givenId || "" || entryId}`}
         />
         <Button
           variant="ghost"

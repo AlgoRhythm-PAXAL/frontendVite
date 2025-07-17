@@ -8,6 +8,7 @@ import TableDistributor from "../UserTables/DataTable/TableDistributor";
 import { useState, useEffect } from "react";
 import axios from "axios";
 import LoadingAnimation from "../../../utils/LoadingAnimation";
+import { toast } from "sonner";
 
 const parcelColumns = [
   {
@@ -49,9 +50,14 @@ const ParcelDetails = ({ entryId }) => {
           { withCredentials: true }
         );
         const Data = response.data.data;
+    
+        if (!Data || Object.keys(Data).length === 0) {
+          throw new Error("No data received");
+        }
         if (Data) {
-          setLoading(false);
+          
           setEntryData(Data);
+          setLoading(false);
         } else {
           throw new Error("No data received");
         }
@@ -68,7 +74,16 @@ const ParcelDetails = ({ entryId }) => {
           `${backendURL}/api/admin/parcels/track/${entryId}`,
           { withCredentials: true }
         );
-        const tempTimeData = response.data.timeData;
+
+        const tempTimeData = response.data.data;
+        
+        if (!tempTimeData || !tempTimeData) {
+          throw new Error("No tracking data available for this parcel.");
+        }
+        if (!Array.isArray(tempTimeData) || tempTimeData.length === 0) {
+          throw new Error("No tracking data available for this parcel.");
+        }
+        
         const TimeData = tempTimeData.map((item) => ({
           status: capitalize(item?.status),
           time: formatDateTime(item?.time),
@@ -82,7 +97,6 @@ const ParcelDetails = ({ entryId }) => {
         if (TimeData.length === 0) {
           throw new Error("No tracking data available for this parcel.");
         }
-        console.log("TimeData:", TimeData);
         if (TimeData.length > 0) {
           TimeData[0].status = camelToSentenceCase(TimeData[0].status);
         }
@@ -90,6 +104,13 @@ const ParcelDetails = ({ entryId }) => {
         setParcelTimeData(TimeData);
       } catch (error) {
         setError(error.message);
+        console.error("Error fetching tracking data:", error);
+        if (error.response && error.response.data) {
+          setError(error.response.data.message || "Failed to fetch tracking data.");
+        } else {
+          setError("Failed to fetch tracking data.");
+        }
+        toast.error(`Error: ${error.message || "Failed to fetch tracking data."}`);
       } finally {
         setLoading(false);
       }
@@ -104,7 +125,9 @@ const ParcelDetails = ({ entryId }) => {
 
   //Loading and error states handling
   if (loading) return <LoadingAnimation />;
-  if (error) return <div>Error loading details: {error}</div>;
+  if (error) return <div className="p-10 m-7">{error}</div>;
+  if (!parcel) return <div className="p-10 m-7">No parcel data available</div>;
+  
   const {
     _id,
     parcelId,
@@ -279,7 +302,7 @@ const ParcelDetails = ({ entryId }) => {
                 />
                 <Info
                   label="Contact"
-                  value={receiverId?.receiverContact?.[0] || "-"}
+                  value={receiverId?.receiverContact || "-"}
                 />
                 <Info label="Email" value={receiverId?.receiverEmail || "-"} />
                 {/* <Info
