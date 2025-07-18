@@ -1,17 +1,21 @@
-import { BellIcon } from "@heroicons/react/24/outline";
+import { ArrowLeftIcon, BellIcon } from "@heroicons/react/24/outline";
 import axios from "axios";
 import { useEffect, useRef, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import Profile from "../../assets/userAssets/staffProfile.png";
+import { useLocation, useNavigate } from "react-router-dom";
 import Logo from "../../assets/userAssets/logo.jpg";
+import ProfilePicture from "../admin/ImageUpload/ProfilePicture";
+import { ArrowLeftOnRectangleIcon, UserCircleIcon } from "@heroicons/react/24/outline";
 
 const NavigationBar = () => {
   const [staff, setStaff] = useState(null);
   const [loading, setLoading] = useState(true);
   const [notifications, setNotifications] = useState(false);
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
-  const dropdownRef = useRef(null);
   const navigate = useNavigate();
+   const dropdownRef = useRef(null);
+   const location = useLocation();
+   const isProfilePage = location.pathname === "/staff/profile"; // Check if on profile page.
 
   const getStaffInfo = async () => {
     try {
@@ -27,34 +31,76 @@ const NavigationBar = () => {
     }
   };
 
+  {/* Logout button */}
+    const handleLogout = async () => {
+    try {
+      await axios.post(
+        "http://localhost:8000/staff/logout",
+        {},
+        { withCredentials: true }
+      );
+      navigate("/staff/login");
+    } catch (error) {
+      console.error("Logout error:", error);
+    }
+  };
 
 
   useEffect(() => {
     getStaffInfo();
     const handleClickOutside = (event) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-        setIsProfileOpen(false);
+        setIsDropdownOpen(false);
       }
     };
     document.addEventListener("mousedown", handleClickOutside);
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
+    
   }, []);
 
-  if (loading) {
-    return <nav className="p-4">Loading…</nav>;
+   if (loading) {
+    return (
+      <nav className="w-full bg-white shadow-sm border-b border-gray-200 fixed top-0 z-50 h-16">
+        <div className="mx-auto px-4 md:px-8 h-full">
+          <div className="flex items-center justify-between h-full">
+            
+            <div className="flex-shrink-0 flex items-center">
+              <div className="w-20 h-10 bg-gray-200 rounded animate-pulse ml-10"></div>
+            </div>
+
+            
+            <div className="flex items-center space-x-6">
+              
+              <div className="w-6 h-6 bg-gray-200 rounded-full animate-pulse"></div>
+
+             
+              <div className="hidden md:block space-y-1">
+                <div className="h-4 w-24 bg-gray-200 rounded animate-pulse"></div>
+                <div className="h-3 w-16 bg-gray-200 rounded animate-pulse"></div>
+              </div>
+
+              
+              <div className="w-10 h-10 bg-gray-200 rounded-full animate-pulse"></div>
+            </div>
+          </div>
+        </div>
+      </nav>
+    );
   }
 
   return (
-    <nav className="w-full bg-white shadow-sm border-b border-gray-200 fixed top-0 z-50 h-16">
-      <div className="mx-auto px-4 md:px-8 h-full">
+<nav className="w-full bg-white shadow-sm border-b border-gray-200 fixed top-0 z-50 h-16">      <div className="mx-auto px-4 md:px-8 h-full">
         <div className="flex items-center justify-between h-full">
           {/* Left Side - Logo */}
           <div className="flex-shrink-0 flex items-center">
-            <img className="w-20 h-auto ml-10" src={Logo} alt="Company Logo" 
+            <button
             onClick={() => {
-                      navigate("/staff/main-menu");}}/>
+                      navigate("/staff/main-menu");}}>
+            <img className="w-20 h-auto ml-10" src={Logo} alt="Company Logo" 
+            />
+            </button>
           </div>
 
           {/* Right Side - Info and Profile */}
@@ -75,25 +121,55 @@ const NavigationBar = () => {
               </p>
               <p className="text-xs text-gray-500">EMP-ID: {staff?.staffId}</p>
             </div>
-
-            {/* Profile Section */}
-            <div className="relative flex items-center space-x-2" >
+<div 
+        className="relative flex items-center h-full px-2" // Added h-full and px-2
+        ref={dropdownRef}
+       onMouseEnter={() => setIsDropdownOpen(true)}
+        onMouseLeave={() => setIsDropdownOpen(false)}
+      >
+        <button
+          onClick={() => navigate("/staff/profile")}
+          className="flex items-center focus:outline-none"
+        >
+          <ProfilePicture 
+            publicId={staff.profilePicLink} 
+            width="50" 
+            className="rounded-full w-24 h-24 object-cover border-2 border-Primary"
+          />
+        </button>
+        
+        {/* Dropdown Menu */}
+        {isDropdownOpen && (
+          <div className="absolute right-0 top-full w-48 bg-white rounded-md shadow-lg py-1 z-50 border border-gray-200">
+            {isProfilePage ? (
               <button
-                onClick={() => {
-                      navigate("/staff/profile");}}
-                className="flex items-center focus:outline-none"
+                onClick={() => navigate("/staff/main-menu")}
+                className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
               >
-                <img
-                  className="h-10 w-10 rounded-full object-cover border-2 border-Primary"
-                  src={Profile}
-                  alt="Profile"
-                />
+                <ArrowLeftIcon className="h-5 w-5 mr-2" />
+                Main Menu
               </button>
-
-              
-              
-            </div>
+            ) : (
+              <button
+              onClick={() => navigate("/staff/profile")}
+              className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+            >
+              <UserCircleIcon className="h-5 w-5 mr-2" />
+              View Profile
+            </button>)}
+            <button
+              onClick={handleLogout}
+              className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+            >
+              <ArrowLeftOnRectangleIcon className="h-5 w-5 mr-2" />
+              Logout
+            </button>
           </div>
+        )}
+      </div>
+
+   
+      </div>
         </div>
       </div>
     </nav>
