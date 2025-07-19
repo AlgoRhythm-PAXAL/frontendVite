@@ -55,7 +55,6 @@ const InquiryInfo = ({ inquiryId, onInquiryLoad }) => {
           {inquiry?.status}
         </span>
       </div>
-
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div className="space-y-4">
           <div>
@@ -75,7 +74,6 @@ const InquiryInfo = ({ inquiryId, onInquiryLoad }) => {
             <p className="font-medium">{inquiry?.parcelTrackingNo}</p>
           </div>
         </div>
-
         <div className="bg-gray-50 p-4 rounded-lg">
           <h3 className="text-sm font-medium text-gray-500 mb-2">
             Inquiry Message
