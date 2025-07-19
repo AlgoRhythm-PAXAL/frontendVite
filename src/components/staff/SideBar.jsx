@@ -23,8 +23,8 @@ const SideBar = () => {
         {
             title: "Collection Management",
             items: [
-                { title: "Dashboard", path:"/staff/lodging-management/dashboard"},
-           {title: "Track Parcel", path:"/staff/lodging-management/track-parcel" },
+                { title: "Dashboard", path:"/staff/collection-management/dashboard"},
+           {title: "Track Parcel", path:"/staff/collection-management/track-parcel" },
             {title: "Deliver Parcels",path:"/staff/collection-management/view-collection-center-delivery-parcels" },
            { title: "Assign Driver",path:"/staff/collection-management/assign-driver"}
             

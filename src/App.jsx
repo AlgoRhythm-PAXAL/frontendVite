@@ -73,7 +73,7 @@ import CreatedShipmentsPage from "./pages/staff/ShipmentManagement/CreatedShipme
 import ViewShipmentsPage from "./pages/staff/ShipmentManagement/ViewShipmentsPage/viewShipmentsPage";
 import ManifestPage from "./pages/staff/ShipmentManagement/ManifestPage/manifestPage";
 import DashboardPage from "./pages/staff/CollectionManagement/Dashboard/dashboardPage";
-import TrackingPage from "./pages/staff/CollectionManagement/Tracking/trackingPage";
+import TrackingPageStaff from "./pages/staff/CollectionManagement/Tracking/trackingPage";
 import LeftBar from "./components/staff/LeftBar";
 import Scanner from "./pages/staff/Scanner";
 import StaffProfile from "./pages/staff/StaffProfile";
@@ -155,13 +155,14 @@ const App = () => {
           <Route path="shipment-management/manual-shipment-page" element={<ManualShipmentPage />} />
                     {/* Collection Management routes */}
           <Route path="collection-management/dashboard" element={<DashboardPage />} />
-          <Route path="collection-management/tracking" element={<TrackingPage />} />
+          <Route path="collection-management/tracking" element={<TrackingPageStaff />} />
                  <Route path="shipment-management/created-shipments-page" element={<CreatedShipmentsPage />}/>
           <Route path="shipment-management/view-shipments" element={<ViewShipmentsPage />} />
           <Route path="shipment-management/manifest/:shipmentId" element={<ManifestPage />} />
           {/* Add other staff routes here */}
           {/* <Route path="shipment-management/create-shipment" element={<CreateShipment />} /> */}
           {/* <Route path="shipment-management/view-shipments" element={<ViewShipments />} /> */}
+        </Route>
         </Route>
       </Routes>
     </Router>
