@@ -18,8 +18,15 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 
-export function DatePickerWithPresets() {
-  const [date, setDate] = React.useState(null);
+export function DatePickerWithPresets({ onDateChange }) {
+  const [date, setDate] = React.useState(new Date());
+
+  // Notify parent when date changes
+  React.useEffect(() => {
+    if (onDateChange) {
+      onDateChange(date);
+    }
+  }, [date, onDateChange]);
 
   return (
     <Popover>
@@ -31,7 +38,7 @@ export function DatePickerWithPresets() {
             !date && "text-muted-foreground"
           )}
         >
-          <CalendarIcon />
+          <CalendarIcon className="mr-2 h-4 w-4" />
           {date ? format(date, "PPP") : <span>Pick a date</span>}
         </Button>
       </PopoverTrigger>
@@ -59,6 +66,5 @@ export function DatePickerWithPresets() {
         </div>
       </PopoverContent>
     </Popover>
-    
-  )
+  );
 }

@@ -1,0 +1,129 @@
+import { useState, useEffect } from "react";
+import { DataTable } from "./DataTable";
+import { EntryDetails } from "../../Parcel/EntryDetails";
+import axios from "axios";
+import Modal from "../../adminProfile/Modal";
+import LoadingAnimation from "../../../../utils/LoadingAnimation";
+
+const formatUser = (str) => {
+  if (!str) return "";
+  return (
+    str
+      .split(" ")
+      .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+      .join(" ") + "s"
+  );
+};
+
+export default function TableDistributor({
+  title,
+  entryData,
+  columns,
+  deleteEnabled,
+  updateEnabled,
+  disableDateFilter,
+  enableRowClick,
+  updateText,
+  deleteText,
+  sorting,
+  updateAPI,
+  deleteAPI,
+  renderUpdateForm,
+}) {
+  const [data, setData] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [selectedEntry, setSelectedEntry] = useState(null);
+  const backendURL = import.meta.env.VITE_BACKEND_URL;
+  const user = title.toLowerCase();
+  const formattedUser = formatUser(user);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      if (entryData) {
+        setData(Array.isArray(entryData) ? entryData : [entryData]);
+        return;
+      }
+      if (!user) return;
+      try {
+        let apiEndpoint = `${backendURL}/api/admin/users/${user}`;
+        const response = await axios.get(apiEndpoint, {
+          withCredentials: true,
+        });
+        const rawData = response.data.userData || response.data;
+        const updatedData = rawData.map((item) => {
+          const itemId = item.id;
+          let formattedCreatedAt = new Date(item.createdAt).toLocaleDateString(
+            "en-US",
+            {
+              year: "numeric",
+              month: "short",
+              day: "numeric",
+            }
+          );
+
+          return {
+            ...item,
+            itemId, // add the resolved itemId
+            createdAt: formattedCreatedAt,
+            updatedAt: new Date(item.updatedAt).toLocaleDateString("en-US", {
+              year: "numeric",
+              month: "short",
+              day: "numeric",
+            }),
+          };
+        });
+        setData(updatedData);
+        setLoading(false);
+      } catch (error) {
+        console.error(`Error fetching data: `, error);
+      }
+    };
+
+    fetchData();
+  }, [entryData, user, backendURL]);
+
+  const handleRowClick = (collection, itemId, givenId) => {
+    if (!enableRowClick) return;
+    if (!itemId) {
+      console.warn("No itemId provided for row click.");
+      return;
+    }
+    setSelectedEntry({ collection, itemId, givenId });
+  };
+  if (loading && !entryData) {
+    return <LoadingAnimation />;
+  }
+  return (
+    <div className="container mx-auto p-5 bg-white rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-all duration-300 w-full">
+      <DataTable
+        collectionName={user}
+        title={formattedUser}
+        columns={columns}
+        data={data}
+        deleteEnabled={deleteEnabled}
+        updateEnabled={updateEnabled}
+        updateText={updateText}
+        deleteText={deleteText}
+        disableDateFilter={disableDateFilter}
+        enableRowClick={enableRowClick}
+        onRowClick={handleRowClick}
+        sorting={sorting}
+        updateAPI={updateAPI}
+        deleteAPI={deleteAPI}
+        renderUpdateForm={renderUpdateForm}
+      />
+
+      {/* Modal Opening */}
+      {/* Modal Opening */}
+      <Modal open={!!selectedEntry} onClose={() => setSelectedEntry(null)}>
+        {selectedEntry &&
+          EntryDetails(
+            selectedEntry.collection,
+            selectedEntry.itemId,
+            () => setSelectedEntry(null),
+            selectedEntry.givenId
+          )}
+      </Modal>
+    </div>
+  );
+}
