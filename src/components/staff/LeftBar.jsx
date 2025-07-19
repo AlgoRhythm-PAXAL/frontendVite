@@ -29,13 +29,19 @@ const SideBar = () => {
         },
         {
             title: "Collection Management",
-            items: ["Create Collection", "View Collections"]
+            items: [
+                { title: "Dashboard", path: "/staff/collection-management/dashboard" },
+                { title: "Track Parcels", path: "/staff/collection-management/tracking" },
+                { title: "Deliver Parcels", path: "/staff/collection-management/deliver" },
+                { title: "Assign Driver", path: "/staff/collection-management/assign-driver" }
+            ]
         },
         {
             title: "Shipment Management",
             items: [
                 { title: "Create Shipment", path: "/staff/shipment-management/parcel-table-page" },
                 { title: "Create Shipment Manually", path: "/staff/shipment-management/manual-shipment-page" },
+                { title: "Created Shipments", path: "/staff/shipment-management/created-shipments-page" },
                 { title: "View Shipments", path: "/staff/shipment-management/view-shipments" }
             ]
         },
