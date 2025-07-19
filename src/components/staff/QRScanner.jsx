@@ -33,12 +33,10 @@ const QRScanner = ({ onClose }) => {
           }
         } catch (error) {
           scanner.clear();
-console.error("Error updating parcel status:", error);
+          console.error("Error updating parcel status:", error);
           toast.error("Failed to update parcel status");
           setStatusMessage(error.response.data.message);
         }
-
-        
       },
       (error) => {
         console.warn("QR scan error:", error);
@@ -64,15 +62,12 @@ console.error("Error updating parcel status:", error);
               Use your camera to scan and update parcel status
             </p>
           </div>
-
           <div
             id="reader"
             ref={scannerRef}
             className="rounded-md overflow-hidden w-full"
           />
-
           <p className="text-sm text-gray-700 font-medium">{statusMessage}</p>
-
           <div className="flex justify-end">
             <button
               onClick={onClose}

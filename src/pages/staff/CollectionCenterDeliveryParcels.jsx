@@ -59,7 +59,7 @@ const openConfirmDialog = (parcelId) => {
       
   setDelivering(true);
 
-  setDelivering(true);
+ 
       const response = await axios.post(
         "http://localhost:8000/staff/collection-management//update-parcel-as-delivered",
         { parcelId : selectedParcelId},
