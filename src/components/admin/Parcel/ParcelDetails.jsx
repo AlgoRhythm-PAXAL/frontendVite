@@ -33,6 +33,8 @@ const parcelColumns = [
 ];
 
 const ParcelDetails = ({ entryId }) => {
+
+  
   const backendURL = import.meta.env.VITE_BACKEND_URL;
   const [entryData, setEntryData] = useState(null);
   const [parcelTimeData, setParcelTimeData] = useState(null);
@@ -43,11 +45,12 @@ const ParcelDetails = ({ entryId }) => {
     const fetchDetails = async () => {
       try {
         const response = await axios.get(
-          `${backendURL}/admin/parcel/${entryId}`,
+          `${backendURL}/api/admin/parcels/${entryId}`,
           { withCredentials: true }
         );
         const Data = response.data.data;
         if (Data) {
+          setLoading(false);
           setEntryData(Data);
         } else {
           throw new Error("No data received");
@@ -62,7 +65,7 @@ const ParcelDetails = ({ entryId }) => {
     const fetchPTime = async () => {
       try {
         const response = await axios.get(
-          `${backendURL}/admin/track/statuses/${entryId}`,
+          `${backendURL}/api/admin/parcels/track/${entryId}`,
           { withCredentials: true }
         );
         const tempTimeData = response.data.timeData;
@@ -70,13 +73,25 @@ const ParcelDetails = ({ entryId }) => {
           status: capitalize(item?.status),
           time: formatDateTime(item?.time),
           location: item?.location,
-          handledBy: item.handledBy,
-          note: item.note,
+          handledBy: item?.handledBy,
+          note: item?.note,
         }));
-        console.log(TimeData);
+      if (!Array.isArray(TimeData) || TimeData.length === 0 || !TimeData[0].status || !TimeData[0].time || !TimeData[0].location || !TimeData[0].handledBy || !TimeData[0].note) {
+          throw new Error("No tracking data available for this parcel."); 
+        }
+        if (TimeData.length === 0) {
+          throw new Error("No tracking data available for this parcel.");
+        }
+        console.log("TimeData:", TimeData);
+        if (TimeData.length > 0) {
+          TimeData[0].status = camelToSentenceCase(TimeData[0].status);
+        }
+        setLoading(false);
         setParcelTimeData(TimeData);
       } catch (error) {
         setError(error.message);
+      } finally {
+        setLoading(false);
       }
     };
 
@@ -183,7 +198,7 @@ const ParcelDetails = ({ entryId }) => {
         {/* Right Column */}
         <div className="space-y-8">
           {/* QR Code Card */}
-          <Section title="QR Code">
+          {qrCodeNo && <Section title="QR Code">
             <div className="p-4 flex justify-center">
               <img
                 src={qrCodeNo || "N/A"}
@@ -191,7 +206,7 @@ const ParcelDetails = ({ entryId }) => {
                 className="w-48 h-48 object-contain border rounded-lg p-2 bg-gray-50"
               />
             </div>
-          </Section>
+          </Section>}
 
           {/* Payment Card */}
           {paymentId && (
@@ -230,8 +245,7 @@ const ParcelDetails = ({ entryId }) => {
                 <Info
                   label="Name"
                   value={capitalize(
-                    `${senderId?.fName} ${senderId?.lName}` ||
-                      senderId?.fullname
+                    `${senderId?.fName} ${senderId?.lName}`
                   )}
                 />
                 <Info label="Contact" value={senderId?.contact || "-"} />
@@ -261,14 +275,14 @@ const ParcelDetails = ({ entryId }) => {
               <DetailGrid>
                 <Info
                   label="Name"
-                  value={capitalize(receiverId?.receiverFullname)}
+                  value={capitalize(receiverId?.receiverFullName)}
                 />
                 <Info
                   label="Contact"
                   value={receiverId?.receiverContact?.[0] || "-"}
                 />
                 <Info label="Email" value={receiverId?.receiverEmail || "-"} />
-                <Info
+                {/* <Info
                   label="Address"
                   value={capitalize(receiverId?.receiverAddress)}
                 />
@@ -283,7 +297,7 @@ const ParcelDetails = ({ entryId }) => {
                   value={`${capitalize(
                     receiverId?.receiverProvince
                   )} / ${capitalize(receiverId?.receiverZone)}`}
-                />
+                /> */}
               </DetailGrid>
             </Section>
           )}

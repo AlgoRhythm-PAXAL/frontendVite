@@ -25,9 +25,6 @@ const FormField = ({
                        transition-all outline-none"
             required={isRequired}
           >
-            <option value="" disabled>
-              {placeholder || "Select an option"}
-            </option>
             {options.map((option, index) => (
               <option
                 key={index}

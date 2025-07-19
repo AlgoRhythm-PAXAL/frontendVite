@@ -5,7 +5,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
 import { toast } from "sonner";
 
-const RenderShipmentUpdateForm = ({ formData, setFormData, rowData }) => {
+const RenderShipmentUpdateForm = (formData, setFormData, rowData ) => {
   const [branches, setBranches] = useState([]);
   const [vehicles, setVehicles] = useState([]);
   const [drivers, setDrivers] = useState([]);
@@ -15,9 +15,9 @@ const RenderShipmentUpdateForm = ({ formData, setFormData, rowData }) => {
     const fetchData = async () => {
       try {
         const [branchRes, vehicleRes, driverRes] = await Promise.all([
-          axios.get(`${backendURL}/admin/branch/all`, { withCredentials: true }),
-          axios.get(`${backendURL}/admin/vehicle/all`, { withCredentials: true }),
-          axios.get(`${backendURL}/admin/driver/all`, { withCredentials: true }),
+          axios.get(`${backendURL}/api/admin/branches`, { withCredentials: true }),
+          axios.get(`${backendURL}/api/admin/vehicles`, { withCredentials: true }),
+          axios.get(`${backendURL}/api/admin/users/driver`, { withCredentials: true }),
         ]);
         setBranches(branchRes.data.userData);
         setVehicles(vehicleRes.data.userData);
@@ -31,6 +31,10 @@ const RenderShipmentUpdateForm = ({ formData, setFormData, rowData }) => {
     fetchData();
   }, [backendURL]);
 
+
+   if (!rowData) {
+    return <div>Loading...</div>;
+  }
   return (
     <div className="space-y-4 ">
       <div className="space-y-2">

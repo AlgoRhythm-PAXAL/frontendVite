@@ -96,9 +96,9 @@
                 toast.error('Invalid file type',{description:'Supported formats: PNG, JPEG, JPG, JFIF'})
                 return false;
             }
-            if (file.size > 5 * 1024 * 1024) {
-                setError('File size too large (max 5MB)');
-                toast.error('File too large',{description:'Maximum file size is 5MB'})
+            if (file.size > 10 * 1024 * 1024) {
+                setError('File size too large (max 10MB)');
+                toast.error('File too large',{description:'Maximum file size is 10MB'})
                 return false;
             }
             setError("");
@@ -131,7 +131,7 @@
     
             setIsUploading(true);
             try {
-                const result = await axios.post(`${backendURL}/admin/upload`, { image },{withCredentials:true});
+                const result = await axios.post(`${backendURL}/api/admin/profile/upload`, { image },{withCredentials:true});
                 setError(""); // Clear previous errors
                 // Add success feedback here
                 toast.success('Upload successful!', {

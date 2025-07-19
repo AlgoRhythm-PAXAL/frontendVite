@@ -1,8 +1,6 @@
 import SectionTitle from "../../components/admin/SectionTitle";
 import PieChartContainer from "../../components/admin/pieCharts/Dashboard-PieChartContainer";
-import AdminList from "../../components/admin/AdminList"
 import { ParcelBarChart } from "../../components/admin/Dashboard-BarChart";
-
 
 const Dashboard = () => {
   return (
@@ -12,9 +10,8 @@ const Dashboard = () => {
         <div className="flex justify-evenly items-center">
           <PieChartContainer />
         </div>
-        <ParcelBarChart/>
+        <ParcelBarChart />
       </div>
-      {/* <AdminList /> */}
     </div>
   );
 };

@@ -39,16 +39,13 @@ import AdminProfile from "./pages/admin/AdminProfile";
 import { Toaster as SonnerToaster } from "sonner";
 import Vehicle from "./pages/admin/Vehicle";
 
-{
-  /* Staff login */
-}
-import StaffLogin from "./pages/staff/StaffLogin";
-import ForgotPasswordEmail from "./pages/staff/ForgotPasswordEmail";
-import ForgotPasswordCode from "./pages/staff/ForgotPasswordCode";
-import StaffResetPassword from "./pages/staff/ResetPassword";
-{
-  /* Staff pages */
-}
+{/* Staff login */}
+
+import StaffLogin from "./pages/staff/Login/StaffLogin";
+import ForgotPasswordEmail from "./pages/staff/Login/ForgotPasswordEmail";
+import ForgotPasswordCode from "./pages/staff/Login/ForgotPasswordCode";
+import StaffResetPassword from "./pages/staff/Login/ResetPassword";
+{/* Staff pages */}
 import ProtectedStaffRoute from "./components/staff/ProtectedStaffRoutes";
 import StaffMainMenu from "./pages/staff/StaffMainMenu";
 import StaffLayout from "./pages/staff/StaffLayout";
@@ -59,9 +56,19 @@ import ViewOneParcel from "./pages/staff/ViewOneParcel";
 import ViewOnePickup from "./pages/staff/ViewOnePickup";
 import ViewOneDropOff from "./pages/staff/ViewOneDropOff";
 import ParcelInvoice from "./pages/staff/ParcelInvoice";
-
-
-
+import AddNewParcel from "./pages/staff/AddNewParcel";
+import ViewOneDoorStepDeliveryParcel from "./pages/staff/ViewOneDoorstepDeliveryParcel";
+import DoorstepDeliveryParcels from "./pages/staff/DoorstepDeliveryParcels";
+import CollectionCenterDeliveryParcels from "./pages/staff/CollectionCenterDeliveryParcels";
+import NewInquiries from "./pages/staff/Inquiry/NewInquiries";
+import ViewRepliedInquiries from "./pages/staff/Inquiry/ViewRepliedInquiries";
+import ReplyToInquiry from "./pages/staff/Inquiry/ReplyToInquiry";
+import ViewOneRepliedInquiry from "./pages/staff/Inquiry/ViewOneRepliedInquiry";
+import ViewOneCollectionCenterDeliveryparcel from "./pages/staff/ViewOneCollectionCenterDeliveryParcel";
+import ParcelTablePage from "./pages/staff/ParcelTablePage/parcelTablePage";
+import ManualShipmentPage from "./pages/staff/ManualShipmentPage/manualShipmentPage"
+import Scanner from "./pages/staff/Scanner";
+import StaffProfile from "./pages/staff/StaffProfile";
 const App = () => {
   return (
     <Router>
@@ -102,46 +109,41 @@ const App = () => {
         </Route>
 
         {/* Staff Routes */}
-        <Route path="staff/login" element={<StaffLogin />} />
-        <Route path="staff/forgot-password" element={<ForgotPasswordEmail />} />
-        <Route
-          path="staff/forgot-password-code"
-          element={<ForgotPasswordCode />}
-        />
-        <Route path="staff/reset-password" element={<StaffResetPassword />} />
+        <Route path="staff/login" element={<StaffLogin/>}/>
+        <Route path="staff/forgot-password" element={<ForgotPasswordEmail/>}/>
+        <Route path="staff/forgot-password-code" element={<ForgotPasswordCode/>}/>
+        <Route path="staff/reset-password" element={<StaffResetPassword/>}/>
 
         {/* Protected Staff Routes */}
-        <Route path="/staff" element={<ProtectedStaffRoute />}>
-          <Route path="/staff/main-menu" element={<StaffMainMenu />} />
-          <Route path="/staff" element={<StaffLayout />}>
-            <Route
-              path="lodging-management/view-parcels"
-              element={<ViewParcels />}
-            />
-            <Route
-              path="lodging-management/view-pickups"
-              element={<PickupRequests />}
-            />
-            <Route
-              path="lodging-management/view-dropOffs"
-              element={<DropOffRequests />}
-            />
-            <Route
-              path="lodging-management/view-parcels/:parcelId"
-              element={<ViewOneParcel />}
-            />
-            <Route
-              path="lodging-management/view-parcels/invoice/:parcelId"
-              element={<ParcelInvoice />}
-            />
-            <Route
-              path="lodging-management/view-pickups/:parcelId"
-              element={<ViewOnePickup />}
-            />
-            <Route
-              path="lodging-management/view-dropOffs/:parcelId"
-              element={<ViewOneDropOff />}
-            />
+        <Route path="/staff" element={<ProtectedStaffRoute/>}>
+          <Route path="/staff/main-menu" element={<StaffMainMenu/>}/>
+          <Route path="/staff/profile" element={<StaffProfile/>}/>
+          <Route path="/staff" element={<StaffLayout/>}>
+            <Route path="lodging-management/view-parcels" element={<ViewParcels/>}/>
+            <Route path="lodging-management/view-pickups" element={<PickupRequests/>}/>
+            <Route path="lodging-management/view-dropOffs" element={<DropOffRequests/>}/>
+            <Route path="lodging-management/view-parcels/:parcelId" element={<ViewOneParcel/>}/>
+            <Route path="lodging-management/view-parcels/invoice/:parcelId" element={<ParcelInvoice/>}/>
+            <Route path="lodging-management/view-pickups/:parcelId" element={<ViewOnePickup/>}/>
+            <Route path="lodging-management/view-dropOffs/:parcelId" element={<ViewOneDropOff/>}/>
+            <Route path="lodging-management/add-new-parcel" element={<AddNewParcel/>}/>
+
+            <Route path="collection-management/assign-driver" element={<DoorstepDeliveryParcels/>}/>
+            <Route path="collection-management/view-one-doorstep-delivery-parcel/:parcelId" element={<ViewOneDoorStepDeliveryParcel/>}/>
+            <Route path="collection-management/view-collection-center-delivery-parcels" element={<CollectionCenterDeliveryParcels/>}/>
+            <Route path="collection-management/view-collection-center-delivery-parcels/:parcelId" element={<ViewOneCollectionCenterDeliveryparcel/>}/>
+            <Route path="collection-management/scan-qr-code" element={<Scanner/>}/>
+
+
+
+            <Route path="inquiry-management/view-new-inquiries" element={<NewInquiries/>}/>
+            <Route path="inquiry-management/view-replied-inquiries" element={<ViewRepliedInquiries/>}/>
+            <Route path="inquiry-management/reply-to-inquiry/:inquiryId" element={<ReplyToInquiry/>}/>
+            <Route path="inquiry-management/view-replied-inquiries/:inquiryId" element={<ViewOneRepliedInquiry/>}/>
+            <Route path="shipment-management/parcel-table-page" element={<ParcelTablePage />} />
+          <Route path="shipment-management/manual-shipment-page" element={<ManualShipmentPage />} />
+          
+
           </Route>
         </Route>
       </Routes>

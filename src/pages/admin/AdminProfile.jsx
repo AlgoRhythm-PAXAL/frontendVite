@@ -9,8 +9,8 @@ import ImageUpload from "../../components/admin/ImageUpload/ImageUpload";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
 import Modal from "../../components/admin/adminProfile/Modal";
-import ForgotPassword from "../../components/admin/authentication/ForgotPassword";
-import ResetPasswordDialog from '../../components/admin/authentication/ResetPasswordDialog'; 
+import ResetPasswordDialog from "../../components/admin/authentication/ResetPasswordDialog";
+const backendURL = import.meta.env.VITE_BACKEND_URL;
 
 const AdminProfile = () => {
   const [profileData, setProfileData] = useState(null);
@@ -29,8 +29,7 @@ const AdminProfile = () => {
   useEffect(() => {
     const fetchProfileData = async () => {
       try {
-        const backendURL = import.meta.env.VITE_BACKEND_URL;
-        const response = await axios.get(`${backendURL}/admin/get/myData`, {
+        const response = await axios.get(`${backendURL}/api/admin/profile`, {
           withCredentials: true,
         });
 
@@ -63,11 +62,9 @@ const AdminProfile = () => {
   const onSubmit = async (data) => {
     console.log("Form submitting ONLY:", data);
     try {
-      await axios.patch(
-        `${import.meta.env.VITE_BACKEND_URL}/admin/update/profile`,
-        data,
-        { withCredentials: true }
-      );
+      await axios.patch(`${backendURL}/api/admin/profile/update`, data, {
+        withCredentials: true,
+      });
       setIsEditing(false);
       toast.success("Profile updated successfully", { duration: 800 });
       setTimeout(() => reload(), 800);

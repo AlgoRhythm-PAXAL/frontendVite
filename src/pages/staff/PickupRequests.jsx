@@ -1,11 +1,17 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { formatDistanceToNow } from "date-fns";
 import axios from "axios";
 import DataTable from "../../components/staff/DataTable";
+import StatsBox from "../../components/staff/StatsBox";
 
 const PickupRequests = () => {
   const [parcels, setParcels] = useState([]);
+  const [pickupStats, setPickupStats] = useState({
+    pickupsToday: 0,
+    pendingPickups: 0,
+  });
+
   const navigate = useNavigate();
 
   const getPickupParcels = async () => {
@@ -21,8 +27,22 @@ const PickupRequests = () => {
     }
   };
 
+  const getPickupStats = async () => {
+    try {
+      const response = await axios.get(
+        "http://localhost:8000/staff/lodging-management/get-pickup-stats",
+        { withCredentials: true }
+      );
+
+      setPickupStats(response.data);
+    } catch (error) {
+      console.error("Error fetching pickup stats:", error);
+    }
+  }
+
   useEffect(() => {
     getPickupParcels();
+    getPickupStats();
   }, []);
 
   const columns = [
@@ -69,13 +89,28 @@ const PickupRequests = () => {
   ];
 
   return (
-    <DataTable
+    <div className="px-8 py-6">
+      <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-8 gap-4">
+      <div className="flex-1">
+        <h2 className="text-2xl font-semibold text-gray-800 mb-2">Pickup Management</h2>
+        <p className="text-gray-500">Manage all pickup requests and schedules</p>
+      </div>
+      
+      <div className="flex gap-4 w-full lg:w-auto">
+        <StatsBox title="Pickups Today" value={pickupStats.pickupsToday} />
+        <StatsBox title="Pending Pickups" value={pickupStats.pendingPickups} />
+      </div>
+    </div>
+   <div>
+     <DataTable
       data={parcels}
       columns={columns}
       actions={actions}
-      rowsPerPage={6}
+      rowsPerPage={5}
       textMessage={"No pickup requests"}
     />
+    </div>
+   </div>
   );
 };
 

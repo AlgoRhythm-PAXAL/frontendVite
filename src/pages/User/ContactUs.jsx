@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { FiUser, FiMail, FiPackage, FiSend, FiClock } from 'react-icons/fi';
  import Lottie from 'lottie-react';
- import contactus from '/../frontend_vite/src/assets/lottie/contactus.json';
+ import contactus from '../../assets/lottie/contactus.json';
 import Navbar from '../../components/User/Navbar';
 import Footer from '../../components/User/Footer';
 import toast from "react-hot-toast";
