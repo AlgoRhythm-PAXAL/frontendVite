@@ -16,10 +16,14 @@ import AdminProfile from "./pages/admin/AdminProfile";
 
 
 
-import ParcelTablePage from "./pages/staff/ParcelTablePage/parcelTablePage";
-import ManualShipmentPage from "./pages/staff/ManualShipmentPage/manualShipmentPage";
+import ParcelTablePage from "./pages/staff/ShipmentManagement/ParcelTablePage/parcelTablePage";
+import ManualShipmentPage from "./pages/staff/ShipmentManagement/ManualShipmentPage/manualShipmentPage";
+import CreatedShipmentsPage from "./pages/staff/ShipmentManagement/CreatedShipmentsPage/createdShipmentsPage";
+import ViewShipmentsPage from "./pages/staff/ShipmentManagement/ViewShipmentsPage/viewShipmentsPage";
+import ManifestPage from "./pages/staff/ShipmentManagement/ManifestPage/manifestPage";
+import DashboardPage from "./pages/staff/CollectionManagement/Dashboard/dashboardPage";
+import TrackingPage from "./pages/staff/CollectionManagement/Tracking/trackingPage";
 import LeftBar from "./components/staff/LeftBar";
- // You'll need to create this
 
 const App = () => {
   return (
@@ -48,11 +52,18 @@ const App = () => {
 
         {/* Staff routes */}
         <Route path="/staff" element={<LeftBar />}>
+          {/* Collection Management routes */}
+          <Route path="collection-management/dashboard" element={<DashboardPage />} />
+          <Route path="collection-management/tracking" element={<TrackingPage />} />
+          
+          {/* Shipment Management routes */}
           <Route path="shipment-management/parcel-table-page" element={<ParcelTablePage />} />
           <Route path="shipment-management/manual-shipment-page" element={<ManualShipmentPage />} />
+          <Route path="shipment-management/created-shipments-page" element={<CreatedShipmentsPage />}/>
+          <Route path="shipment-management/view-shipments" element={<ViewShipmentsPage />} />
+          <Route path="shipment-management/manifest/:shipmentId" element={<ManifestPage />} />
           {/* Add other staff routes here */}
           {/* <Route path="shipment-management/create-shipment" element={<CreateShipment />} /> */}
-          {/* <Route path="shipment-management/view-shipments" element={<ViewShipments />} /> */}
         </Route>
       </Routes>
     </Router>
