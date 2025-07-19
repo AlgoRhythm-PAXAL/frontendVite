@@ -697,7 +697,7 @@ const UserDetails = ({ entryId }) => {
   }
 
   return (
-    <div className="bg-white shadow-lg rounded-lg overflow-hidden max-w-7xl mx-auto">
+    <div className="bg-white shadow-lg rounded-lg overflow-hidden max-w-7xl mx-auto w-fit px-4 sm:px-6 lg:px-8 py-6 space-y-8">
       {/* User Information */}
       <div className="p-6">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
