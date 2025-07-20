@@ -26,34 +26,64 @@ const BranchRegistrationForm = () => {
       if (!formData.location.trim()) {
         throw new Error("Location is required");
       }
+      if (!formData.contact.trim()) {
+        throw new Error("Contact number is required");
+      }
+
       const response = await axios.post(
         `${backendUrl}/api/admin/branches`,
         formData,
         { withCredentials: true, timeout: 15000 }
       );
 
-      toast.success(
-        response.data.message || "Branch registration successful!",
-        {
-          id: toastId,
-          action: {
-            label: "Reload",
-            onClick: () => window.location.reload(),
-          },
-        }
-      );
-      setTimeout(() => window.location.reload(), 1000);
+      // Handle success response
+      const successMessage = response.data?.message || "Branch registration successful!";
+      const branchData = response.data?.data;
+      
+      toast.success(successMessage, {
+        id: toastId,
+        description: branchData ? `Branch ID: ${branchData.branchId} | Location: ${branchData.location}` : undefined,
+        action: {
+          label: "Reload",
+          onClick: () => window.location.reload(),
+        },
+      });
+      
+      // Reset form
+      setFormData({ location: "", contact: "" });
+      
+      // Auto reload after success
+      setTimeout(() => window.location.reload(), 1500);
     } catch (error) {
       const errorData = error.response?.data;
-      const errorMessage =
-        errorData?.message ||
-        errorData?.error ||
-        error.message ||
-        "Branch registration failed";
+      let errorMessage = "Branch registration failed";
+      let description = undefined;
 
-      toast.error("Registration Error", {
+      // Handle different error types
+      if (errorData?.status === 'error') {
+        errorMessage = errorData.message || errorMessage;
+        
+        // Handle validation errors
+        if (errorData.errors && Array.isArray(errorData.errors)) {
+          description = errorData.errors.map(err => err.message).join(', ');
+        } else if (errorData.errors && typeof errorData.errors === 'object') {
+          description = Object.values(errorData.errors).join(', ');
+        }
+        
+        // Handle specific error codes
+        if (errorData.code === 'DUPLICATE_BRANCH_LOCATION') {
+          description = "A branch at this location already exists. Please choose a different location.";
+        } else if (errorData.code === 'DUPLICATE_BRANCH_CONTACT') {
+          description = "This contact number is already registered. Please use a different number.";
+        }
+      } else {
+        // Fallback for other error formats
+        errorMessage = errorData?.message || errorData?.error || error.message || errorMessage;
+      }
+
+      toast.error(errorMessage, {
         id: toastId,
-        description: errorMessage,
+        description: description,
         ...(error.response?.status === 401 && {
           action: {
             label: "Login",
@@ -61,6 +91,7 @@ const BranchRegistrationForm = () => {
           },
         }),
       });
+      
       console.error("Registration error:", error);
     } finally {
       setIsSubmitting(false);
