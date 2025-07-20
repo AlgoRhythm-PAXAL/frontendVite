@@ -183,6 +183,7 @@ const useTableData = (entryData, user, backendURL) => {
       });
 
       const rawData = response.data.userData || response.data;
+      console.log("Raw data fetched:", rawData);
       
       if (!Array.isArray(rawData)) {
         throw new Error("Invalid data format received from server");

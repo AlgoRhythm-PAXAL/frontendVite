@@ -501,11 +501,11 @@ import TableDistributor from "./DataTable/TableDistributor";
 // Column definitions with better formatting and validation
 const columnDefinitions = {
   driver: [
-    {
-      accessorKey: "driverId",
-      header: "Driver ID",
-      cell: ({ getValue }) => getValue() || "N/A",
-    },
+    // {
+    //   accessorKey: "driverId",
+    //   header: "Driver ID",
+    //   cell: ({ getValue }) => getValue() || "N/A",
+    // },
     {
       accessorKey: "name",
       header: "Name",
@@ -531,21 +531,21 @@ const columnDefinitions = {
       header: "Joined Date",
       cell: ({ getValue }) => getValue() || "N/A",
     },
-    {
-      accessorKey: "licenseId",
-      header: "License ID",
-      cell: ({ getValue }) => getValue() || "N/A",
-    },
+    // {
+    //   accessorKey: "licenseId",
+    //   header: "License ID",
+    //   cell: ({ getValue }) => getValue() || "N/A",
+    // },
     {
       accessorKey: "branchLocation",
       header: "Branch",
       cell: ({ getValue }) => getValue() || "N/A",
     },
-    {
-      accessorKey: "branchContactNo",
-      header: "Branch Contact",
-      cell: ({ getValue }) => getValue() || "N/A",
-    },
+    // {
+    //   accessorKey: "branchContactNo",
+    //   header: "Branch Contact",
+    //   cell: ({ getValue }) => getValue() || "N/A",
+    // },
     {
       accessorKey: "adminName",
       header: "Added By Admin",
@@ -553,11 +553,11 @@ const columnDefinitions = {
     },
   ],
   staff: [
-    {
-      accessorKey: "staffId",
-      header: "Staff ID",
-      cell: ({ getValue }) => getValue() || "N/A",
-    },
+    // {
+    //   accessorKey: "staffId",
+    //   header: "Staff ID",
+    //   cell: ({ getValue }) => getValue() || "N/A",
+    // },
     {
       accessorKey: "name",
       header: "Name",
@@ -616,11 +616,11 @@ const columnDefinitions = {
     },
   ],
   admin: [
-    {
-      accessorKey: "adminId",
-      header: "Admin ID",
-      cell: ({ getValue }) => getValue() || "N/A",
-    },
+    // {
+    //   accessorKey: "adminId",
+    //   header: "Admin ID",
+    //   cell: ({ getValue }) => getValue() || "N/A",
+    // },
     {
       accessorKey: "name",
       header: "Name",
