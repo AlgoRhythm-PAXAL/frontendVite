@@ -695,7 +695,7 @@
 //       if (error.response?.status === 409) {
 //         toast.error("User already exists", {
 //           id: toastId,
-//           description: "A user with this email or NIC already exists",
+//           description: "Registration conflict - please check your information",
 //         });
 //       } else if (error.response?.status === 401) {
 //         toast.error("Authentication required", {
@@ -1149,6 +1149,11 @@ import {
   Truck,
   UserCheck
 } from "lucide-react";
+import { 
+  validateField, 
+  validateDriverRegistrationForm, 
+  validateAdminRegistrationForm 
+} from "../../utils/validation";
 
 const backendUrl = import.meta.env.VITE_BACKEND_URL;
 
@@ -1259,30 +1264,9 @@ const UserRegistrationForm = () => {
   }, []);
 
   // Fixed validateField function to avoid dependency issues
-  const validateField = useCallback((name, value, currentFormData = formData) => {
-    switch (name) {
-      case 'name':
-        return validateName(value);
-      case 'nic':
-        return validateNIC(value);
-      case 'email':
-        return validateEmail(value);
-      case 'contactNo':
-        return validateContactNo(value);
-      case 'licenseId':
-        return validateLicenseId(value);
-      case 'userType':
-        return { isValid: !!value, message: value ? "" : "User type is required" };
-      case 'branchId':
-        const needsBranch = ['driver', 'staff'].includes(currentFormData.userType);
-        return {
-          isValid: !needsBranch || !!value,
-          message: value || !needsBranch ? "" : "Branch selection is required"
-        };
-      default:
-        return { isValid: true, message: "" };
-    }
-  }, [validateName, validateNIC, validateEmail, validateContactNo, validateLicenseId]);
+  const validateFieldWrapper = useCallback((name, value, currentFormData = formData) => {
+    return validateField(name, value, currentFormData);
+  }, [formData]);
 
   // Fixed validateForm to avoid infinite loops
   const isFormValid = useMemo(() => {
@@ -1491,9 +1475,11 @@ const UserRegistrationForm = () => {
       const errorMessage = errorData?.message || errorData?.error || error.message || "Registration failed";
       
       if (error.response?.status === 409) {
-        toast.error("User already exists", {
+        // Use the specific error message from the backend
+        const specificMessage = errorData?.message || "User already exists";
+        toast.error("Registration Error", {
           id: toastId,
-          description: "A user with this email or NIC already exists",
+          description: specificMessage,
         });
       } else if (error.response?.status === 401) {
         toast.error("Authentication required", {
