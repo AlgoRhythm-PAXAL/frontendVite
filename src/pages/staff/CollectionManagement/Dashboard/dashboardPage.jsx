@@ -5,6 +5,13 @@ import { useNavigate } from 'react-router-dom';
 const DashboardPage = () => {
     const navigate = useNavigate();
     
+    // // Debug localStorage on component mount
+    // console.log("=== FRONTEND: COMPONENT MOUNTED ===");
+    // console.log("LocalStorage contents:");
+    // console.log("- token:", localStorage.getItem('token') ? "EXISTS" : "MISSING");
+    // console.log("- userCenter:", localStorage.getItem('userCenter'));
+    // console.log("- All localStorage keys:", Object.keys(localStorage));
+    
     // Set default date to current date
     const [selectedDate, setSelectedDate] = useState(new Date());
     const [parcelStats, setParcelStats] = useState({
@@ -72,24 +79,41 @@ const DashboardPage = () => {
                 setLoading(true);
                 // Get user's center from localStorage
                 const userCenter = localStorage.getItem('userCenter') || '682e1059ce33c2a891c9b168';
-                const formattedDate = selectedDate.toISOString().split('T')[0];
+                const       formattedDate = selectedDate.toISOString().split('T')[0];
                 
-                const response = await fetch(`http://localhost:8000/parcels/dashboard/stats/${userCenter}/${formattedDate}`, {
+                // console.log("=== FRONTEND: FETCHING PARCEL STATS ===");
+                // console.log("User center:", userCenter);
+                // console.log("Selected date:", selectedDate);
+                // console.log("Formatted date:", formattedDate);
+                // console.log("Auth token exists:", !!localStorage.getItem('token'));
+                
+                const url = `http://localhost:8000/parcels/dashboard/stats/${userCenter}/${formattedDate}`;
+                console.log("API URL:", url);
+                
+                const response = await fetch(url, {
                     method: 'GET',
                     headers: {
                         'Content-Type': 'application/json',
                         'Authorization': `Bearer ${localStorage.getItem('token')}`
                     }
                 });
+                
+                // console.log("Response status:", response.status);
+                // console.log("Response ok:", response.ok);
 
                 if (response.ok) {
                     const data = await response.json();
+                    console.log("Response data:", data);
                     setParcelStats(data.stats);
+                    console.log("Parcel stats set:", data.stats);
                     showNotificationMessage('Dashboard data loaded successfully', 'success');
                 } else {
+                    const errorText = await response.text();
+                    console.error("Response error:", errorText);
                     showNotificationMessage('Failed to load parcel statistics', 'error');
                 }
             } catch (error) {
+                console.error('=== FRONTEND: PARCEL STATS ERROR ===');
                 console.error('Error fetching parcel stats:', error);
                 showNotificationMessage('Error fetching parcel statistics', 'error');
             } finally {
@@ -102,29 +126,47 @@ const DashboardPage = () => {
                 const userCenter = localStorage.getItem('userCenter') || '682e1059ce33c2a891c9b168';
                 const formattedDate = selectedDate.toISOString().split('T')[0];
                 
-                const response = await fetch(`http://localhost:8000/drivers/stats/${userCenter}/${formattedDate}`, {
+                console.log("=== FRONTEND: FETCHING DRIVER STATS ===");
+                console.log("User center:", userCenter);
+                console.log("Formatted date:", formattedDate);
+                
+                const url = `http://localhost:8000/drivers/stats/${userCenter}/${formattedDate}`;
+                console.log("Driver API URL:", url);
+                
+                const response = await fetch(url, {
                     method: 'GET',
                     headers: {
                         'Content-Type': 'application/json',
                         'Authorization': `Bearer ${localStorage.getItem('token')}`
                     }
                 });
+                
+                console.log("Driver response status:", response.status);
+                console.log("Driver response ok:", response.ok);
 
                 if (response.ok) {
                     const data = await response.json();
+                    console.log("Driver response data:", data);
                     setDriverStats(data.drivers);
+                    console.log("Driver stats set:", data.drivers);
                 } else {
+                    const errorText = await response.text();
+                    console.error("Driver response error:", errorText);
                     showNotificationMessage('Failed to load driver statistics', 'error');
                 }
             } catch (error) {
+                console.error('=== FRONTEND: DRIVER STATS ERROR ===');
                 console.error('Error fetching driver stats:', error);
                 showNotificationMessage('Error fetching driver statistics', 'error');
             }
         };
 
         const fetchData = async () => {
+            console.log("=== FRONTEND: STARTING DATA FETCH ===");
+            console.log("Selected date changed to:", selectedDate);
             await fetchParcelStats();
             await fetchDriverStats();
+            console.log("=== FRONTEND: DATA FETCH COMPLETED ===");
         };
         fetchData();
     }, [selectedDate]);
@@ -136,16 +178,28 @@ const DashboardPage = () => {
             const userCenter = localStorage.getItem('userCenter') || '682e1059ce33c2a891c9b168';
             const formattedDate = date.toISOString().split('T')[0];
             
-            const response = await fetch(`http://localhost:8000/parcels/dashboard/daily/${userCenter}/${formattedDate}`, {
+            console.log("=== FRONTEND: FETCHING DAILY DETAILS ===");
+            console.log("User center:", userCenter);
+            console.log("Date:", date);
+            console.log("Formatted date:", formattedDate);
+            
+            const url = `http://localhost:8000/parcels/dashboard/daily/${userCenter}/${formattedDate}`;
+            console.log("Daily API URL:", url);
+            
+            const response = await fetch(url, {
                 method: 'GET',
                 headers: {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${localStorage.getItem('token')}`
                 }
             });
+            
+            console.log("Daily response status:", response.status);
+            console.log("Daily response ok:", response.ok);
 
             if (response.ok) {
                 const data = await response.json();
+                console.log("Daily response data:", data);
                 setDailyDetails(data.data.parcels || []);
                 setDailyStats(data.data.statistics || {
                     total: 0,
@@ -153,6 +207,8 @@ const DashboardPage = () => {
                     delivered: 0,
                     failedDelivery: 0
                 });
+                console.log("Daily details set:", data.data.parcels?.length || 0, "parcels");
+                console.log("Daily stats set:", data.data.statistics);
                 setSelectedDateString(date.toLocaleDateString('en-US', { 
                     year: 'numeric', 
                     month: 'long', 
@@ -161,9 +217,12 @@ const DashboardPage = () => {
                 setShowDailyDetails(true);
                 showNotificationMessage('Daily details loaded successfully', 'success');
             } else {
+                const errorText = await response.text();
+                console.error("Daily response error:", errorText);
                 showNotificationMessage('Failed to load daily details', 'error');
             }
         } catch (error) {
+            console.error('=== FRONTEND: DAILY DETAILS ERROR ===');
             console.error('Error fetching daily details:', error);
             showNotificationMessage('Error fetching daily details', 'error');
         } finally {
@@ -189,6 +248,9 @@ const DashboardPage = () => {
     // Handle date click
     const handleDateClick = (day) => {
         const clickedDate = new Date(currentYear, currentMonth, day);
+        console.log("=== FRONTEND: DATE CLICKED ===");
+        console.log("Clicked day:", day);
+        console.log("Clicked date:", clickedDate);
         setSelectedDate(clickedDate); // Update selected date
         fetchDailyDetails(clickedDate);
     };

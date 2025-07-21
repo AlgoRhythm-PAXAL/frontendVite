@@ -126,11 +126,6 @@ const ViewShipmentsPage = () => {
 
     return (
         <div className="p-6 bg-gray-50 min-h-screen">
-            {/* Header */}
-            <div className="mb-6">
-                <h1 className="text-2xl font-bold text-gray-800 mb-2">View Completed Shipments</h1>
-                <p className="text-gray-600">View all completed shipments with assigned vehicles</p>
-            </div>
 
             {/* Controls Section */}
             <div className="flex justify-between items-center mb-6">

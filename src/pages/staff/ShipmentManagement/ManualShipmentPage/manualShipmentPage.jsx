@@ -17,7 +17,7 @@ const districtDistanceMatrix = {
 
 const districtTimeMatrix = {
     'Colombo': { 'Gampaha': 1, 'Kalutara': 1.5, 'Kandy': 3, 'Galle': 3.5, 'Hambantota': 4.5, 'Matale': 3.5, 'Batticaloa': 7, 'Nuwara Eliya': 4, 'Monaragala': 6.5 },
-    'Gampaha': { 'Colombo': 1, 'Kalutara': 1.2, 'Kandy': 2.8, 'Galle': 3.2, 'Hambantota': 5, 'Matale': 3.2, 'Batticaloa': 7.5, 'Nuwara Eliya': 3.7, 'Monaragala': 7 },
+    'Gampaha': { 'Colombo': 1, 'Kalutara': 1.2, 'Kandy': 2.8, 'Galle': 3.2, 'Hambantota': 5, 'Matale': 3.2, 'Batticaloa': 7.5, 'Nuwara Eliya': 3.7, 'Monaragala': 7, 'Badulla': 7 },
     'Kalutara': { 'Colombo': 1.5, 'Gampaha': 1.2, 'Kandy': 2.5, 'Galle': 2.8, 'Hambantota': 3.8, 'Matale': 3, 'Batticaloa': 8, 'Nuwara Eliya': 4.2, 'Monaragala': 6 },
     'Kandy': { 'Colombo': 3, 'Gampaha': 2.8, 'Kalutara': 2.5, 'Galle': 3.5, 'Hambantota': 5.5, 'Matale': 0.8, 'Batticaloa': 4, 'Nuwara Eliya': 1, 'Monaragala': 3 },
     'Galle': { 'Colombo': 3.5, 'Gampaha': 3.2, 'Kalutara': 2.8, 'Kandy': 3.5, 'Hambantota': 1.8, 'Matale': 4.5, 'Batticaloa': 7.5, 'Nuwara Eliya': 4.8, 'Monaragala': 4.5 },
@@ -114,7 +114,7 @@ const B2BShipmentCreationPage = () => {
     // Fetch all branches for dropdown selections
     const fetchBranches = async () => {
         try {
-            const response = await fetch('http://localhost:8000/branches/all-branches');
+            const response = await fetch('http://localhost:8000/api/branches/all-branches');
             if (!response.ok) {
                 throw new Error('Failed to fetch branches');
             }
@@ -137,14 +137,30 @@ const B2BShipmentCreationPage = () => {
     // Filter parcels based on selected filters
     const filterParcels = useCallback(() => {
         let filtered = [...parcels];
+        
         if (filters.to) {
             filtered = filtered.filter(parcel => Object.values(parcel.to).includes(filters.to));
         }
         if (filters.size) {
-            filtered = filtered.filter(parcel => parcel.itemSize === filters.size);
+            // Case-insensitive comparison for size
+            filtered = filtered.filter(parcel => 
+                parcel.itemSize && 
+                parcel.itemSize.toLowerCase() === filters.size.toLowerCase()
+            );
         }
         if (filters.itemType) {
-            filtered = filtered.filter(parcel => parcel.itemType === filters.itemType);
+            // Case-insensitive comparison for item type
+            filtered = filtered.filter(parcel => 
+                parcel.itemType && 
+                parcel.itemType.toLowerCase() === filters.itemType.toLowerCase()
+            );
+        }
+        if (filters.shippingMethod) {
+            // Case-insensitive comparison for shipping method
+            filtered = filtered.filter(parcel => 
+                parcel.shippingMethod && 
+                parcel.shippingMethod.toLowerCase() === filters.shippingMethod.toLowerCase()
+            );
         }
 
         setFilteredParcels(filtered);
@@ -412,8 +428,11 @@ const B2BShipmentCreationPage = () => {
             return;
         }
 
-        let totalTime = 0;
+        let cumulativeTime = 0;
         const arrivalTimes = [];
+
+        // Add initial buffer time at source center (preparation time)
+        cumulativeTime += bufferConfig.first;
 
         // Calculate time for each segment
         for (let i = 0; i < route.length; i++) {
@@ -422,50 +441,52 @@ const B2BShipmentCreationPage = () => {
             
             if (!currentBranch) continue;
 
-            let segmentTime = 0;
             let travelTime = 0;
             let bufferTime = 0;
 
-            // Determine buffer time based on position
+            // Calculate travel time to this destination
             if (i === 0) {
                 // First destination from source
-                bufferTime = bufferConfig.first;
                 travelTime = districtTimeMatrix[sourceLocation]?.[currentBranch.location] || 0;
-            } else if (i === route.length - 1) {
-                // Last destination
-                bufferTime = bufferConfig.last;
-                const previousBranch = branches.find(b => b._id === route[i - 1]);
-                travelTime = districtTimeMatrix[previousBranch?.location]?.[currentBranch.location] || 0;
+                bufferTime = bufferConfig.intermediate; // Use intermediate buffer time for first destination
             } else {
-                // Intermediate destinations
-                bufferTime = bufferConfig.intermediate;
+                // Travel from previous destination
                 const previousBranch = branches.find(b => b._id === route[i - 1]);
                 travelTime = districtTimeMatrix[previousBranch?.location]?.[currentBranch.location] || 0;
+                
+                // Determine buffer time based on position
+                if (i === route.length - 1) {
+                    // Last destination
+                    bufferTime = bufferConfig.last;
+                } else {
+                    // Intermediate destinations
+                    bufferTime = bufferConfig.intermediate;
+                }
             }
 
-            segmentTime = bufferTime + travelTime;
-            totalTime += segmentTime;
+            // Add travel time and buffer time to cumulative time
+            cumulativeTime += travelTime + bufferTime;
 
             arrivalTimes.push({
                 center: currentCenterId,
                 centerName: currentBranch.location,
                 travelTime: travelTime,
                 bufferTime: bufferTime,
-                segmentTime: segmentTime,
-                cumulativeTime: totalTime
+                segmentTime: travelTime + bufferTime,
+                cumulativeTime: cumulativeTime
             });
         }
 
         // Update route info
         setRouteInfo(prev => ({
             ...prev,
-            totalTime: totalTime,
+            totalTime: cumulativeTime,
             arrivalTimes: arrivalTimes
         }));
         setArrivalCalculated(true);
         
         console.log('Smart arrival times calculated:', {
-            totalTime,
+            totalTime: cumulativeTime,
             arrivalTimes,
             deliveryType
         });
@@ -940,6 +961,22 @@ const B2BShipmentCreationPage = () => {
                                 ))}
                             </select>
                         </div>
+                        {/* Delivery Type Filter */}
+                        <div className="mb-4">
+                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                                Delivery Type
+                            </label>
+                            <select
+                                name="shippingMethod"
+                                value={filters.shippingMethod}
+                                onChange={handleFilterChange}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-[#1F818C] focus:border-[#1F818C]"
+                            >
+                                <option value="">All Types</option>
+                                <option value="standard">Standard</option>
+                                <option value="express">Express</option>
+                            </select>
+                        </div>
                         {/* Size Filter */}
                         <div className="mb-4">
                             <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -1219,6 +1256,9 @@ const B2BShipmentCreationPage = () => {
                                                             Size
                                                         </th>
                                                         <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                            Delivery Type
+                                                        </th>
+                                                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                                             Actions
                                                         </th>
                                                     </tr>
@@ -1238,6 +1278,15 @@ const B2BShipmentCreationPage = () => {
                                                                 </td>
                                                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                                                                     {parcel.itemSize || 'N/A'}
+                                                                </td>
+                                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 capitalize">
+                                                                    <span className={`px-2 py-1 text-xs font-medium rounded-full ${
+                                                                        parcel.shippingMethod?.toLowerCase() === 'express' 
+                                                                            ? 'bg-red-100 text-red-800' 
+                                                                            : 'bg-green-100 text-green-800'
+                                                                    }`}>
+                                                                        {parcel.shippingMethod || 'N/A'}
+                                                                    </span>
                                                                 </td>
                                                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                                                                     <button
@@ -1347,6 +1396,9 @@ const B2BShipmentCreationPage = () => {
                                                     Size
                                                 </th>
                                                 <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                    Delivery Type
+                                                </th>
+                                                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                                     Actions
                                                 </th>
                                             </tr>
@@ -1389,6 +1441,15 @@ const B2BShipmentCreationPage = () => {
                                                             </td>
                                                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 capitalize">
                                                                 {parcel.itemSize || 'N/A'}
+                                                            </td>
+                                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 capitalize">
+                                                                <span className={`px-2 py-1 text-xs font-medium rounded-full ${
+                                                                    parcel.shippingMethod?.toLowerCase() === 'express' 
+                                                                        ? 'bg-red-100 text-red-800' 
+                                                                        : 'bg-green-100 text-green-800'
+                                                                }`}>
+                                                                    {parcel.shippingMethod || 'N/A'}
+                                                                </span>
                                                             </td>
                                                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                                                                 <button
