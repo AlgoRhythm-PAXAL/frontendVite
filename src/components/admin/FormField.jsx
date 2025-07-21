@@ -1,138 +1,51 @@
-// const FormField = ({label,type,name,value,onChange,options,placeholder,required}) => {
-//   return (
-//     <div className="flex flex-col gap-2 w-full">
-//       <label className="block text-base font-medium font-mulish text-black mb-1">
-//         {label}
-//       </label>
-
-//       {type === "textarea" ? (
-//         <textarea name={name} value={value} onChange={onChange} className="w-full border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring focus:ring-blue-300" placeholder={placeholder} required={required} />
-//       ) : type === "select" ? (
-//         <select name={name} value={value} onChange={onChange} className="w-full border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring focus:ring-blue-300" placeholder={placeholder} >
-//           {options?.map((option, index) => (
-//             <option key={index} value={option.value}> {option.label} </option>
-//           ))}
-//         </select>
-//       ) : (
-//         <input type={type} name={name} value={value} onChange={onChange} className="w-full border border-gray-300 rounded-lg p-2  " placeholder={placeholder}  required={required}/>
-//       )}
-//     </div>
-//   )
-// }
-
-// export default FormField
-
-// const FormField = ({label, type, name, value, onChange, options, placeholder, required}) => {
-//   // Fallback for default value if value is undefined or empty
-//   const defaultValue = value || placeholder;
-
-//   return (
-//     <div className="flex flex-col gap-2 w-full">
-//       <label className="block text-base font-medium font-mulish text-black mb-1">
-//         {label}
-//       </label>
-
-//       {type === "textarea" ? (
-//         <textarea
-//           name={name}
-//           value={value}
-//           onChange={onChange}
-//           className="w-full border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring focus:ring-blue-300"
-//           placeholder={placeholder}
-//           required={required}
-//         />
-//       ) : type === "select" ? (
-//         <select
-//           name={name}
-//           value={defaultValue}  // Ensure select shows the correct default value
-//           onChange={onChange}
-//           className="w-full border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring focus:ring-blue-300"
-//           required={required}  // Mark as required if specified
-//         >
-//           <option value="" disabled>{placeholder || "Select an option"}</option>  {/* Placeholder for select */}
-//           {options?.map((option, index) => (
-//             <option key={index} value={option.value}> {option.label} </option>
-//           ))}
-//         </select>
-//       ) : (
-//         <input
-//           type={type}
-//           name={name}
-//           value={defaultValue}  // Handle default value for other input types
-//           onChange={onChange}
-//           className="w-full border border-gray-300 rounded-lg p-2"
-//           placeholder={placeholder}
-//           required={required}
-//         />
-//       )}
-//     </div>
-//   );
-// }
-
-// export default FormField;
-
-// FormField.jsx
 const FormField = ({
-  label,
-  type,
-  name,
-  value,
-  onChange,
-  options = [],
-  placeholder,
-  required = false,
-  pattern,
-}) => {
-  // Convert to boolean explicitly (handles string "true"/"false" cases safely)
-  const isRequired = required === true || required === 'true';
-
-  return (
-    <div className="space-y-2">
-      <label className="block text-sm font-medium text-gray-700">
-        {label}
-        {isRequired && <span className="text-red-500 ml-1">*</span>}
-      </label>
-
-      {type === 'select' ? (
-        <select
-          name={name}
-          value={value}
-          onChange={onChange}
-          className="w-full px-4 py-2.5 border border-gray-300 rounded-lg 
+    label,
+    type,
+    name,
+    value,
+    onChange,
+    options = [],
+    placeholder,
+    required = false,
+    pattern
+  }) => {
+    // Convert to boolean explicitly (handles string "true"/"false" cases safely)
+    const isRequired = required === true || required === "true";
+  
+    return (
+      <div className="space-y-2">
+        <label className="block text-sm font-medium text-gray-700">
+          {label}
+          {isRequired && <span className="text-red-500 ml-1">*</span>}
+        </label>
+  
+        {type === "select" ? (
+          <select name={name} value={value} onChange={onChange} className="w-full px-4 py-2.5 border border-gray-300 rounded-lg 
                        focus:ring-2 focus:ring-blue-500 focus:border-blue-500
                        transition-all outline-none"
-          required={isRequired}
-        >
-          <option value="" disabled>
-            {placeholder || 'Select an option'}
-          </option>
-          {options.map((option, index) => (
-            <option
-              key={index}
-              value={option.value}
-              disabled={option.value === ''}
-              className="text-gray-700"
-            >
-              {option.label}
-            </option>
-          ))}
-        </select>
-      ) : (
-        <input
-          type={type}
-          name={name}
-          value={value}
-          onChange={onChange}
-          placeholder={placeholder}
-          required={isRequired}
-          pattern={pattern}
-          className="w-full px-4 py-2.5 border border-gray-300 rounded-lg 
+            required={isRequired}
+          >
+            {options.map((option, index) => (
+              <option
+                key={index}
+                value={option.value}
+                disabled={option.value === ""}
+                className="text-gray-700"
+              >
+                {option.label}
+              </option>
+            ))}
+          </select>
+        ) : (
+          <input type={type} name={name} value={value} onChange={onChange} placeholder={placeholder} required={isRequired} pattern={pattern}
+            className="w-full px-4 py-2.5 border border-gray-300 rounded-lg 
                        focus:ring-2 focus:ring-blue-500 focus:border-blue-500
                        transition-all outline-none"
-        />
-      )}
-    </div>
-  );
-};
-
-export default FormField;
+          />
+        )}
+      </div>
+    );
+  };
+  
+  export default FormField;
+  

@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
-import ParcelInfo from '../../components/staff/ParcelInfo';
+import React, { useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
+import ParcelInformation from "../../components/staff/ParcelInformation";
+import { ArrowLeftIcon } from "@heroicons/react/24/outline";
 
 const ViewOneParcel = () => {
   const { parcelId } = useParams();
@@ -12,13 +13,28 @@ const ViewOneParcel = () => {
   };
 
   const handleViewInvoice = (parcelId) => {
-    console.log('invoice clicked');
+    console.log("invoice clicked");
     navigate(`/staff/lodging-management/view-parcels/invoice/${parcelId}`);
   };
 
   return (
-    <>
-      <ParcelInfo parcelId={parcelId} onParcelLoad={handleParcelLoad} />
+    <div className="min-h-screen  py-8">
+    <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="mb-8 flex items-center justify-between">
+        <div className="flex items-center space-x-4">
+          <button
+            onClick={() => navigate(-1)}
+            className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
+          >
+            <ArrowLeftIcon className="h-6 w-6 text-gray-600" />
+          </button>
+          <h1 className="text-2xl font-bold text-gray-900">
+            Parcel ID: <span className="font-mono text-Primary">{parcelId}</span>
+          </h1>
+        </div>
+        
+      </div>
+      <ParcelInformation parcelId={parcelId} onParcelLoad={handleParcelLoad} />
 
       {isLoaded && (
         <div className="flex justify-end">
@@ -32,7 +48,9 @@ const ViewOneParcel = () => {
           />
         </div>
       )}
-    </>
+     </div>
+      </div>
+    
   );
 };
 

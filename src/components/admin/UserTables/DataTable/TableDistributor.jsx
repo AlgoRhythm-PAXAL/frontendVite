@@ -1,183 +1,367 @@
-import { useState, useEffect } from 'react';
-import { DataTable } from './DataTable';
-import { EntryDetails } from '../../Parcel/EntryDetails';
-import axios from 'axios';
-import Modal from '../../adminProfile/Modal';
+// import { useState, useEffect } from "react";
+// import { DataTable } from "./DataTable";
+// import { EntryDetails } from "../../Parcel/EntryDetails";
+// import axios from "axios";
+// import Modal from "../../adminProfile/Modal";
+// import LoadingAnimation from "../../../../utils/LoadingAnimation";
 
+// const formatUser = (str) => {
+//   if (!str) return "";
+//   return (
+//     str
+//       .split(" ")
+//       .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+//       .join(" ") + "s"
+//   );
+// };
+
+// export default function TableDistributor({
+//   title,
+//   entryData,
+//   columns,
+//   deleteEnabled,
+//   updateEnabled,
+//   disableDateFilter,
+//   enableRowClick,
+//   updateText,
+//   deleteText,
+//   sorting,
+//   updateAPI,
+//   deleteAPI,
+//   renderUpdateForm,
+// }) {
+//   const [data, setData] = useState([]);
+//   const [loading, setLoading] = useState(true);
+//   const [selectedEntry, setSelectedEntry] = useState(null);
+//   const backendURL = import.meta.env.VITE_BACKEND_URL;
+//   const user = title.toLowerCase();
+//   const formattedUser = formatUser(user);
+
+//   useEffect(() => {
+//     const fetchData = async () => {
+//       if (entryData) {
+//         setData(Array.isArray(entryData) ? entryData : [entryData]);
+//         return;
+//       }
+//       if (!user) return;
+//       try {
+//         let apiEndpoint = `${backendURL}/api/admin/users/${user}`;
+//         const response = await axios.get(apiEndpoint, {
+//           withCredentials: true,
+//         });
+//         const rawData = response.data.userData || response.data;
+//         const updatedData = rawData.map((item) => {
+//           const itemId = item.id;
+//           let formattedCreatedAt = new Date(item.createdAt).toLocaleDateString(
+//             "en-US",
+//             {
+//               year: "numeric",
+//               month: "short",
+//               day: "numeric",
+//             }
+//           );
+
+//           return {
+//             ...item,
+//             itemId, // add the resolved itemId
+//             createdAt: formattedCreatedAt,
+//             updatedAt: new Date(item.updatedAt).toLocaleDateString("en-US", {
+//               year: "numeric",
+//               month: "short",
+//               day: "numeric",
+//             }),
+//           };
+//         });
+//         setData(updatedData);
+//         setLoading(false);
+//       } catch (error) {
+//         console.error(`Error fetching data: `, error);
+//       }
+//     };
+
+//     fetchData();
+//   }, [entryData, user, backendURL]);
+
+//   const handleRowClick = (collection, itemId, givenId) => {
+//     if (!enableRowClick) return;
+//     if (!itemId) {
+//       console.warn("No itemId provided for row click.");
+//       return;
+//     }
+//     setSelectedEntry({ collection, itemId, givenId });
+//   };
+//   if (loading && !entryData) {
+//     return <LoadingAnimation />;
+//   }
+//   return (
+//     <div className="container mx-auto p-5 bg-white rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-all duration-300 w-full">
+//       <DataTable
+//         collectionName={user}
+//         title={formattedUser}
+//         columns={columns}
+//         data={data}
+//         deleteEnabled={deleteEnabled}
+//         updateEnabled={updateEnabled}
+//         updateText={updateText}
+//         deleteText={deleteText}
+//         disableDateFilter={disableDateFilter}
+//         enableRowClick={enableRowClick}
+//         onRowClick={handleRowClick}
+//         sorting={sorting}
+//         updateAPI={updateAPI}
+//         deleteAPI={deleteAPI}
+//         renderUpdateForm={renderUpdateForm}
+//       />
+
+//       {/* Modal Opening */}
+//       {/* Modal Opening */}
+//       <Modal open={!!selectedEntry} onClose={() => setSelectedEntry(null)}>
+//         {selectedEntry &&
+//           EntryDetails(
+//             selectedEntry.collection,
+//             selectedEntry.itemId,
+//             () => setSelectedEntry(null),
+//             selectedEntry.givenId
+//           )}
+//       </Modal>
+//     </div>
+//   );
+// }
+
+
+import React, { useState, useEffect, useCallback, useMemo } from "react";
+import { DataTable } from "./DataTable";
+import { EntryDetails } from "../../Parcel/EntryDetails";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { AlertTriangle, RefreshCw } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import axios from "axios";
+import Modal from "../../adminProfile/Modal";
+import LoadingAnimation from "../../../../utils/LoadingAnimation";
+
+// Utility function with error handling
 const formatUser = (str) => {
-  if (!str) return '';
-  return (
-    str
-      .split(' ')
-      .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
-      .join(' ') + 's'
-  );
+  try {
+    if (!str || typeof str !== "string") return "";
+    return (
+      str
+        .split(" ")
+        .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+        .join(" ") + "s"
+    );
+  } catch (error) {
+    console.error("Error formatting user string:", error);
+    return "";
+  }
+};
+
+// Custom hook for data fetching
+const useTableData = (entryData, user, backendURL) => {
+  const [data, setData] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  const fetchData = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+
+    try {
+      if (entryData) {
+        const processedData = Array.isArray(entryData) ? entryData : [entryData];
+        setData(processedData);
+        return;
+      }
+
+      if (!user || !backendURL) {
+        throw new Error("Missing required parameters for data fetching");
+      }
+
+      const apiEndpoint = `${backendURL}/api/admin/users/${user}`;
+      const response = await axios.get(apiEndpoint, {
+        withCredentials: true,
+        timeout: 15000, // 15 second timeout
+      });
+
+      const rawData = response.data.userData || response.data;
+      console.log("Raw data fetched:", rawData);
+      
+      if (!Array.isArray(rawData)) {
+        throw new Error("Invalid data format received from server");
+      }
+
+      const updatedData = rawData.map((item) => {
+        try {
+          const itemId = item.id || item._id;
+          const createdAt = item.createdAt 
+            ? new Date(item.createdAt).toLocaleDateString("en-US", {
+                year: "numeric",
+                month: "short",
+                day: "numeric",
+              })
+            : "N/A";
+
+          const updatedAt = item.updatedAt
+            ? new Date(item.updatedAt).toLocaleDateString("en-US", {
+                year: "numeric",
+                month: "short",
+                day: "numeric",
+              })
+            : "N/A";
+
+          return {
+            ...item,
+            itemId,
+            createdAt,
+            updatedAt,
+          };
+        } catch (itemError) {
+          console.warn("Error processing item:", itemError, item);
+          return item; // Return original item if processing fails
+        }
+      });
+
+      setData(updatedData);
+    } catch (error) {
+      console.error("Error fetching data:", error);
+      const errorMessage = 
+        error.response?.data?.message || 
+        error.message || 
+        "Failed to load data";
+      setError(errorMessage);
+    } finally {
+      setLoading(false);
+    }
+  }, [entryData, user, backendURL]);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
+
+  return { data, loading, error, refetch: fetchData };
 };
 
 export default function TableDistributor({
   title,
   entryData,
-  columns,
-  deleteEnabled,
-  updateEnabled,
-  disableDateFilter,
-  enableRowClick,
+  columns = [],
+  deleteEnabled = false,
+  updateEnabled = false,
+  disableDateFilter = false,
+  enableRowClick = true,
+  updateText = "Update",
+  deleteText = "Delete",
+  sorting = true,
+  updateAPI,
+  deleteAPI,
+  renderUpdateForm,
 }) {
-  const [data, setData] = useState([]);
   const [selectedEntry, setSelectedEntry] = useState(null);
+  const [retryCount, setRetryCount] = useState(0);
+  
   const backendURL = import.meta.env.VITE_BACKEND_URL;
-  const user = title.toLowerCase();
-  const formattedUser = formatUser(user);
-  //    if(!entryData){
-  //     let apiEndpoint="";
-  //     if(user==='admin'){
-  //         apiEndpoint=`${backendURL}/${user}/all`;
-  //     }
-  //     else if(user==='branche'){
-  //         apiEndpoint=`${backendURL}/admin/branch/all`;
-  //     }
-  //     else if(user ==='parcel status tracking and assignment detail'){
-  //         apiEndpoint=`${backendURL}/admin/track/statuses`;
-  //     }
-  //     else {
-  //         apiEndpoint=`${backendURL}/admin/${user}/all`;
-  //     }
+  const user = title?.toLowerCase();
+  const formattedUser = useMemo(() => formatUser(user), [user]);
 
-  // // // Fetching data when component mount
-  // //     useEffect(() => {
-  // //         const fetchData = async () => {
-  // //             try {
-  // //                 const response = await axios.get(apiEndpoint, { withCredentials: true });
-  // //                 console.log(response.data.userData);
-  // //                 const rawData = response.data.userData || response.data;
+  const { data, loading, error, refetch } = useTableData(entryData, user, backendURL);
 
-  // //                 const updatedData = rawData.map(item => {
-  // //                     const itemId = item.parcelId || item.userId || item.driverId || item.staffId || item.branchId|| item.adminId || item.vehicleId||item.id;
-  // //                     let formattedCreatedAt;
-  // //                 if (user === 'parcel') {
-  // //                     formattedCreatedAt = new Date(item.createdAt).toLocaleString('en-US', {
-  // //                       year: 'numeric',
-  // //                       month: 'short',
-  // //                       day: 'numeric',
-  // //                       hour: '2-digit',
-  // //                       minute: '2-digit',
-  // //                       hour12: true
-  // //                     });
-  // //                   } else {
-  // //                     formattedCreatedAt = new Date(item.createdAt).toLocaleDateString('en-US', {
-  // //                       year: 'numeric',
-  // //                       month: 'short',
-  // //                       day: 'numeric'
-  // //                     });
-  // //                   }
-  // //                     return {
-  // //                         ...item,
-  // //                         itemId, // add the resolved itemId
-  // //                         createdAt: formattedCreatedAt,
-  // //                         updatedAt: new Date(item.updatedAt).toLocaleDateString('en-US', {
-  // //                             year: 'numeric',
-  // //                             month: 'short',
-  // //                             day: 'numeric'
-  // //                         })
-  // //                     };
-  // //                 });
+  // Enhanced row click handler with validation
+  const handleRowClick = useCallback((collection, itemId, givenId) => {
+    if (!enableRowClick) return;
+    
+    if (!itemId) {
+      console.warn("No itemId provided for row click:", { collection, itemId, givenId });
+      return;
+    }
 
-  // //                 console.log(updatedData);
-  // //                 setData(updatedData);
+    if (!collection) {
+      console.warn("No collection provided for row click:", { collection, itemId, givenId });
+      return;
+    }
 
-  // //             } catch (error) {
-  // //                 console.error(`Error fetching `, error);
-  // //             }
-  // //         };
+    setSelectedEntry({ collection, itemId, givenId });
+  }, [enableRowClick]);
 
-  // //         fetchData();
-  // //     }, []);
+  // Handle modal close
+  const handleCloseModal = useCallback(() => {
+    setSelectedEntry(null);
+  }, []);
 
-  //    }
-  useEffect(() => {
-    const fetchData = async () => {
-      if (entryData) {
-        console.log(entryData);
-        setData(Array.isArray(entryData) ? entryData : [entryData]);
-        return;
-      }
+  // Handle retry
+  const handleRetry = useCallback(() => {
+    setRetryCount(prev => prev + 1);
+    refetch();
+  }, [refetch]);
 
-      try {
-        let apiEndpoint;
-        if (user === 'admin') {
-          apiEndpoint = `${backendURL}/${user}/all`;
-        } else if (user === 'branche') {
-          apiEndpoint = `${backendURL}/admin/branch/all`;
-        } else if (user === 'parcel status tracking and assignment detail') {
-          apiEndpoint = `${backendURL}/admin/track/statuses`;
-        } else {
-          apiEndpoint = `${backendURL}/admin/${user}/all`;
-        }
+  // Input validation
+  if (!title) {
+    return (
+      <Alert variant="destructive" className="m-4">
+        <AlertTriangle className="h-4 w-4" />
+        <AlertDescription>
+          TableDistributor: Title prop is required
+        </AlertDescription>
+      </Alert>
+    );
+  }
 
-        const response = await axios.get(apiEndpoint, {
-          withCredentials: true,
-        });
-        const rawData = response.data.userData || response.data;
-        const updatedData = rawData.map((item) => {
-          const itemId =
-            item.parcelId ||
-            item.userId ||
-            item.driverId ||
-            item.staffId ||
-            item.branchId ||
-            item.adminId ||
-            item.vehicleId ||
-            item.id;
-          let formattedCreatedAt;
-          if (user === 'parcel') {
-            formattedCreatedAt = new Date(item.createdAt).toLocaleString(
-              'en-US',
-              {
-                year: 'numeric',
-                month: 'short',
-                day: 'numeric',
-                hour: '2-digit',
-                minute: '2-digit',
-                hour12: true,
-              }
-            );
-          } else {
-            formattedCreatedAt = new Date(item.createdAt).toLocaleDateString(
-              'en-US',
-              {
-                year: 'numeric',
-                month: 'short',
-                day: 'numeric',
-              }
-            );
-          }
-          return {
-            ...item,
-            itemId, // add the resolved itemId
-            createdAt: formattedCreatedAt,
-            updatedAt: new Date(item.updatedAt).toLocaleDateString('en-US', {
-              year: 'numeric',
-              month: 'short',
-              day: 'numeric',
-            }),
-          };
-        });
+  if (!Array.isArray(columns) || columns.length === 0) {
+    return (
+      <Alert variant="destructive" className="m-4">
+        <AlertTriangle className="h-4 w-4" />
+        <AlertDescription>
+          TableDistributor: Valid columns array is required
+        </AlertDescription>
+      </Alert>
+    );
+  }
 
-        setData(updatedData);
-      } catch (error) {
-        console.error(`Error fetching data: `, error);
-      }
-    };
+  // Loading state
+  if (loading && !entryData) {
+    return (
+      <div className="container mx-auto p-6 bg-white rounded-xl border border-gray-200 shadow-sm">
+        <LoadingAnimation />
+        <p className="text-center text-gray-500 mt-4">
+          Loading {formattedUser}...
+        </p>
+      </div>
+    );
+  }
 
-    fetchData();
-  }, [entryData, user, backendURL]);
-
-  const handleRowClick = (collection, itemId) => {
-    setSelectedEntry({ collection, itemId });
-  };
+  // Error state with retry option
+  if (error && !data.length) {
+    return (
+      <div className="container mx-auto p-6 bg-white rounded-xl border border-gray-200 shadow-sm">
+        <Alert variant="destructive">
+          <AlertTriangle className="h-4 w-4" />
+          <AlertDescription className="mb-4">
+            Failed to load {formattedUser}: {error}
+          </AlertDescription>
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={handleRetry}
+            className="mt-2"
+          >
+            <RefreshCw className="h-4 w-4 mr-2" />
+            Retry
+          </Button>
+        </Alert>
+      </div>
+    );
+  }
 
   return (
     <div className="container mx-auto p-5 bg-white rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-all duration-300 w-full">
+      {/* Show warning if there's an error but we have cached data */}
+      {error && data.length > 0 && (
+        <Alert variant="destructive" className="mb-4">
+          <AlertTriangle className="h-4 w-4" />
+          <AlertDescription>
+            Warning: Some data may be outdated. {error}
+          </AlertDescription>
+        </Alert>
+      )}
+
       <DataTable
         collectionName={user}
         title={formattedUser}
@@ -185,338 +369,32 @@ export default function TableDistributor({
         data={data}
         deleteEnabled={deleteEnabled}
         updateEnabled={updateEnabled}
+        updateText={updateText}
+        deleteText={deleteText}
         disableDateFilter={disableDateFilter}
         enableRowClick={enableRowClick}
         onRowClick={handleRowClick}
+        sorting={sorting}
+        updateAPI={updateAPI}
+        deleteAPI={deleteAPI}
+        renderUpdateForm={renderUpdateForm}
       />
 
-      {/* Modal Opening */}
-      <Modal open={!!selectedEntry} onClose={() => setSelectedEntry(null)}>
+      {/* Enhanced Modal */}
+      <Modal 
+        open={!!selectedEntry} 
+        onClose={handleCloseModal}
+        className="w-full max-w-7xl mx-4"
+      >
         {selectedEntry && (
           <EntryDetails
             collectionName={selectedEntry.collection}
             entryId={selectedEntry.itemId}
-            onClose={() => setSelectedEntry(null)}
+            onClose={handleCloseModal}
+            givenId={selectedEntry.givenId}
           />
         )}
       </Modal>
     </div>
   );
 }
-
-// DemoPage.propTypes = {
-//     title: PropTypes.string.isRequired,
-//     deleteEnabled: PropTypes.bool,
-//     updateEnabled: PropTypes.bool,
-//     disableDateFilter: PropTypes.bool
-// };
-
-// DemoPage.defaultProps = {
-//     deleteEnabled: false,
-//     updateEnabled: false,
-//     disableDateFilter: false
-// };
-
-// import { DataTable } from "./DataTable"
-// import { useState, useEffect } from "react"
-// import axios from 'axios'
-// import PropTypes from 'prop-types';
-
-// const driverColumns=[
-//     {
-//         accessorKey: "name",
-//         header: "Name"
-//     },
-//     {
-//         accessorKey: "nic",
-//         header: "NIC"
-//     },
-//     {
-//         accessorKey: "email",
-//         header: "Email",
-//     },
-//     {
-//         accessorKey:"contactNo",
-//         header:"Contact"
-//     },
-//     {
-//         accessorKey:"createdAt",
-//         header:"Joined date"
-//     },
-//     {
-//         accessorKey:"licenseId",
-//         header:"License Id"
-//     },
-//     {
-//         accessorKey:"branchLocation",
-//         header:"Branch"
-//     },
-//     {
-//         accessorKey:"branchContactNo",
-//         header:"Branch Contact"
-//     },
-//     {
-//         accessorKey:"adminName",
-//         header:"Added Admin"
-//     },
-//     // {
-//     //     accessorKey:"",
-//     //     header:""
-//     // },
-// ];
-// const adminColumns=[
-//     {
-//         accessorKey: "name",
-//         header: "Name"
-//     },
-//     {
-//         accessorKey: "nic",
-//         header: "NIC"
-//     },
-//     {
-//         accessorKey: "email",
-//         header: "Email",
-//     },
-//     {
-//         accessorKey:"contactNo",
-//         header:"Contact"
-//     },
-//     {
-//         accessorKey:"createdAt",
-//         header:"Joined date"
-//     },
-// ]
-// const staffColumns=[
-//     {
-//         accessorKey: "name",
-//         header: "Name"
-//     },
-//     {
-//         accessorKey: "nic",
-//         header: "NIC"
-//     },
-//     {
-//         accessorKey: "email",
-//         header: "Email",
-//     },
-//     {
-//         accessorKey:"contactNo",
-//         header:"Contact"
-//     },
-//     {
-//         accessorKey:"createdAt",
-//         header:"Joined date"
-//     },
-//     {
-//         accessorKey:"status",
-//         header:"Status"
-//     },
-//     {
-//         accessorKey:"branchLocation",
-//         header:"Branch"
-//     },
-//     {
-//         accessorKey:"adminName",
-//         header:"Added admin"
-//     },
-
-// ]
-// const customerColumns=[
-//     {
-//         accessorKey: "name",
-//         header: "Name"
-//     },
-//     {
-//         accessorKey: "nic",
-//         header: "NIC"
-//     },
-//     {
-//         accessorKey: "email",
-//         header: "Email",
-//     },
-//     {
-//         accessorKey:"contact",
-//         header:"Contact"
-//     },
-//     {
-//         accessorKey:"address",
-//         header:"Address"
-//     },
-//     {
-//         accessorKey:"createdAt",
-//         header:"Joined date"
-//     },
-// ]
-// const parcelColumns=[
-//     {
-//         accessorKey:"parcelId  ",
-//         header:"Parcel No"
-//     },
-//     {
-//         accessorKey:"trackingNo",
-//         header:"Tracking No"
-//     },
-//     {
-//         accessorKey:"itemType",
-//         header:"Item type"
-//     },
-//     {
-//         accessorKey:"itemSize",
-//         header:"Item size"
-//     },
-//     {
-//         accessorKey:"receivingType",
-//         header:"Receiving type"
-//     },
-//     {
-//         accessorKey:"senderName",
-//         header:"Sender"
-//     },
-//     {
-//         accessorKey:"shipmentMethod",
-//         header:"Shipping Method"
-//     },
-//     {
-//         accessorKey:"specialInstructions",
-//         header:"Special Instructions"
-//     },
-//     {
-//         accessorKey:"status",
-//         header:"Current status"
-//     },
-//     {
-//         accessorKey:"createdAt",
-//         header:"Order placed date"
-//     },
-// ]
-// const vehicleColumns=[
-//     {
-//         accessorKey: "registrationNo",
-//         header: "Registration No"
-//     },
-//     {
-//         accessorKey: "vehicleType",
-//         header: "Vehicle Type"
-//     },
-//     {
-//         accessorKey: "capableVolume",
-//         header: "Capable Volume"
-//     },
-//     {
-//         accessorKey: "capableWeight",
-//         header: "Capable Weight"
-//     },
-//     {
-//         accessorKey: "assignedBranch",
-//         header: "Assigned Branch"
-//     },
-//     {
-//         accessorKey: "currentBranch",
-//         header: "Current Branch"
-//     },
-// ]
-
-// const branchColumns=[
-//     {
-//         accessorKey: "branchId",
-//         header: "Branch No"
-//     },
-//     {
-//         accessorKey: "location",
-//         header: "Branch location"
-//     },
-//     {
-//         accessorKey: "contact",
-//         header: "Contact"
-//     },
-//     {
-//         accessorKey: "updatedAt",
-//         header: "Last update"
-//     },
-//     {
-//         accessorKey: "createdAt",
-//         header: "Since"
-//     },
-// ]
-
-// export default function DemoPage(props) {
-//     const [data, setData] = useState([]);
-//     const backendURL = import.meta.env.VITE_BACKEND_URL;
-//     const user=props.title.toLowerCase();
-//     const formattedUser = user.charAt(0).toUpperCase() + user.slice(1) + 's';
-
-// let apiEndpoint="";
-// let columns = adminColumns;
-// if(user==='admin'){
-//     apiEndpoint=`${backendURL}/${user}/all`;
-// }
-// else if(user==='branche'){
-//     apiEndpoint=`${backendURL}/admin/branch/all`;
-// }
-// else {
-//     apiEndpoint=`${backendURL}/admin/${user}/all`;
-// }
-
-// if(user==='admin'){
-//     columns=adminColumns
-// }
-// else if(user==='driver'){
-//     columns=driverColumns
-// }
-// else if(user==='staff'){
-//     columns=staffColumns
-// }else if(user==='customer'){
-//     columns=customerColumns
-// }
-// else if(user==='parcel'){
-//     columns=parcelColumns
-// }
-// else if(user==='vehicle'){
-//     columns=vehicleColumns
-// }
-// else if(user==='branch'){
-//     columns=branchColumns
-// }
-
-// useEffect(() => {
-//     const fetchData = async () => {
-//         try {
-//             const response = await axios.get(apiEndpoint, { withCredentials: true });
-//             console.log(response.data)
-//             const rawData = response.data.userData ||response.data;
-//             const updatedData = rawData.map(item => ({
-//                 ...item,
-//                 createdAt: new Date(item.createdAt).toLocaleDateString('en-US', {
-//                     year: 'numeric',
-//                     month: 'short',
-//                     day: 'numeric'
-//                 }),
-//                 updatedAt: new Date(item.createdAt).toLocaleDateString('en-US', {
-//                     year: 'numeric',
-//                     month: 'short',
-//                     day: 'numeric'
-//                 })
-//             }));
-//             console.log(updatedData);
-//             setData(updatedData);
-
-//         } catch (error) {
-//             console.error(`Error fetching `, error);
-//         }
-//     };
-
-//     fetchData();
-// }, []);
-
-//     return (
-//         <div className="container mx-auto p-5 bg-white rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-all duration-300 w-full">
-//             <DataTable title={formattedUser}columns={columns} data={data} deleteEnabled={props.deleteEnabled} updateEnabled={props.updateEnabled} disableDateFilter={props.disableDateFilter} />
-//             {/* <DataTable title="User Management" columns={columns} data={data} deleteEnabled={true} updateEnabled={true} deleteText="Remove User" updateText="update" onDelete={(user) => handleDelete(user.id)}/> */}
-//         </div>
-//     )
-// }
-
-// // Validate props with PropTypes
-// DemoPage.propTypes = {
-//     title: PropTypes.string.isRequired, // title must be a string and is required
-//   };

@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from 'react';
-import axios from 'axios';
-import { useNavigate } from 'react-router-dom';
+import React, { useEffect, useState } from "react";
+import axios from "axios";
+import { useNavigate } from "react-router-dom";
 
 const ParcelInfo = ({ parcelId, onParcelLoad }) => {
   const [parcel, setParcel] = useState(null);
@@ -18,7 +18,7 @@ const ParcelInfo = ({ parcelId, onParcelLoad }) => {
       onParcelLoad(res.data);
       setLoading(false);
     } catch (error) {
-      console.log('Failed to fetch parcel details: ', error);
+      console.log("Failed to fetch parcel details: ", error);
     }
   };
 
@@ -37,30 +37,30 @@ const ParcelInfo = ({ parcelId, onParcelLoad }) => {
         <fieldset className="border-2 border-gray-400 px-8 py-5 mb-6 mx-6 ">
           <legend className="ml-10 px-2">Sender Information</legend>
           <p>
-            <strong>Name:</strong>{' '}
-            {`${parcel.senderId.fName} ${parcel.senderId.lName}`}{' '}
+            <strong>Name:</strong>{" "}
+            {`${parcel.senderId.fName} ${parcel.senderId.lName}`}{" "}
           </p>
           <p>
-            <strong>NIC:</strong> {parcel.senderId.nic}{' '}
+            <strong>NIC:</strong> {parcel.senderId.nic}{" "}
           </p>
           <p>
-            <strong>Email:</strong> {parcel.senderId.email}{' '}
+            <strong>Email:</strong> {parcel.senderId.email}{" "}
           </p>
           <p>
-            <strong>Mobile:</strong> {parcel.senderId.contact}{' '}
+            <strong>Mobile:</strong> {parcel.senderId.contact}{" "}
           </p>
         </fieldset>
 
         <fieldset className="border-2 border-gray-400 px-8 py-5 mb-6 mx-6">
           <legend className="ml-10 px-2 ">Receiver Information</legend>
           <p>
-            <strong>Name:</strong> {parcel.receiverId.receiverFullName}{' '}
+            <strong>Name:</strong> {parcel.receiverId.receiverFullName}{" "}
           </p>
           <p>
-            <strong>Email:</strong> {parcel.receiverId.receiverEmail}{' '}
+            <strong>Email:</strong> {parcel.receiverId.receiverEmail}{" "}
           </p>
           <p>
-            <strong>Mobile:</strong> {parcel.receiverId.receiverContact}{' '}
+            <strong>Mobile:</strong> {parcel.receiverId.receiverContact}{" "}
           </p>
         </fieldset>
 
@@ -69,7 +69,7 @@ const ParcelInfo = ({ parcelId, onParcelLoad }) => {
           <div className="flex   px-8 py-5">
             <div className="w-1/2 ">
               <p>
-                <strong>Item Size:</strong> {parcel.itemSize}{' '}
+                <strong>Item Size:</strong> {parcel.itemSize}{" "}
               </p>
               <p>
                 <strong>Item Type:</strong> {parcel.itemType}
@@ -83,24 +83,28 @@ const ParcelInfo = ({ parcelId, onParcelLoad }) => {
                 <strong>Shipping Method:</strong> {parcel.shippingMethod}
               </p>
               <p>
-                <strong>Submitting Type:</strong> {parcel.submittingType}{' '}
+                <strong>Submitting Type:</strong> {parcel.submittingType}{" "}
               </p>
               <p>
                 <strong>Receiving Type:</strong> {parcel.receivingType}
               </p>
             </div>
           </div>
-          {(parcel.submittingType === 'pickup' ||
-            parcel.receivingType === 'doorstep') && (
+          {(parcel.submittingType === "pickup" ||
+            parcel.receivingType === "doorstep") && (
             <div className="flex border-t-2 border-t-gray-400 px-8 py-5">
-              {parcel.submittingType === 'pickup' && (
+              {parcel.submittingType === "pickup" && (
                 <div className="w-1/2">
                   <p>
-                    <strong>Pickup Date:</strong>{' '}
-                    {parcel?.pickupInformation?.pickupDate}
+                    <strong>Pickup Date:</strong>{" "}
+                    {parcel?.pickupInformation?.pickupDate &&
+                      new Date(
+                        parcel.pickupInformation.pickupDate
+                      ).toLocaleDateString()}
                   </p>
+
                   <p>
-                    <strong>Pickup Time:</strong>{' '}
+                    <strong>Pickup Time:</strong>{" "}
                     {parcel?.pickupInformation?.pickupTime}
                   </p>
                   <p>
@@ -112,7 +116,7 @@ const ParcelInfo = ({ parcelId, onParcelLoad }) => {
                   </p>
                 </div>
               )}
-              {parcel.receivingType === 'doorstep' && (
+              {parcel.receivingType === "doorstep" && (
                 <div className="w-1/2">
                   <p>
                     <strong>Delivery Address:</strong>
@@ -122,7 +126,7 @@ const ParcelInfo = ({ parcelId, onParcelLoad }) => {
                     {parcel?.deliveryInformation?.deliveryProvince} Province.
                   </p>
                   <p>
-                    <strong>Postal Code:</strong>{' '}
+                    <strong>Postal Code:</strong>{" "}
                     {parcel?.deliveryInformation?.postalCode}
                   </p>
                 </div>
@@ -140,7 +144,7 @@ const ParcelInfo = ({ parcelId, onParcelLoad }) => {
             <strong>Paid by:</strong> {parcel?.paymentId?.paidBy}
           </p>
           <p>
-            <strong>Amount (Rs.):</strong> {parcel?.paymentId?.amount}{' '}
+            <strong>Amount (Rs.):</strong> {parcel?.paymentId?.amount}{" "}
           </p>
           <p>
             <strong>Payment Status:</strong> {parcel?.paymentId?.paymentStatus}
