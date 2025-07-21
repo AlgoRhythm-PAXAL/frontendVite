@@ -26,7 +26,6 @@ import {
   faChartLine,
   faRefresh,
   faExclamationTriangle,
-  faCheckCircle
 } from '@fortawesome/free-solid-svg-icons';
 import { toast } from 'sonner';
 import NumberShowingCard from '../NUmberShowingCard';
@@ -108,23 +107,40 @@ const UserCount = () => {
     }
   }, []);
 
-  // Handle successful data updates
+  // Handle successful data updates with enhanced comparison data
   const handleDataUpdate = useCallback((updateData) => {
+    // Clear any existing errors for this type
     setCardErrors(prev => {
       const newErrors = { ...prev };
       delete newErrors[updateData.type];
       return newErrors;
     });
 
+    // Update global stats with enhanced data
     setGlobalStats(prev => {
       const errorCount = Math.max(0, prev.errorCount - 1);
       return {
         ...prev,
         lastUpdated: updateData.timestamp,
         hasErrors: errorCount > 0,
-        errorCount
+        errorCount,
+        totalUsers: prev.totalUsers // Could be calculated from all cards if needed
       };
     });
+
+    // Log the enhanced comparison data for debugging
+    if (updateData.change !== 0) {
+      console.log(`${updateData.type}: ${updateData.count} (${updateData.change > 0 ? '+' : ''}${updateData.change} vs ${updateData.comparisonPeriod} days ago, ${updateData.changePercentage.toFixed(1)}%)`);
+    }
+
+    // Show toast for significant changes (optional)
+    if (Math.abs(updateData.changePercentage) > 10) {
+      const changeDirection = updateData.change > 0 ? 'increased' : 'decreased';
+      toast.info(`${updateData.type} count ${changeDirection}`, {
+        description: `${Math.abs(updateData.changePercentage).toFixed(1)}% change vs ${updateData.comparisonPeriod} days ago`,
+        duration: 3000
+      });
+    }
   }, []);
 
   // Global refresh functionality - simplified
@@ -147,7 +163,8 @@ const UserCount = () => {
       toast.success('Dashboard refreshed successfully', {
         duration: 2000
       });
-    } catch (error) {
+    } catch (refreshError) {
+      console.error('Refresh failed:', refreshError);
       toast.error('Failed to refresh dashboard', {
         description: 'Please try again later'
       });
@@ -242,7 +259,7 @@ const UserCount = () => {
         </div>
       )}
 
-      {/* User Count Cards Grid - Remove the key prop to prevent re-mounting */}
+      {/* User Count Cards Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         {userConfigs.map((config) => (
           <div key={config.id} className="relative">
@@ -258,7 +275,8 @@ const UserCount = () => {
               enableAutoRefresh={true}
               refreshInterval={300000}
               className="h-full"
-              forceRefresh={refreshKey} // Only use forceRefresh prop
+              forceRefresh={refreshKey}
+              comparisonPeriod={7} // Compare with 7 days ago
             />
             
             {cardErrors[config.type] && (
@@ -300,7 +318,7 @@ const UserCount = () => {
       )}
 
       <div className="text-center text-xs text-gray-500 pt-4 border-t border-gray-200">
-        <p>Data refreshes automatically every 5 minutes • Click "Refresh All" for immediate updates</p>
+        <p>Data refreshes automatically every 5 minutes • Click &quot;Refresh All&quot; for immediate updates</p>
       </div>
     </div>
   );
