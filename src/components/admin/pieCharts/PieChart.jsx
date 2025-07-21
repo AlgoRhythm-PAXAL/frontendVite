@@ -32,21 +32,31 @@ const PieChart = ({ labels, data, total, groupName }) => {
       ctx.fillText(`${total}%`, centerX, centerY);
       ctx.restore();
 
-      // ------ BOTTOM LABELS WITH COLOR BOXES ------
+      // // ------ BOTTOM LABELS WITH COLOR BOXES ------
+      // const labels = chart.config.data.labels;
+      // const colors = chart.config.data.datasets[0].backgroundColor;
+      // const values = chart.config.data.datasets[0].data;
+
+       // Bottom labels with color boxes
       const labels = chart.config.data.labels;
       const colors = chart.config.data.datasets[0].backgroundColor;
       const values = chart.config.data.datasets[0].data;
 
+      // Responsive label sizing
+      const labelFontSize = Math.max(11, Math.min(14, chartArea.width * 0.04));
+      const boxSize = Math.max(10, Math.min(14, chartArea.width * 0.04));
+      const lineHeight = labelFontSize + 14;
+
       // Label positioning
-      const labelStartX = chartArea.left + 15; // Left margin
-      let labelStartY = chartArea.bottom + 20; // Start below chart
+      const labelStartX = chartArea.left + 10; // Left margin
+      let labelStartY = chartArea.bottom + 15; // Start below chart
 
       labels.forEach((label, index) => {
         ctx.save();
 
         // Draw color box
         ctx.fillStyle = colors[index];
-        ctx.fillRect(labelStartX, labelStartY, 12, 12);
+        ctx.fillRect(labelStartX, labelStartY, boxSize, boxSize);
 
         // Create label text with count
         const labelText = `${label}: ${values[index]}`;
@@ -59,15 +69,20 @@ const PieChart = ({ labels, data, total, groupName }) => {
         ctx.fillText(labelText, labelStartX + 25, labelStartY);
 
         ctx.restore();
-        labelStartY += 28; // Vertical spacing between labels
+        labelStartY += lineHeight; // Vertical spacing between labels
       });
     },
   };
 
+   // Calculate dynamic height based on number of labels
+  const baseHeight = 200;
+  const labelHeight = labels.length * 25;
+  const totalHeight = baseHeight + labelHeight + 60;
+
   return (
-    <div className="flex flex-col items-center justify-center gap-4 rounded-2xl pt-2 w-fit">
-      <h1 className="text-md font-semibold text-center px-2">{groupName}</h1>
-      <div className="relative h-[380px] w-[295px]">
+    <div className="flex flex-col items-center justify-start gap-4 rounded-2xl pt-2 bg-white p-4 shadow-md hover:shadow-lg transition-shadow duration-200 border border-gray-100 cursor-pointer w-full h-full min-h-0">
+      <h1 className="text-sm md:text-base font-semibold text-center text-gray-800 mb-3 px-2 line-clamp-2">{groupName}</h1>
+      <div className="relative  h-[380px] w-[295px]  ">
         <Doughnut
           data={{
             labels,
@@ -83,18 +98,39 @@ const PieChart = ({ labels, data, total, groupName }) => {
             hoverOffset: 4,
           }}
           options={{
+            responsive: true,
             cutout: "60%",
             maintainAspectRatio: false,
             layout: {
-              padding: { bottom: 150, left: 5, right: 5 },
+              padding: { 
+                bottom: labelHeight + 40,
+                left: 30, 
+                right: 30, 
+                top: 0 
+              },
             },
             plugins: {
               legend: { display: false },
+              tooltip: {
+                enabled: true,
+                backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                titleColor: '#fff',
+                bodyColor: '#fff',
+                borderColor: '#374151',
+                borderWidth: 1,
+              },
               datalabels: {
                 color: "#fff",
                 font: { size: 12, weight: "normal" },
-                formatter: (value) => ` ${((value / total) * 100).toFixed(1)}%`,
+                 formatter: (value, context) => {
+                  const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                  const percentage = ((value / total) * 100).toFixed(1);
+                  return `${percentage}%`;
+                },
               },
+            },
+            interaction: {
+              intersect: false,
             },
           }}
           plugins={[totalCenterPlugin]}

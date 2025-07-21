@@ -70,7 +70,7 @@ const Vehicle = () => {
           title="vehicle"
           columns={vehicleColumns}
           disableDateFilter={true}
-          enableRowClick={false}
+          enableRowClick={true}
           deleteEnabled={true}
           updateEnabled={true}
           entryData={data}
