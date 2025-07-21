@@ -28,7 +28,7 @@ import {
   faExclamationTriangle,
 } from '@fortawesome/free-solid-svg-icons';
 import { toast } from 'sonner';
-import NumberShowingCard from '../NUmberShowingCard';
+import NumberShowingCard from '../NumberShowingCard';
 
 const UserCount = () => {
   const [globalStats, setGlobalStats] = useState({
