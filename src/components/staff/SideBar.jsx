@@ -14,20 +14,20 @@ const SideBar = () => {
         {
             title: "Lodging Management",
             items: [
-           { title: "Pickup Requests", path:"/staff/lodging-management/view-pickups"},
-           {title: "Drop-off Requests", path:"/staff/lodging-management/view-dropOffs" },
-            {title: "Add New Parcel",path: "/staff/lodging-management/add-new-parcel"},
-           { title: "View Parcels",path:"/staff/lodging-management/view-parcels"}
+                { title: "Pickup Requests", path: "/staff/lodging-management/view-pickups" },
+                { title: "Drop-off Requests", path: "/staff/lodging-management/view-dropOffs" },
+                { title: "Add New Parcel", path: "/staff/lodging-management/add-new-parcel" },
+                { title: "View Parcels", path: "/staff/lodging-management/view-parcels" }
             ]
         },
         {
             title: "Collection Management",
             items: [
-                { title: "Dashboard", path:"/staff/lodging-management/dashboard"},
-           {title: "Track Parcel", path:"/staff/lodging-management/track-parcel" },
-            {title: "Deliver Parcels",path:"/staff/collection-management/view-collection-center-delivery-parcels" },
-           { title: "Assign Driver",path:"/staff/collection-management/assign-driver"}
-            
+                { title: "Dashboard", path: "/staff/collection-management/dashboard" },
+                { title: "Track Parcels", path: "/staff/collection-management/tracking" },
+                { title: "Deliver Parcels", path: "/staff/collection-management/view-collection-center-delivery-parcels" },
+                { title: "Assign Driver", path: "/staff/collection-management/assign-driver" }
+
             ]
         },
         {
@@ -35,15 +35,16 @@ const SideBar = () => {
             items: [
                 { title: "Create Shipment", path: "/staff/shipment-management/parcel-table-page" },
                 { title: "Create Shipment Manually", path: "/staff/shipment-management/manual-shipment-page" },
+                { title: "Created Shipments", path: "/staff/shipment-management/created-shipments-page" },
                 { title: "View Shipments", path: "/staff/shipment-management/view-shipments" }
             ]
         },
         {
             title: "Inquiry Management",
             items: [
-                { title: "View Inquiries", path:"/staff/inquiry-management/view-new-inquiries"},
-           {title: "Inquiry History", path:"/staff/inquiry-management/view-replied-inquiries" },
-            
+                { title: "View Inquiries", path: "/staff/inquiry-management/view-new-inquiries" },
+                { title: "Inquiry History", path: "/staff/inquiry-management/view-replied-inquiries" },
+
             ]
         }
     ];
@@ -60,23 +61,23 @@ const SideBar = () => {
         return location.pathname === path;
     };
 
-    {/* Logout button */}
+    {/* Logout button */ }
     const handleLogout = async () => {
-    try {
-      await axios.post(
-        "http://localhost:8000/staff/logout",
-        {},
-        { withCredentials: true }
-      );
-      navigate("/staff/login");
-    } catch (error) {
-      console.error("Logout error:", error);
-    }
-  };
+        try {
+            await axios.post(
+                "http://localhost:8000/staff/logout",
+                {},
+                { withCredentials: true }
+            );
+            navigate("/staff/login");
+        } catch (error) {
+            console.error("Logout error:", error);
+        }
+    };
 
     return (
         <div className="bg-Primary fixed top-16 left-0 h-[calc(100vh-4rem)] w-64 flex flex-col">
-            
+
             {/* Management Options */}
             <div className="p-4 flex flex-col space-y-4 overflow-y-auto mt-5">
                 {menuOptions.map((option, index) => (
@@ -111,15 +112,15 @@ const SideBar = () => {
                     </div>
                 ))}
                 <div className='mt-1 bg-white rounded-md shadow-lg py-2 px-3'>
-                       <button
-        onClick={() => setShowScanner(true)}
-        >
-        Scan Parcel QR Code
-      </button>
+                    <button
+                        onClick={() => setShowScanner(true)}
+                    >
+                        Scan Parcel QR Code
+                    </button>
 
-      {showScanner && <QRScanner onClose={() => setShowScanner(false)} />}
-   
-       
+                    {showScanner && <QRScanner onClose={() => setShowScanner(false)} />}
+
+
                 </div>
             </div>
 
@@ -134,7 +135,7 @@ const SideBar = () => {
                     <span>Help</span>
                 </div>
                 <div className="flex items-center space-x-2 cursor-pointer text-red-300 hover:text-red-200"
-                onClick={handleLogout}
+                    onClick={handleLogout}
                 >
                     <LogOut size={16} />
                     <span >Logout Account</span>

@@ -126,9 +126,11 @@ const NavigationBar = () => {
             {/* Staff Information */}
             <div className="hidden md:block text-right">
               <p className="text-sm font-medium text-gray-700">
-                {staff?.branchId?.location} Branch
+                Welcome, {staff?.name}
               </p>
-              <p className="text-xs text-gray-500">EMP-ID: {staff?.staffId}</p>
+              <p className="text-xs text-gray-500">
+                {staff?.branchId?.location} Branch • EMP-ID: {staff?.staffId}
+              </p>
             </div>
             <div
               className="relative flex items-center h-full px-2"
@@ -143,7 +145,7 @@ const NavigationBar = () => {
                 {staff.profilePicLink ? (
                   <ProfilePicture
                     publicId={staff.profilePicLink}
-                    width="50"
+                    width="40"
                     className="rounded-full w-12 h-12 object-cover border-2 border-Primary"
                   />
                 ) : (

@@ -65,10 +65,20 @@ import ViewRepliedInquiries from "./pages/staff/Inquiry/ViewRepliedInquiries";
 import ReplyToInquiry from "./pages/staff/Inquiry/ReplyToInquiry";
 import ViewOneRepliedInquiry from "./pages/staff/Inquiry/ViewOneRepliedInquiry";
 import ViewOneCollectionCenterDeliveryparcel from "./pages/staff/ViewOneCollectionCenterDeliveryParcel";
-import ParcelTablePage from "./pages/staff/ParcelTablePage/parcelTablePage";
-import ManualShipmentPage from "./pages/staff/ManualShipmentPage/manualShipmentPage"
+
+
+import ParcelTablePage from "./pages/staff/ShipmentManagement/ParcelTablePage/parcelTablePage";
+import ManualShipmentPage from "./pages/staff/ShipmentManagement/ManualShipmentPage/manualShipmentPage";
+import CreatedShipmentsPage from "./pages/staff/ShipmentManagement/CreatedShipmentsPage/createdShipmentsPage";
+import ViewShipmentsPage from "./pages/staff/ShipmentManagement/ViewShipmentsPage/viewShipmentsPage";
+import ManifestPage from "./pages/staff/ShipmentManagement/ManifestPage/manifestPage";
+import DashboardPage from "./pages/staff/CollectionManagement/Dashboard/dashboardPage";
+import TrackingPageStaff from "./pages/staff/CollectionManagement/Tracking/trackingPage";
+import LeftBar from "./components/staff/LeftBar";
 import Scanner from "./pages/staff/Scanner";
 import StaffProfile from "./pages/staff/StaffProfile";
+ // You'll need to create this
+
 const App = () => {
   return (
     <Router>
@@ -136,15 +146,23 @@ const App = () => {
 
 
 
+
             <Route path="inquiry-management/view-new-inquiries" element={<NewInquiries/>}/>
             <Route path="inquiry-management/view-replied-inquiries" element={<ViewRepliedInquiries/>}/>
             <Route path="inquiry-management/reply-to-inquiry/:inquiryId" element={<ReplyToInquiry/>}/>
             <Route path="inquiry-management/view-replied-inquiries/:inquiryId" element={<ViewOneRepliedInquiry/>}/>
             <Route path="shipment-management/parcel-table-page" element={<ParcelTablePage />} />
           <Route path="shipment-management/manual-shipment-page" element={<ManualShipmentPage />} />
-          
-
-          </Route>
+                    {/* Collection Management routes */}
+          <Route path="collection-management/dashboard" element={<DashboardPage />} />
+          <Route path="collection-management/tracking" element={<TrackingPageStaff />} />
+                 <Route path="shipment-management/created-shipments-page" element={<CreatedShipmentsPage />}/>
+          <Route path="shipment-management/view-shipments" element={<ViewShipmentsPage />} />
+          <Route path="shipment-management/manifest/:shipmentId" element={<ManifestPage />} />
+          {/* Add other staff routes here */}
+          {/* <Route path="shipment-management/create-shipment" element={<CreateShipment />} /> */}
+          {/* <Route path="shipment-management/view-shipments" element={<ViewShipments />} /> */}
+        </Route>
         </Route>
       </Routes>
     </Router>
