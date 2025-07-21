@@ -1,6 +1,9 @@
+
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { fetchBranches, submitParcel } from '../../api/parcelApi';
+import toast from 'react-hot-toast';
+ 
 import {
   FiUser,
   FiPackage,
@@ -30,33 +33,7 @@ const itemTypes = [
 const itemSizes = ['Small', 'Medium', 'Large'];
 const paymentMethods = ['Online', 'Cash on Delivery'];
 const shipmentMethods = ['Standard', 'Express'];
-const sriLankaDistricts = [
-  'Ampara',
-  'Anuradhapura',
-  'Badulla',
-  'Batticaloa',
-  'Colombo',
-  'Galle',
-  'Gampaha',
-  'Hambantota',
-  'Jaffna',
-  'Kalutara',
-  'Kandy',
-  'Kegalle',
-  'Kilinochchi',
-  'Kurunegala',
-  'Mannar',
-  'Matale',
-  'Matara',
-  'Moneragala',
-  'Mullaitivu',
-  'Nuwara Eliya',
-  'Polonnaruwa',
-  'Puttalam',
-  'Ratnapura',
-  'Trincomalee',
-  'Vavuniya',
-];
+;
 
 const AddParcel = () => {
   const [branches, setBranches] = useState([]);
@@ -172,6 +149,10 @@ const AddParcel = () => {
       } else {
         // For COD - show success
         setSubmitSuccess(true);
+        toast.success('Your parcel added Successful!', { duration: 3000 });
+         setTimeout(() => {
+        navigate('/parcel');
+      }, 3000);
       }
     } catch (err) {
       setError(
@@ -184,14 +165,90 @@ const AddParcel = () => {
     }
   };
 
-  // Branch dropdown component
-  const renderBranchDropdown = (name, value, label, required) => (
+
+  // Sri Lanka districts with their provinces
+const sriLankaDistricts = [
+  // Western Province
+  { district: "Colombo", province: "Western" },
+  { district: "Gampaha", province: "Western" },
+  { district: "Kalutara", province: "Western" },
+
+  // Central Province
+  { district: "Kandy", province: "Central" },
+  { district: "Matale", province: "Central" },
+  { district: "Nuwara Eliya", province: "Central" },
+
+  // Southern Province
+  { district: "Galle", province: "Southern" },
+  { district: "Matara", province: "Southern" },
+  { district: "Hambantota", province: "Southern" },
+
+  // Northern Province
+  { district: "Jaffna", province: "Northern" },
+  { district: "Kilinochchi", province: "Northern" },
+  { district: "Mannar", province: "Northern" },
+  { district: "Vavuniya", province: "Northern" },
+  { district: "Mullaitivu", province: "Northern" },
+
+  // Eastern Province
+  { district: "Trincomalee", province: "Eastern" },
+  { district: "Batticaloa", province: "Eastern" },
+  { district: "Ampara", province: "Eastern" },
+
+  // North Western Province
+  { district: "Puttalam", province: "North Western" },
+  { district: "Kurunegala", province: "North Western" },
+
+  // North Central Province
+  { district: "Anuradhapura", province: "North Central" },
+  { district: "Polonnaruwa", province: "North Central" },
+
+  // Uva Province
+  { district: "Badulla", province: "Uva" },
+  { district: "Monaragala", province: "Uva" },
+
+  // Sabaragamuwa Province
+  { district: "Ratnapura", province: "Sabaragamuwa" },
+  { district: "Kegalle", province: "Sabaragamuwa" },
+];
+
+  // Modified branch dropdown component with province auto-fill based on branch location
+const renderBranchDropdown = (name, value, label, required) => {
+  const handleBranchChange = (e) => {
+    const selectedBranchId = e.target.value;
+    const selectedBranch = branches.find(branch => branch._id === selectedBranchId);
+    
+    // Update form data with branch
+    handleChange(e);
+    
+    if (selectedBranch) {
+      // Find the district-province mapping
+      const districtInfo = sriLankaDistricts.find(
+        d => d.district === selectedBranch.location
+      );
+      
+      // Update province based on branch location (district)
+      setFormData(prev => ({
+        ...prev,
+        pickupProvince: districtInfo?.province || '',
+        pickupDistrict: selectedBranch.location // Set district from branch location
+      }));
+       // Update delivery province based on branch location (district)
+      setFormData(prev => ({
+        ...prev,
+        deliveryProvince: districtInfo?.province || '',
+        deliveryDistrict: selectedBranch.location // Set district from branch location
+      }));
+    }
+  };
+
+  return (
     <div className="mt-1">
       <select
         id={name}
         name={name}
         value={value}
-        onChange={handleChange}
+        onChange={handleBranchChange}
         required={required}
         className="block w-full rounded-lg border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm py-2 px-3 border transition-all duration-200"
         disabled={isLoadingBranches}
@@ -208,6 +265,7 @@ const AddParcel = () => {
       )}
     </div>
   );
+};
 
   return (
     <div>
@@ -555,17 +613,20 @@ const AddParcel = () => {
                             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                               <FiClock className="h-5 w-5 text-gray-400" />
                             </div>
-                            <input
-                              type="text"
-                              id="pickupTime"
-                              name="pickupTime"
-                              value={formData.pickupTime}
-                              onChange={handleChange}
-                              required={showPickupFields}
-                              className="block w-full rounded-lg border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm py-2 pl-10 border transition-all duration-200"
-                            />
-                          </div>
-                        </div>
+                                   <select
+                id="pickupTime"
+                name="pickupTime"
+                value={formData.pickupTime}
+                onChange={handleChange}
+                required={showPickupFields}
+                className="block w-full rounded-lg border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm py-2 pl-10 border transition-all duration-200"
+              >
+                <option value="">Select time slot</option>
+                <option value="08:00 - 12:00">Morning (08:00 - 12:00)</option>
+                <option value="13:00 - 17:00">Afternoon (13:00 - 17:00)</option>
+              </select>
+            </div>
+          </div>
 
                         <div className="sm:col-span-6">
                           <label
@@ -617,23 +678,14 @@ const AddParcel = () => {
                           >
                             District
                           </label>
-                          <div className="mt-1">
-                            <select
-                              id="pickupDistrict"
-                              name="pickupDistrict"
-                              value={formData.pickupDistrict}
-                              onChange={handleChange}
-                              required={showPickupFields}
-                              className="block w-full rounded-lg border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm py-2 px-3 border transition-all duration-200"
-                            >
-                              <option value="">Select district</option>
-                              {sriLankaDistricts.map((district) => (
-                                <option key={district} value={district}>
-                                  {district}
-                                </option>
-                              ))}
-                            </select>
-                          </div>
+                           <div className="mt-1">
+                             {renderBranchDropdown(
+                              'fromBranch',
+                              formData.fromBranch,
+                              'branch',
+                              true
+                            )}
+                          </div> 
                         </div>
 
                         <div className="sm:col-span-2">
@@ -651,6 +703,7 @@ const AddParcel = () => {
                               value={formData.pickupProvince}
                               onChange={handleChange}
                               required={showPickupFields}
+                              readOnly
                               className="block w-full rounded-lg border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm py-2 px-3 border transition-all duration-200"
                             />
                           </div>
@@ -718,21 +771,13 @@ const AddParcel = () => {
                             District
                           </label>
                           <div className="mt-1">
-                            <select
-                              id="deliveryDistrict"
-                              name="deliveryDistrict"
-                              value={formData.deliveryDistrict}
-                              onChange={handleChange}
-                              required={showDeliveryFields}
-                              className="block w-full rounded-lg border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm py-2 px-3 border transition-all duration-200"
-                            >
-                              <option value="">Select district</option>
-                              {sriLankaDistricts.map((district) => (
-                                <option key={district} value={district}>
-                                  {district}
-                                </option>
-                              ))}
-                            </select>
+                     
+                             {renderBranchDropdown(
+                              'toBranch',
+                              formData.toBranch,
+                              'branch',
+                              true
+                            )}
                           </div>
                         </div>
 
@@ -751,6 +796,8 @@ const AddParcel = () => {
                               value={formData.deliveryProvince}
                               onChange={handleChange}
                               required={showDeliveryFields}
+                              readOnly
+                              
                               className="block w-full rounded-lg border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm py-2 px-3 border transition-all duration-200"
                             />
                           </div>
@@ -1012,3 +1059,4 @@ const AddParcel = () => {
 };
 
 export default AddParcel;
+

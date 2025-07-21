@@ -27,6 +27,13 @@ import ContactUs from './pages/User/ContactUs';
 import { Toaster as HotToastToaster } from 'react-hot-toast'; //  Import Toaster
 import AboutUs from './pages/User/AboutUs';
 import PaymentSuccess from './pages/User/PaymentSuccess';
+import ParcelDetails from './pages/User/ParcelDetails';
+// In your main routes file (e.g., App.js)
+import Notifications from './pages/User/Notifications';
+import LearnMore from './pages/User/LearnMore';
+
+
+
 {
   /*User Routes */
 }
@@ -61,6 +68,7 @@ import ViewOnePickup from './pages/staff/ViewOnePickup';
 import ViewOneDropOff from './pages/staff/ViewOneDropOff';
 import ParcelInvoice from './pages/staff/ParcelInvoice';
 
+
 const App = () => {
   return (
     <Router>
@@ -79,16 +87,22 @@ const App = () => {
         <Route path="/verify" element={<Emailverify />} />
         <Route path="/forget-password" element={<ForgetPassword />} />
         <Route path="/reset-password" element={<ResetPassword />} />
+        <Route path="/contactus" element={<ContactUs />} />
+        <Route path="/aboutus" element={<AboutUs />} />
+        <Route path="/moreabout" element={<LearnMore/>} />
         {/* All protected routes */}
         <Route element={<ProtectedRoute />}>
           <Route path="/profile" element={<Profile />} />
           <Route path="/addparcel" element={<AddParcel />} />
           <Route path="/parcel" element={<Parcel />} />
           <Route path="/track" element={<TrackingPage />} />
-          <Route path="/checkout" element={<Checkout />} />
-          <Route path="/contactus" element={<ContactUs />} />
-          <Route path="/aboutus" element={<AboutUs />} />
+          <Route path="/track/:trackingNumber" element={<TrackingPage />} />
           <Route path="/payment-success" element={<PaymentSuccess />} />
+          <Route path="/checkout" element={<Checkout />} />
+          <Route path="/parcels/:parcelId" element={<ParcelDetails/>}/>
+          
+<Route path="/notifications" element={<Notifications />} />
+          
         </Route>
 
         {/* Admin Routes */}

@@ -1,12 +1,14 @@
 import { FiSearch, FiMapPin, FiTruck } from 'react-icons/fi';
-import { useState } from 'react';
+import { useState , useEffect} from 'react';
+import { useParams } from 'react-router-dom';
 import axios from 'axios';
 import { toast } from 'react-hot-toast';
 import Navbar from '../../components/User/Navbar';
 import Footer from '../../components/User/Footer';
 
 const TrackParcelPage = () => {
-  const [trackingNumber, setTrackingNumber] = useState('');
+  const { trackingNumber: trackingNumberFromURL } = useParams(); // ✅ Get from URL
+  const [trackingNumber, setTrackingNumber] = useState(trackingNumberFromURL || '');
   const [parcelData, setParcelData] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -36,6 +38,12 @@ const TrackParcelPage = () => {
       setIsLoading(false);
     }
   };
+
+   useEffect(() => {
+    if (trackingNumberFromURL) {
+      handleTrack();
+    }
+  }, [trackingNumberFromURL]);
 
   const getStatusText = (status) => {
     const statusMap = {

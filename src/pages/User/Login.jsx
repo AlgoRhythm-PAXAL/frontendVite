@@ -33,7 +33,7 @@ const Login = () => {
       );
 
       if (response.data && response.data.status === 'success') {
-        login();
+         await login();
         toast.success('Login Successful!', { duration: 2000 });
         navigate('/');
       } else {

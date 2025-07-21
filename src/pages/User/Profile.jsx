@@ -5,7 +5,6 @@ import {
   FiX,
   FiUser,
   FiMail,
-  FiPhone,
   FiMapPin,
   FiHome,
 } from 'react-icons/fi';

@@ -1,6 +1,7 @@
-import { useState, useContext } from 'react';
+import { useState, useContext,useEffect } from 'react';
 import { NavLink, Link } from 'react-router-dom';
 import { AuthContext } from '../../contexts/AuthContext';
+import axios from 'axios';
 import {
   FaUser,
   FaSignOutAlt,
@@ -14,26 +15,85 @@ import {
 
 const Navbar = () => {
   const { isAuthenticated, user, logout } = useContext(AuthContext);
+  //
+    const [loading, setLoading] = useState(false);
+     const [notifications, setNotifications] = useState([]);
 
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [notificationsOpen, setNotificationsOpen] = useState(false);
-  const [notifications] = useState([
-    {
-      id: 1,
-      text: 'Your parcel has been delivered',
-      time: '2 hours ago',
-      read: false,
-    },
-    { id: 2, text: 'New feature available', time: '1 day ago', read: true },
-    {
-      id: 3,
-      text: 'System maintenance scheduled',
-      time: '3 days ago',
-      read: true,
-    },
-  ]);
+  //
+    useEffect(() => {
+    if (isAuthenticated) {
+      fetchNotifications();
+    }
+  }, [isAuthenticated]);
 
-  const unreadCount = notifications.filter((n) => !n.read).length;
+ const fetchNotifications = async () => {
+  setLoading(true);
+  try {
+    console.log('Fetching notifications...'); // Debug log
+    const response = await axios.get('http://localhost:8000/api/notifications',
+       { withCredentials: true }
+    );
+    console.log('Notifications response:', response); // Debug log
+    setNotifications(response.data);
+    console.log('Notifications state set:', response.data); // Debug log
+  } catch (error) {
+    console.error('Error fetching notifications:', error);
+  } finally {
+    setLoading(false);
+  }
+};
+ const markAsRead = async (id) => {
+  try {
+    const response = await axios.post(
+      `http://localhost:8000/api/notifications/mark-as-read/${id}`,
+      {},
+      { withCredentials: true }
+    );
+    
+    // Use the response data to update state
+    setNotifications(notifications.map(n => 
+      n._id === id ? response.data.notification : n
+    ));
+  } catch (error) {
+    console.error('Error marking notification as read:', error);
+  }
+};
+
+const markAllAsRead = async () => {
+  try {
+    const response = await axios.post(
+      'http://localhost:8000/api/notifications/mark-all-read',
+      {},
+      { withCredentials: true }
+    );
+    
+    // Use the response data to update state
+    setNotifications(response.data.notifications);
+  } catch (error) {
+    console.error('Error marking all notifications as read:', error);
+  }
+};
+
+  const formatTime = (dateString) => {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffInHours = (now - date) / (1000 * 60 * 60);
+    
+    if (diffInHours < 1) {
+      const minutes = Math.floor(diffInHours * 60);
+      return `${minutes} minute${minutes !== 1 ? 's' : ''} ago`;
+    } else if (diffInHours < 24) {
+      const hours = Math.floor(diffInHours);
+      return `${hours} hour${hours !== 1 ? 's' : ''} ago`;
+    } else {
+      const days = Math.floor(diffInHours / 24);
+      return `${days} day${days !== 1 ? 's' : ''} ago`;
+    }
+  };
+
+  const unreadCount = notifications.filter(n => !n.isRead).length;
 
   return (
     <nav className="flex justify-between items-center px-8 py-4 bg-white shadow-md border-teal-700">
@@ -109,13 +169,18 @@ const Navbar = () => {
       </ul>
 
       {/* Right Section: Auth Buttons OR Avatar + Notifications */}
-      <div className="flex items-center space-x-4">
+        <div className="flex items-center space-x-4">
         {isAuthenticated && (
           <>
             {/* Notification Bell */}
             <div className="relative">
               <button
-                onClick={() => setNotificationsOpen(!notificationsOpen)}
+                onClick={() => {
+                  setNotificationsOpen(!notificationsOpen);
+                  if (notificationsOpen && unreadCount > 0) {
+                    markAllAsRead();
+                  }
+                }}
                 className="p-2 text-gray-600 hover:text-teal-700 relative"
               >
                 <FaBell className="text-xl" />
@@ -133,27 +198,33 @@ const Navbar = () => {
                     <h3 className="font-semibold text-gray-800">
                       Notifications
                     </h3>
-                    <button
-                      className="text-xs text-[#1f818c] hover:underline"
-                      onClick={() => {
-                        // Mark all as read functionality would go here
-                        setNotificationsOpen(false);
-                      }}
-                    >
-                      Mark all as read
-                    </button>
+                    {unreadCount > 0 && (
+                      <button
+                        className="text-xs text-[#1f818c] hover:underline"
+                        onClick={markAllAsRead}
+                      >
+                        Mark all as read
+                      </button>
+                    )}
                   </div>
                   <ul className="max-h-80 overflow-y-auto">
-                    {notifications.length > 0 ? (
+                    {loading ? (
+                      <li className="p-4 text-center text-gray-500 text-sm">
+                        Loading...
+                      </li>
+                    ) : notifications.length > 0 ? (
                       notifications.map((notification) => (
                         <li
-                          key={notification.id}
-                          className={`border-b border-gray-100 ${!notification.read ? 'bg-blue-50' : ''}`}
+                          key={notification._id}
+                          className={`border-b border-gray-100 ${!notification.isRead ? 'bg-blue-50' : ''}`}
+                          onClick={() => {
+                            if (!notification.isRead) markAsRead(notification._id);
+                          }}
                         >
                           <div className="p-3 hover:bg-gray-50 cursor-pointer">
-                            <p className="text-sm">{notification.text}</p>
+                            <p className="text-sm">{notification.message}</p>
                             <p className="text-xs text-gray-500 mt-1">
-                              {notification.time}
+                              {formatTime(notification.createdAt)}
                             </p>
                           </div>
                         </li>

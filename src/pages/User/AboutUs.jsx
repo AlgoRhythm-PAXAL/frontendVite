@@ -1,5 +1,6 @@
 import React from 'react';
 import Navbar from '../../components/User/Navbar';
+import { Link } from 'react-router-dom';
 import {
   FiSearch,
   FiPackage,
@@ -186,25 +187,15 @@ const AboutUs = () => {
                 operations, making the process smoother for both customers and
                 staff.
               </p>
-              <a
-                href="#"
-                className="inline-flex items-center text-[#1f818c] font-semibold text-lg border-b-2 border-[#1f818c] pb-1 hover:text-[#16626b] transition-colors"
-              >
-                Learn more about
-                <svg
-                  className="w-5 h-5 ml-2"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                    d="M14 5l7 7m0 0l-7 7m7-7H3"
-                  ></path>
-                </svg>
-              </a>
+            <Link
+  to="/moreabout"
+  className="inline-flex items-center text-[#1f818c] font-semibold text-lg border-b-2 border-[#1f818c] pb-1 hover:text-[#16626b] transition-colors"
+>
+  Learn more about
+  <svg className="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path>
+  </svg>
+</Link>
             </div>
 
             {/* Right Animation */}
@@ -781,11 +772,7 @@ const AboutUs = () => {
               </div>
             </div>
             <div className="flex  ml-1 items-start">
-              {/* <FiMail className="text-[#1f818c] text-2xl mt-1 mr-3" />
-              <div>
-                <h4 className="text-[#1f818c] text-2xl font-medium mb-2">Support Email</h4>
-                <p>support@parcelmanage.com</p>
-              </div> */}
+           
             </div>
             <div className="flex ml-28 items-start">
               <FiPhone className="text-[#1f818c] text-2xl mt-1 mr-3" />
