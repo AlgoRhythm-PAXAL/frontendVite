@@ -75,6 +75,7 @@ const DriverDetails = lazy(() => import("./DriverDetails"));
 const ShipmentDetails = lazy(() => import("./ShipmentDetail"));
 const AdminDetails = lazy(() => import("./AdminDetails"));
 const VehicleDetails = lazy(() => import("./VehicleDetail"));
+const BranchDetails = lazy(() => import("./BranchDetails"));
 
 // Collection mapping for consistency
 const COLLECTION_MAPPING = {
@@ -85,6 +86,7 @@ const COLLECTION_MAPPING = {
   admin: AdminDetails,
   vehicle: VehicleDetails,
   shipment: ShipmentDetails,
+  branch: BranchDetails, // Added for consistency with backend naming
 };
 
 // Error Boundary Component
@@ -121,7 +123,7 @@ class DetailsErrorBoundary extends React.Component {
 export const EntryDetails = React.memo(
   ({ collectionName, entryId, onClose, givenId }) => {
     // Input validation
-    if (!collectionName || !entryId) {
+    if (!collectionName || !entryId || !givenId) {
       console.error("EntryDetails: Missing required props", {
         collectionName,
         entryId,

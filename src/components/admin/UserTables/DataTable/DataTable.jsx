@@ -666,6 +666,7 @@ export function DataTable({
         rowData.vehicleId ||
         rowData.staffId ||
         rowData.adminId ||
+        rowData.branchId ||
         rowData._id;
 
       onRowClick(collectionName, rowData._id, givenId);

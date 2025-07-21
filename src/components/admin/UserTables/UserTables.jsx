@@ -879,7 +879,7 @@ const UserTables = React.memo(() => {
                       sorting={true}
                       // Add any additional props specific to each table type
                       {...(value === "driver" && {
-                        updateEnabled: false,
+                        updateEnabled: true,
                         deleteEnabled: false,
                       })}
                       {...(value === "admin" && {
