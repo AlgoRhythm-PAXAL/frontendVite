@@ -125,13 +125,12 @@ const backendUrl = import.meta.env.VITE_BACKEND_URL;
 
 /**
  * Professional Number Showing Card Component
- * Fixed refresh mechanism to prevent multiple calls and request cancellation
+ * Enhanced with historical data tracking and period-based comparisons
  */
 const NumberShowingCard = ({ 
   title, 
   type, 
   icon = faUsers,
-  color = "bg-Primary",
   lightColor = "bg-blue-50",
   textColor = "text-Primary",
   description = "",
@@ -140,14 +139,15 @@ const NumberShowingCard = ({
   className = "",
   refreshInterval = 300000,
   enableAutoRefresh = false,
-  forceRefresh = 0
+  forceRefresh = 0,
+  comparisonPeriod = 7 // Default to 7 days comparison
 }) => {
   const [count, setCount] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const [hasError, setHasError] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const [lastUpdated, setLastUpdated] = useState(null);
-  const [previousCount, setPreviousCount] = useState(0);
+  const [comparisonData, setComparisonData] = useState(null);
   const [isRetrying, setIsRetrying] = useState(false);
   const [retryCount, setRetryCount] = useState(0);
 
@@ -168,8 +168,19 @@ const NumberShowingCard = ({
     // Don't abort controller here to prevent cancellation errors
   }, []);
 
-  // Enhanced fetch function with better error handling
+  // Enhanced fetch function with historical data
   const fetchUserCount = useCallback(async (isRetry = false, isForceRefresh = false) => {
+    // Get comparison period text inside callback
+    const getComparisonPeriodText = () => {
+      switch (comparisonPeriod) {
+        case 1: return "yesterday";
+        case 7: return "7 days ago";
+        case 30: return "30 days ago";
+        case 90: return "3 months ago";
+        default: return `${comparisonPeriod} days ago`;
+      }
+    };
+
     // Prevent multiple simultaneous requests
     if (isRequestInProgressRef.current && !isForceRefresh) {
       return;
@@ -206,34 +217,98 @@ const NumberShowingCard = ({
         throw new Error('Backend URL is not configured');
       }
 
-      const response = await axios.get(
-        `${backendUrl}/api/admin/users/count`,
-        { 
-          withCredentials: true, 
-          params: { user: type },
-          timeout: 10000, // Reduced timeout
-          signal: abortControllerRef.current.signal
+      // Calculate comparison date
+      const comparisonDate = new Date();
+      comparisonDate.setDate(comparisonDate.getDate() - comparisonPeriod);
+
+      // Fetch current count and historical count in parallel
+      const [currentResponse, historicalResponse] = await Promise.allSettled([
+        // Current count
+        axios.get(
+          `${backendUrl}/api/admin/users/count`,
+          { 
+            withCredentials: true, 
+            params: { user: type },
+            timeout: 10000,
+            signal: abortControllerRef.current.signal
+          }
+        ),
+        // Historical count
+        axios.get(
+          `${backendUrl}/api/admin/users/count`,
+          { 
+            withCredentials: true, 
+            params: { 
+              user: type,
+              date: comparisonDate.toISOString().split('T')[0] // YYYY-MM-DD format
+            },
+            timeout: 10000,
+            signal: abortControllerRef.current.signal
+          }
+        )
+      ]);
+
+      // Handle current count
+      if (currentResponse.status === 'fulfilled' && currentResponse.value.data) {
+        const currentData = currentResponse.value.data;
+        if (typeof currentData.count !== 'number') {
+          throw new Error('Invalid current count response format');
         }
-      );
 
-      // Validate response structure
-      if (!response.data || typeof response.data.count !== 'number') {
-        throw new Error('Invalid response format from server');
-      }
+        const newCount = Math.max(0, currentData.count);
+        setCount(newCount);
+        setLastUpdated(Date.now());
+        setRetryCount(0);
 
-      const newCount = Math.max(0, response.data.count);
-      setPreviousCount(prev => isForceRefresh ? prev : count);
-      setCount(newCount);
-      setLastUpdated(Date.now());
-      setRetryCount(0);
-      
-      // Notify parent component
-      if (onDataUpdate) {
-        onDataUpdate({
-          count: newCount,
-          type,
-          timestamp: Date.now()
-        });
+        // Handle historical count with better error handling
+        let historicalCount = null;
+        let hasValidHistoricalData = false;
+        let change = 0;
+        let changePercentage = 0;
+        
+        if (historicalResponse.status === 'fulfilled' && historicalResponse.value.data) {
+          const historicalData = historicalResponse.value.data;
+          if (typeof historicalData.count === 'number') {
+            historicalCount = Math.max(0, historicalData.count);
+            hasValidHistoricalData = true;
+          }
+        } else if (historicalResponse.status === 'rejected') {
+          console.warn(`Historical data for ${comparisonPeriod} days ago failed:`, historicalResponse.reason?.message);
+        }
+        
+        // Only set comparison data if we have valid historical data
+        if (hasValidHistoricalData && historicalCount !== null) {
+          change = newCount - historicalCount;
+          changePercentage = historicalCount > 0 ? ((change / historicalCount) * 100) : 0;
+          
+          setComparisonData({
+            current: newCount,
+            previous: historicalCount,
+            change: change,
+            changePercentage: changePercentage,
+            period: comparisonPeriod,
+            periodText: getComparisonPeriodText()
+          });
+        } else {
+          // Clear comparison data if historical data is not available
+          setComparisonData(null);
+          console.info(`No comparison data available for ${type} - ${comparisonPeriod} days ago`);
+        }
+        
+        // Notify parent component
+        if (onDataUpdate) {
+          onDataUpdate({
+            count: newCount,
+            previousCount: historicalCount,
+            change: hasValidHistoricalData ? change : 0,
+            changePercentage: hasValidHistoricalData ? changePercentage : 0,
+            type,
+            comparisonPeriod,
+            timestamp: Date.now()
+          });
+        }
+      } else {
+        throw new Error('Failed to fetch current user count');
       }
       
     } catch (error) {
@@ -261,7 +336,7 @@ const NumberShowingCard = ({
       console.error(`Failed to fetch ${type} count:`, {
         error: error.message,
         status: error.response?.status,
-        attempt: retryCount + 0
+        attempt: retryCount + 1
       });
 
       setHasError(true);
@@ -291,7 +366,7 @@ const NumberShowingCard = ({
       setIsRetrying(false);
       isRequestInProgressRef.current = false;
     }
-  }, [backendUrl, type, onError, onDataUpdate, retryCount, count]);
+  }, [type, onError, onDataUpdate, retryCount, comparisonPeriod]);
 
   // Manual retry handler
   const handleRetry = useCallback(() => {
@@ -324,7 +399,7 @@ const NumberShowingCard = ({
         refreshTimeoutRef.current = null;
       }
     };
-  }, [enableAutoRefresh, refreshInterval, hasError, lastUpdated]); // Removed fetchUserCount dependency
+  }, [enableAutoRefresh, refreshInterval, hasError, lastUpdated, fetchUserCount]);
 
   // Initial data fetch - only runs once
   useEffect(() => {
@@ -342,22 +417,46 @@ const NumberShowingCard = ({
       mounted = false;
       cleanup();
     };
-  }, [type]); // Only depend on type
+  }, [type, fetchUserCount, cleanup]);
 
-  // Change indicator with animation
+  // Enhanced change indicator with period information
   const getChangeIndicator = () => {
-    const change = count - previousCount;
-    if (change === 0) return null;
+    if (!comparisonData) return null;
+    
+    const { change, changePercentage, periodText } = comparisonData;
+    const isPositive = change > 0;
+    const isUnchanged = change === 0;
+    
+    // If no change, don't show anything
+    if (isUnchanged) return null;
     
     return (
-      <div className={`flex items-center gap-1 text-xs font-medium animate-pulse ${
-        change > 0 ? 'text-green-600' : 'text-red-600'
-      }`}>
-        <span>{change > 0 ? '+' : ''}{change}</span>
-        <FontAwesomeIcon 
-          icon={change > 0 ? faCheckCircle : faExclamationTriangle} 
-          className="w-3 h-3" 
-        />
+      <div className="flex flex-col gap-1 text-xs font-medium">
+        {/* Change amount and icon */}
+        <div className={`flex items-center gap-1 ${
+          isPositive ? 'text-green-600' : 'text-red-600'
+        }`}>
+          <span>{isPositive ? '+' : ''}{change.toLocaleString()}</span>
+          <FontAwesomeIcon 
+            icon={isPositive ? faCheckCircle : faExclamationTriangle} 
+            className="w-3 h-3" 
+          />
+        </div>
+        
+        {/* Always show comparison period when there's a change */}
+        <div className="text-gray-500 text-xs">
+          vs {periodText}
+        </div>
+        
+        {/* Percentage change */}
+        {Math.abs(changePercentage) > 0 && (
+          <div className={`text-xs flex items-center gap-1 ${
+            isPositive ? 'text-green-500' : 'text-red-500'
+          }`}>
+            <span>{isPositive ? '↗' : '↘'}</span>
+            <span>{Math.abs(changePercentage).toFixed(1)}%</span>
+          </div>
+        )}
       </div>
     );
   };
@@ -482,7 +581,6 @@ NumberShowingCard.propTypes = {
   title: PropTypes.string.isRequired,
   type: PropTypes.string.isRequired,
   icon: PropTypes.object,
-  color: PropTypes.string,
   lightColor: PropTypes.string,
   textColor: PropTypes.string,
   description: PropTypes.string,
@@ -492,6 +590,7 @@ NumberShowingCard.propTypes = {
   refreshInterval: PropTypes.number,
   enableAutoRefresh: PropTypes.bool,
   forceRefresh: PropTypes.number,
+  comparisonPeriod: PropTypes.number,
 };
 
 export default NumberShowingCard;

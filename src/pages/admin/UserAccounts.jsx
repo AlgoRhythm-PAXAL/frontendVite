@@ -1,7 +1,8 @@
 import SectionTitle from '../../components/admin/SectionTitle';
 import UserRegistrationForm from '../../components/admin/UserRegistrationForm';
 import UserTables from '../../components/admin/UserTables/UserTables';
-import UserCount from "../../components/admin/userCounts/userCount";
+import UserCount from "../../components/admin/userCounts/UserCount";
+//Fixed import path for UserCount
 
 
 const UserAccounts = () => {
