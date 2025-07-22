@@ -81,8 +81,8 @@ import CreatedShipmentsPage from "./pages/staff/ShipmentManagement/CreatedShipme
 import ViewShipmentsPage from "./pages/staff/ShipmentManagement/ViewShipmentsPage/viewShipmentsPage";
 import ManifestPage from "./pages/staff/ShipmentManagement/ManifestPage/manifestPage";
 import DashboardPage from "./pages/staff/CollectionManagement/Dashboard/dashboardPage";
+import ParcelListPage from "./pages/staff/CollectionManagement/Dashboard/ParcelListPage";
 import TrackingPageStaff from "./pages/staff/CollectionManagement/Tracking/trackingPage";
-import LeftBar from "./components/staff/LeftBar";
 import Scanner from "./pages/staff/Scanner";
 import StaffProfile from "./pages/staff/StaffProfile";
  // You'll need to create this
@@ -178,6 +178,7 @@ const App = () => {
           <Route path="shipment-management/manual-shipment-page" element={<ManualShipmentPage />} />
                     {/* Collection Management routes */}
           <Route path="collection-management/dashboard" element={<DashboardPage />} />
+          <Route path="collection-management/dashboard/parcels/:type/:date" element={<ParcelListPage />} />
           <Route path="collection-management/tracking" element={<TrackingPageStaff />} />
                  <Route path="shipment-management/created-shipments-page" element={<CreatedShipmentsPage />}/>
           <Route path="shipment-management/view-shipments" element={<ViewShipmentsPage />} />
