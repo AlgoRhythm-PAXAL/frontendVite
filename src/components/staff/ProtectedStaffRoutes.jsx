@@ -1,6 +1,6 @@
-import { Navigate, Outlet } from "react-router-dom";
-import axios from "axios";
-import { useEffect, useState } from "react";
+import { Navigate, Outlet } from 'react-router-dom';
+import axios from 'axios';
+import { useEffect, useState } from 'react';
 
 const ProtectedStaffRoute = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(null);
@@ -8,11 +8,13 @@ const ProtectedStaffRoute = () => {
   useEffect(() => {
     const verifyToken = async () => {
       try {
-        const response = await axios.get("http://localhost:8000/staff/status", { withCredentials: true });
-        console.log("Token Verified!",response);
+        const response = await axios.get('http://localhost:8000/staff/status', {
+          withCredentials: true,
+        });
+        console.log('Token Verified!', response);
         setIsAuthenticated(true);
       } catch (error) {
-        console.error("Token verification failed:", error);
+        console.error('Token verification failed:', error);
         setIsAuthenticated(false);
       }
     };
@@ -21,7 +23,7 @@ const ProtectedStaffRoute = () => {
   }, []);
 
   if (isAuthenticated === null) return <div>Loading...</div>;
-  isAuthenticated?console.log("Authenticated!"):console.log("Not verified");
+  isAuthenticated ? console.log('Authenticated!') : console.log('Not verified');
 
   return isAuthenticated ? <Outlet /> : <Navigate to="/staff/login" />;
 };

@@ -16,15 +16,19 @@ export const fetchBranches = async () => {
 // Submit parcel data to backend
 export const submitParcel = async (parcelData) => {
   try {
-   
-    
-    const response = await axios.post('http://localhost:8000/api/parcels/addparcel', parcelData, {
+    const response = await axios.post(
+      'http://localhost:8000/api/parcels/addparcel',
+      parcelData,
+      {
         withCredentials: true,
-      
-    });
+      }
+    );
     return response.data;
   } catch (error) {
-    console.error('Error submitting parcel:', error.response?.data || error.message);
+    console.error(
+      'Error submitting parcel:',
+      error.response?.data || error.message
+    );
     throw error;
   }
 };

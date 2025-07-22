@@ -11,14 +11,16 @@ const ProfilePicture = ({ publicId, width }) => {
   }
 
   // Generate image URL with Cloudinary transformations
-  const imageUrl = `https://res.cloudinary.com/${cloudName}/image/upload/` +
+  const imageUrl =
+    `https://res.cloudinary.com/${cloudName}/image/upload/` +
     `c_fill,g_face,w_${width},h_${width},q_auto,f_auto/${publicId}`;
 
   // Generate responsive srcSet
   const srcSet = [100, 200, 300, 400]
-    .map(size => 
-      `https://res.cloudinary.com/${cloudName}/image/upload/` +
-      `c_fill,g_face,w_${size},h_${size},q_auto,f_auto/${publicId} ${size}w`
+    .map(
+      (size) =>
+        `https://res.cloudinary.com/${cloudName}/image/upload/` +
+        `c_fill,g_face,w_${size},h_${size},q_auto,f_auto/${publicId} ${size}w`
     )
     .join(', ');
 
@@ -34,7 +36,7 @@ const ProfilePicture = ({ publicId, width }) => {
         width: `${width}px`,
         height: `${width}px`,
         minWidth: `${width}px`,
-        minHeight: `${width}px`
+        minHeight: `${width}px`,
       }}
     />
   );

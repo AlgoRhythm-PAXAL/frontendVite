@@ -1,31 +1,39 @@
-import "./App.css";
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import Dashboard from "./pages/admin/Dashboard";
-import UserAccounts from "./pages/admin/UserAccounts";
-import AdminLayout from "./pages/admin/AdminLayout";
-import Parcels from "./pages/admin/Parcels";
-import Shipments from "./pages/admin/Shipments";
-import AdminLogin from "./pages/admin/AdminLogin";
+import './App.css';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import Dashboard from './pages/admin/Dashboard';
+import UserAccounts from './pages/admin/UserAccounts';
+import AdminLayout from './pages/admin/AdminLayout';
+import Parcels from './pages/admin/Parcels';
+import Shipments from './pages/admin/Shipments';
+import AdminLogin from './pages/admin/AdminLogin';
 
 {
   /*User Routes */
 }
 
-import Home from "./pages/User/userHome";
-import Signup from "./pages/User/Signup";
-import Login from "./pages/User/Login";
-import Emailverify from "./pages/User/Emailverify";
-import ForgetPassword from "./pages/User/ForgetPassword";
-import ResetPassword from "./pages/User/ResetPassword";
-import Profile from "./pages/User/Profile";
-import AddParcel from "./pages/User/AddParcel";
-import Parcel from "./pages/User/Parcel";
-import TrackingPage from "./pages/User/TrackingPage";
-import Checkout from "./pages/User/Checkout";
-import ContactUs from "./pages/User/ContactUs";
-import { Toaster as HotToastToaster } from "react-hot-toast"; // ✅ Import Toaster
-import AboutUs from "./pages/User/AboutUs";
-import PaymentSuccess from "./pages/User/PaymentSuccess";
+import ProtectedRoute from './components/ProtectedRoute';
+import Home from './pages/User/userHome';
+import Signup from './pages/User/Signup';
+import Login from './pages/User/Login';
+import Emailverify from './pages/User/Emailverify';
+import ForgetPassword from './pages/User/ForgetPassword';
+import ResetPassword from './pages/User/ResetPassword';
+import Profile from './pages/User/Profile';
+import AddParcel from './pages/User/AddParcel';
+import Parcel from './pages/User/Parcel';
+import TrackingPage from './pages/User/TrackingPage';
+import Checkout from './pages/User/Checkout';
+import ContactUs from './pages/User/ContactUs';
+import { Toaster as HotToastToaster } from 'react-hot-toast'; //  Import Toaster
+import AboutUs from './pages/User/AboutUs';
+import PaymentSuccess from './pages/User/PaymentSuccess';
+import ParcelDetails from './pages/User/ParcelDetails';
+// In your main routes file (e.g., App.js)
+import Notifications from './pages/User/Notifications';
+import LearnMore from './pages/User/LearnMore';
+
+
+
 {
   /*User Routes */
 }
@@ -82,7 +90,13 @@ import StaffProfile from "./pages/staff/StaffProfile";
 const App = () => {
   return (
     <Router>
-      <SonnerToaster position="bottom-right" richColors expand visibleToasts={5} offset="16px" />
+      <SonnerToaster
+        position="bottom-right"
+        richColors
+        expand
+        visibleToasts={5}
+        offset="16px"
+      />
       <HotToastToaster position="top-center" reverseOrder={false} />
       <Routes>
         <Route path="/" element={<Home />} />
@@ -91,14 +105,23 @@ const App = () => {
         <Route path="/verify" element={<Emailverify />} />
         <Route path="/forget-password" element={<ForgetPassword />} />
         <Route path="/reset-password" element={<ResetPassword />} />
-        <Route path="/profile" element={<Profile />} />
-        <Route path="/addparcel" element={<AddParcel />} />
-        <Route path="/parcel" element={<Parcel />} />
-        <Route path="/track" element={<TrackingPage />} />
-        <Route path="/checkout" element={<Checkout />} />
         <Route path="/contactus" element={<ContactUs />} />
         <Route path="/aboutus" element={<AboutUs />} />
-        <Route path="/payment-success" element={<PaymentSuccess />} />
+        <Route path="/moreabout" element={<LearnMore/>} />
+        {/* All protected routes */}
+        <Route element={<ProtectedRoute />}>
+          <Route path="/profile" element={<Profile />} />
+          <Route path="/addparcel" element={<AddParcel />} />
+          <Route path="/parcel" element={<Parcel />} />
+          <Route path="/track" element={<TrackingPage />} />
+          <Route path="/track/:trackingNumber" element={<TrackingPage />} />
+          <Route path="/payment-success" element={<PaymentSuccess />} />
+          <Route path="/checkout" element={<Checkout />} />
+          <Route path="/parcels/:parcelId" element={<ParcelDetails/>}/>
+          
+<Route path="/notifications" element={<Notifications />} />
+          
+        </Route>
 
         {/* Admin Routes */}
         <Route path="/admin/login" element={<AdminLogin />} />
