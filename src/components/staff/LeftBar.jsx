@@ -35,7 +35,10 @@ const SideBar = () => {
         },
         {
             title: "Collection Management",
-            items: [{ title: "View doorstep parcels", path: "/staff/collection-management/assign-driver" },
+             items: [
+                  { title: "Dashboard", path: "/staff/collection-management/dashboard" },
+                { title: "Track Parcels", path: "/staff/collection-management/tracking" },
+                { title: "View doorstep parcels", path: "/staff/collection-management/assign-driver" },
                 { title: "View collection-center parcels", path: "/staff/collection-management/view-collection-center-delivery-parcels" },
                ]
         },
@@ -44,6 +47,7 @@ const SideBar = () => {
             items: [
                 { title: "Create Shipment", path: "/staff/shipment-management/parcel-table-page" },
                 { title: "Create Shipment Manually", path: "/staff/shipment-management/manual-shipment-page" },
+                { title: "Created Shipments", path: "/staff/shipment-management/created-shipments-page" },
                 { title: "View Shipments", path: "/staff/shipment-management/view-shipments" }
             ]
         },

@@ -6,9 +6,6 @@ import UserCount from "../../components/admin/userCounts/UserCount";
 
 
 const UserAccounts = () => {
-
-
-
   return (
     <div className="flex flex-col gap-5 mx-8 mb-10 ">
       <SectionTitle title="User Accounts" />

@@ -1,31 +1,39 @@
-import "./App.css";
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import Dashboard from "./pages/admin/Dashboard";
-import UserAccounts from "./pages/admin/UserAccounts";
-import AdminLayout from "./pages/admin/AdminLayout";
-import Parcels from "./pages/admin/Parcels";
-import Shipments from "./pages/admin/Shipments";
-import AdminLogin from "./pages/admin/AdminLogin";
+import './App.css';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import Dashboard from './pages/admin/Dashboard';
+import UserAccounts from './pages/admin/UserAccounts';
+import AdminLayout from './pages/admin/AdminLayout';
+import Parcels from './pages/admin/Parcels';
+import Shipments from './pages/admin/Shipments';
+import AdminLogin from './pages/admin/AdminLogin';
 
 {
   /*User Routes */
 }
 
-import Home from "./pages/User/userHome";
-import Signup from "./pages/User/Signup";
-import Login from "./pages/User/Login";
-import Emailverify from "./pages/User/Emailverify";
-import ForgetPassword from "./pages/User/ForgetPassword";
-import ResetPassword from "./pages/User/ResetPassword";
-import Profile from "./pages/User/Profile";
-import AddParcel from "./pages/User/AddParcel";
-import Parcel from "./pages/User/Parcel";
-import TrackingPage from "./pages/User/TrackingPage";
-import Checkout from "./pages/User/Checkout";
-import ContactUs from "./pages/User/ContactUs";
-import { Toaster as HotToastToaster } from "react-hot-toast"; // ✅ Import Toaster
-import AboutUs from "./pages/User/AboutUs";
-import PaymentSuccess from "./pages/User/PaymentSuccess";
+import ProtectedRoute from './components/ProtectedRoute';
+import Home from './pages/User/userHome';
+import Signup from './pages/User/Signup';
+import Login from './pages/User/Login';
+import Emailverify from './pages/User/Emailverify';
+import ForgetPassword from './pages/User/ForgetPassword';
+import ResetPassword from './pages/User/ResetPassword';
+import Profile from './pages/User/Profile';
+import AddParcel from './pages/User/AddParcel';
+import Parcel from './pages/User/Parcel';
+import TrackingPage from './pages/User/TrackingPage';
+import Checkout from './pages/User/Checkout';
+import ContactUs from './pages/User/ContactUs';
+import { Toaster as HotToastToaster } from 'react-hot-toast'; //  Import Toaster
+import AboutUs from './pages/User/AboutUs';
+import PaymentSuccess from './pages/User/PaymentSuccess';
+import ParcelDetails from './pages/User/ParcelDetails';
+// In your main routes file (e.g., App.js)
+import Notifications from './pages/User/Notifications';
+import LearnMore from './pages/User/LearnMore';
+
+
+
 {
   /*User Routes */
 }
@@ -65,14 +73,30 @@ import ViewRepliedInquiries from "./pages/staff/Inquiry/ViewRepliedInquiries";
 import ReplyToInquiry from "./pages/staff/Inquiry/ReplyToInquiry";
 import ViewOneRepliedInquiry from "./pages/staff/Inquiry/ViewOneRepliedInquiry";
 import ViewOneCollectionCenterDeliveryparcel from "./pages/staff/ViewOneCollectionCenterDeliveryParcel";
-import ParcelTablePage from "./pages/staff/ParcelTablePage/parcelTablePage";
-import ManualShipmentPage from "./pages/staff/ManualShipmentPage/manualShipmentPage"
+
+
+import ParcelTablePage from "./pages/staff/ShipmentManagement/ParcelTablePage/parcelTablePage";
+import ManualShipmentPage from "./pages/staff/ShipmentManagement/ManualShipmentPage/manualShipmentPage";
+import CreatedShipmentsPage from "./pages/staff/ShipmentManagement/CreatedShipmentsPage/createdShipmentsPage";
+import ViewShipmentsPage from "./pages/staff/ShipmentManagement/ViewShipmentsPage/viewShipmentsPage";
+import ManifestPage from "./pages/staff/ShipmentManagement/ManifestPage/manifestPage";
+import DashboardPage from "./pages/staff/CollectionManagement/Dashboard/dashboardPage";
+import TrackingPageStaff from "./pages/staff/CollectionManagement/Tracking/trackingPage";
+import LeftBar from "./components/staff/LeftBar";
 import Scanner from "./pages/staff/Scanner";
 import StaffProfile from "./pages/staff/StaffProfile";
+ // You'll need to create this
+
 const App = () => {
   return (
     <Router>
-      <SonnerToaster position="bottom-right" richColors expand visibleToasts={5} offset="16px" />
+      <SonnerToaster
+        position="bottom-right"
+        richColors
+        expand
+        visibleToasts={5}
+        offset="16px"
+      />
       <HotToastToaster position="top-center" reverseOrder={false} />
       <Routes>
         <Route path="/" element={<Home />} />
@@ -81,14 +105,23 @@ const App = () => {
         <Route path="/verify" element={<Emailverify />} />
         <Route path="/forget-password" element={<ForgetPassword />} />
         <Route path="/reset-password" element={<ResetPassword />} />
-        <Route path="/profile" element={<Profile />} />
-        <Route path="/addparcel" element={<AddParcel />} />
-        <Route path="/parcel" element={<Parcel />} />
-        <Route path="/track" element={<TrackingPage />} />
-        <Route path="/checkout" element={<Checkout />} />
         <Route path="/contactus" element={<ContactUs />} />
         <Route path="/aboutus" element={<AboutUs />} />
-        <Route path="/payment-success" element={<PaymentSuccess />} />
+        <Route path="/moreabout" element={<LearnMore/>} />
+        {/* All protected routes */}
+        <Route element={<ProtectedRoute />}>
+          <Route path="/profile" element={<Profile />} />
+          <Route path="/addparcel" element={<AddParcel />} />
+          <Route path="/parcel" element={<Parcel />} />
+          <Route path="/track" element={<TrackingPage />} />
+          <Route path="/track/:trackingNumber" element={<TrackingPage />} />
+          <Route path="/payment-success" element={<PaymentSuccess />} />
+          <Route path="/checkout" element={<Checkout />} />
+          <Route path="/parcels/:parcelId" element={<ParcelDetails/>}/>
+          
+<Route path="/notifications" element={<Notifications />} />
+          
+        </Route>
 
         {/* Admin Routes */}
         <Route path="/admin/login" element={<AdminLogin />} />
@@ -136,15 +169,23 @@ const App = () => {
 
 
 
+
             <Route path="inquiry-management/view-new-inquiries" element={<NewInquiries/>}/>
             <Route path="inquiry-management/view-replied-inquiries" element={<ViewRepliedInquiries/>}/>
             <Route path="inquiry-management/reply-to-inquiry/:inquiryId" element={<ReplyToInquiry/>}/>
             <Route path="inquiry-management/view-replied-inquiries/:inquiryId" element={<ViewOneRepliedInquiry/>}/>
             <Route path="shipment-management/parcel-table-page" element={<ParcelTablePage />} />
           <Route path="shipment-management/manual-shipment-page" element={<ManualShipmentPage />} />
-          
-
-          </Route>
+                    {/* Collection Management routes */}
+          <Route path="collection-management/dashboard" element={<DashboardPage />} />
+          <Route path="collection-management/tracking" element={<TrackingPageStaff />} />
+                 <Route path="shipment-management/created-shipments-page" element={<CreatedShipmentsPage />}/>
+          <Route path="shipment-management/view-shipments" element={<ViewShipmentsPage />} />
+          <Route path="shipment-management/manifest/:shipmentId" element={<ManifestPage />} />
+          {/* Add other staff routes here */}
+          {/* <Route path="shipment-management/create-shipment" element={<CreateShipment />} /> */}
+          {/* <Route path="shipment-management/view-shipments" element={<ViewShipments />} /> */}
+        </Route>
         </Route>
       </Routes>
     </Router>
