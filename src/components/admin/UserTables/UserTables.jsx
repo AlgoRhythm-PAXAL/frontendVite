@@ -663,11 +663,11 @@ const columnDefinitions = {
     },
   ],
   customer: [
-    {
-      accessorKey: "userId",
-      header: "Customer ID",
-      cell: ({ getValue }) => getValue() || "N/A",
-    },
+    // {
+    //   accessorKey: "userId",
+    //   header: "Customer ID",
+    //   cell: ({ getValue }) => getValue() || "N/A",
+    // },
     {
       accessorKey: "name",
       header: "Name",
