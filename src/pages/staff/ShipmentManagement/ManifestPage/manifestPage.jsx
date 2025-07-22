@@ -239,7 +239,7 @@ const ManifestPage = () => {
                 </div>
 
                 {/* Vehicle Information */}
-                {manifestData.assignedVehicle && (
+                {manifestData.assignedVehicle ? (
                     <div className="section mb-8">
                         <div className="section-title flex items-center gap-2 text-xl font-bold text-gray-800 mb-6">
                             <Truck className="w-6 h-6 text-[#1F818C]" />
@@ -249,34 +249,56 @@ const ManifestPage = () => {
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div className="space-y-2">
                                     <div className="flex justify-between">
-                                        <span className="font-semibold text-green-700">Vehicle Number:</span>
-                                        <span className="text-green-800">{manifestData.assignedVehicle.vehicleNumber}</span>
+                                        <span className="font-semibold text-green-700">Vehicle ID:</span>
+                                        <span className="text-green-800">{manifestData.assignedVehicle.vehicleId || 'N/A'}</span>
+                                    </div>
+                                    <div className="flex justify-between">
+                                        <span className="font-semibold text-green-700">Registration No:</span>
+                                        <span className="text-green-800">{manifestData.assignedVehicle.registrationNo || 'N/A'}</span>
                                     </div>
                                     <div className="flex justify-between">
                                         <span className="font-semibold text-green-700">Vehicle Type:</span>
-                                        <span className="text-green-800">{manifestData.assignedVehicle.type}</span>
+                                        <span className="text-green-800">{manifestData.assignedVehicle.vehicleType || 'N/A'}</span>
                                     </div>
                                     <div className="flex justify-between">
-                                        <span className="font-semibold text-green-700">Capacity:</span>
-                                        <span className="text-green-800">{manifestData.assignedVehicle.capacity} kg</span>
+                                        <span className="font-semibold text-green-700">Weight Capacity:</span>
+                                        <span className="text-green-800">{manifestData.assignedVehicle.capableWeight || 'N/A'} kg</span>
+                                    </div>
+                                    <div className="flex justify-between">
+                                        <span className="font-semibold text-green-700">Volume Capacity:</span>
+                                        <span className="text-green-800">{manifestData.assignedVehicle.capableVolume || 'N/A'} m³</span>
                                     </div>
                                 </div>
                                 {manifestData.assignedDriver && (
                                     <div className="space-y-2">
                                         <div className="flex justify-between">
                                             <span className="font-semibold text-green-700">Driver Name:</span>
-                                            <span className="text-green-800">{manifestData.assignedDriver.name}</span>
+                                            <span className="text-green-800">{manifestData.assignedDriver.name || 'N/A'}</span>
                                         </div>
                                         <div className="flex justify-between">
                                             <span className="font-semibold text-green-700">Contact:</span>
-                                            <span className="text-green-800">{manifestData.assignedDriver.contactNumber}</span>
+                                            <span className="text-green-800">{manifestData.assignedDriver.contactNo || 'N/A'}</span>
                                         </div>
                                         <div className="flex justify-between">
                                             <span className="font-semibold text-green-700">License:</span>
-                                            <span className="text-green-800">{manifestData.assignedDriver.licenseNumber}</span>
+                                            <span className="text-green-800">{manifestData.assignedDriver.licenseId || 'N/A'}</span>
                                         </div>
                                     </div>
                                 )}
+                            </div>
+                        </div>
+                    </div>
+                ) : (
+                    <div className="section mb-8">
+                        <div className="section-title flex items-center gap-2 text-xl font-bold text-gray-800 mb-6">
+                            <Truck className="w-6 h-6 text-[#1F818C]" />
+                            Assigned Vehicle
+                        </div>
+                        <div className="bg-yellow-50 rounded-lg p-4">
+                            <div className="text-center text-yellow-700">
+                                <Truck className="w-12 h-12 mx-auto mb-2 text-yellow-400" />
+                                <p className="font-medium">No vehicle assigned yet</p>
+                                <p className="text-sm">Vehicle assignment is pending</p>
                             </div>
                         </div>
                     </div>
@@ -307,7 +329,7 @@ const ManifestPage = () => {
                                     <div>
                                         <div className="font-semibold text-green-800">Vehicle Assigned</div>
                                         <div className="text-sm text-green-600">
-                                            Vehicle {manifestData.assignedVehicle.vehicleNumber} assigned to shipment
+                                            Vehicle {manifestData.assignedVehicle.registrationNo || manifestData.assignedVehicle.vehicleId} assigned to shipment
                                         </div>
                                     </div>
                                     <div className="text-sm text-green-700 font-medium">
@@ -413,7 +435,7 @@ const ManifestPage = () => {
                             {manifestData.parcels.map((parcel, index) => (
                                 <div key={index} className="parcel-details bg-gray-50 rounded-lg p-6 border border-gray-200">
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                        {/* Parcel Basic Info */}
+                                        {/* Parcel Basic Info - Only schema fields */}
                                         <div>
                                             <h4 className="font-semibold text-gray-800 mb-3 flex items-center gap-2">
                                                 <Package className="w-5 h-5 text-[#1F818C]" />
@@ -429,12 +451,24 @@ const ManifestPage = () => {
                                                     <span className="font-medium">{parcel.trackingNo || 'N/A'}</span>
                                                 </div>
                                                 <div className="flex justify-between">
-                                                    <span className="text-gray-600">Weight:</span>
-                                                    <span className="font-medium">{parcel.weight || 'N/A'} kg</span>
+                                                    <span className="text-gray-600">QR Code:</span>
+                                                    {parcel.qrCodeNo ? (
+                                                        <img 
+                                                            src={parcel.qrCodeNo} 
+                                                            alt="QR Code" 
+                                                            className="w-12 h-12 border border-gray-300 rounded"
+                                                        />
+                                                    ) : (
+                                                        <span className="font-medium">N/A</span>
+                                                    )}
                                                 </div>
                                                 <div className="flex justify-between">
                                                     <span className="text-gray-600">Item Type:</span>
                                                     <span className="font-medium">{parcel.itemType || 'N/A'}</span>
+                                                </div>
+                                                <div className="flex justify-between">
+                                                    <span className="text-gray-600">Item Size:</span>
+                                                    <span className="font-medium">{parcel.itemSize || 'N/A'}</span>
                                                 </div>
                                                 <div className="flex justify-between">
                                                     <span className="text-gray-600">Status:</span>
@@ -450,25 +484,25 @@ const ManifestPage = () => {
                                             </div>
                                         </div>
 
-                                        {/* Parcel Details */}
+                                        {/* Parcel Details - Only schema fields */}
                                         <div>
-                                            <h4 className="font-semibold text-gray-800 mb-3">Additional Details</h4>
+                                            <h4 className="font-semibold text-gray-800 mb-3">Shipping Details</h4>
                                             <div className="space-y-2">
                                                 <div className="flex justify-between">
-                                                    <span className="text-gray-600">Description:</span>
-                                                    <span className="font-medium text-right flex-1 ml-2">{parcel.description || 'N/A'}</span>
+                                                    <span className="text-gray-600">Shipping Method:</span>
+                                                    <span className="font-medium">{parcel.shippingMethod || 'N/A'}</span>
                                                 </div>
                                                 <div className="flex justify-between">
-                                                    <span className="text-gray-600">Dimensions:</span>
-                                                    <span className="font-medium">{parcel.dimensions || 'N/A'}</span>
+                                                    <span className="text-gray-600">Submitting Type:</span>
+                                                    <span className="font-medium">{parcel.submittingType || 'N/A'}</span>
                                                 </div>
                                                 <div className="flex justify-between">
-                                                    <span className="text-gray-600">Fragile:</span>
-                                                    <span className="font-medium">{parcel.fragile ? 'Yes' : 'No'}</span>
+                                                    <span className="text-gray-600">Receiving Type:</span>
+                                                    <span className="font-medium">{parcel.receivingType || 'N/A'}</span>
                                                 </div>
                                                 <div className="flex justify-between">
-                                                    <span className="text-gray-600">COD Amount:</span>
-                                                    <span className="font-medium">{parcel.codAmount ? `Rs. ${parcel.codAmount}` : 'N/A'}</span>
+                                                    <span className="text-gray-600">Special Instructions:</span>
+                                                    <span className="font-medium text-right flex-1 ml-2">{parcel.specialInstructions || 'None'}</span>
                                                 </div>
                                                 <div className="flex justify-between">
                                                     <span className="text-gray-600">Created:</span>
@@ -480,24 +514,57 @@ const ManifestPage = () => {
 
                                     {/* Sender & Receiver Information */}
                                     <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+                                        {/* Sender Information */}
                                         <div className="address-info bg-blue-50 rounded-lg p-4">
                                             <h5 className="font-semibold text-blue-800 mb-3 flex items-center gap-2">
                                                 <MapPin className="w-4 h-4" />
-                                                From: {parcel.from?.location || 'N/A'}
+                                                Sender Information
                                             </h5>
                                             <div className="space-y-2 text-sm">
+                                                <div><span className="font-medium">Name:</span> {parcel.senderId?.name || 'N/A'}</div>
+                                                <div><span className="font-medium">Email:</span> {parcel.senderId?.email || 'N/A'}</div>
+                                                <div><span className="font-medium">Phone:</span> {parcel.senderId?.phone || 'N/A'}</div>
+                                                <div><span className="font-medium">Address:</span> {parcel.senderId?.address || 'N/A'}</div>
+                                            </div>
+                                        </div>
+
+                                        {/* Receiver Information */}
+                                        <div className="address-info bg-green-50 rounded-lg p-4">
+                                            <h5 className="font-semibold text-green-800 mb-3 flex items-center gap-2">
+                                                <MapPin className="w-4 h-4" />
+                                                Receiver Information
+                                            </h5>
+                                            <div className="space-y-2 text-sm">
+                                                <div><span className="font-medium">Name:</span> {parcel.receiverId?.name || 'N/A'}</div>
+                                                <div><span className="font-medium">Email:</span> {parcel.receiverId?.email || 'N/A'}</div>
+                                                <div><span className="font-medium">Phone:</span> {parcel.receiverId?.phone || 'N/A'}</div>
+                                                <div><span className="font-medium">Address:</span> {parcel.receiverId?.address || 'N/A'}</div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* From/To Branch Information */}
+                                    <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-6">
+                                        <div className="address-info bg-indigo-50 rounded-lg p-4">
+                                            <h5 className="font-semibold text-indigo-800 mb-3 flex items-center gap-2">
+                                                <MapPin className="w-4 h-4" />
+                                                From Branch
+                                            </h5>
+                                            <div className="space-y-2 text-sm">
+                                                <div><span className="font-medium">Location:</span> {parcel.from?.location || 'N/A'}</div>
                                                 <div><span className="font-medium">Branch ID:</span> {parcel.from?.branchId || 'N/A'}</div>
                                                 <div><span className="font-medium">Address:</span> {parcel.from?.address || 'N/A'}</div>
                                                 <div><span className="font-medium">Contact:</span> {parcel.from?.contact || 'N/A'}</div>
                                             </div>
                                         </div>
 
-                                        <div className="address-info bg-green-50 rounded-lg p-4">
-                                            <h5 className="font-semibold text-green-800 mb-3 flex items-center gap-2">
+                                        <div className="address-info bg-purple-50 rounded-lg p-4">
+                                            <h5 className="font-semibold text-purple-800 mb-3 flex items-center gap-2">
                                                 <MapPin className="w-4 h-4" />
-                                                To: {parcel.to?.location || 'N/A'}
+                                                To Branch
                                             </h5>
                                             <div className="space-y-2 text-sm">
+                                                <div><span className="font-medium">Location:</span> {parcel.to?.location || 'N/A'}</div>
                                                 <div><span className="font-medium">Branch ID:</span> {parcel.to?.branchId || 'N/A'}</div>
                                                 <div><span className="font-medium">Address:</span> {parcel.to?.address || 'N/A'}</div>
                                                 <div><span className="font-medium">Contact:</span> {parcel.to?.contact || 'N/A'}</div>
@@ -506,24 +573,24 @@ const ManifestPage = () => {
                                     </div>
 
                                     {/* Payment Information */}
-                                    {(parcel.paymentInfo || parcel.paymentMethod || parcel.paymentStatus) && (
-                                        <div className="mt-4 bg-purple-50 rounded-lg p-4">
-                                            <h5 className="font-semibold text-purple-800 mb-3 flex items-center gap-2">
+                                    {parcel.paymentId && (
+                                        <div className="mt-4 bg-emerald-50 rounded-lg p-4">
+                                            <h5 className="font-semibold text-emerald-800 mb-3 flex items-center gap-2">
                                                 <CreditCard className="w-4 h-4" />
                                                 Payment Information
                                             </h5>
                                             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
-                                                <div><span className="font-medium">Method:</span> {parcel.paymentMethod || 'N/A'}</div>
+                                                <div><span className="font-medium">Amount:</span> Rs. {parcel.paymentId?.amount || 'N/A'}</div>
+                                                <div><span className="font-medium">Method:</span> {parcel.paymentId?.method || 'N/A'}</div>
                                                 <div><span className="font-medium">Status:</span> 
                                                     <span className={`ml-2 px-2 py-1 rounded text-xs ${
-                                                        parcel.paymentStatus === 'Paid' ? 'bg-green-100 text-green-800' :
-                                                        parcel.paymentStatus === 'Pending' ? 'bg-yellow-100 text-yellow-800' :
+                                                        parcel.paymentId?.status === 'Paid' ? 'bg-green-100 text-green-800' :
+                                                        parcel.paymentId?.status === 'Pending' ? 'bg-yellow-100 text-yellow-800' :
                                                         'bg-gray-100 text-gray-800'
                                                     }`}>
-                                                        {parcel.paymentStatus || 'N/A'}
+                                                        {parcel.paymentId?.status || 'N/A'}
                                                     </span>
                                                 </div>
-                                                <div><span className="font-medium">Amount:</span> {parcel.paymentAmount ? `Rs. ${parcel.paymentAmount}` : 'N/A'}</div>
                                             </div>
                                         </div>
                                     )}

@@ -17,18 +17,10 @@ const DashboardPage = () => {
     const [parcelStats, setParcelStats] = useState({
         total: 0,
         arrived: 0,
-        delivered: 0
-    });
-    const [dailyStats, setDailyStats] = useState({
-        total: 0,
-        arrived: 0,
         delivered: 0,
-        failedDelivery: 0
+        nonDelivered: 0
     });
-    const [dailyDetails, setDailyDetails] = useState([]);
     const [driverStats, setDriverStats] = useState([]);
-    const [showDailyDetails, setShowDailyDetails] = useState(false);
-    const [selectedDateString, setSelectedDateString] = useState('');
     const [loading, setLoading] = useState(true);
     const [successMessage, setSuccessMessage] = useState('');
     const [errorMessage, setErrorMessage] = useState('');
@@ -79,7 +71,10 @@ const DashboardPage = () => {
                 setLoading(true);
                 // Get user's center from localStorage
                 const userCenter = localStorage.getItem('userCenter') || '682e1059ce33c2a891c9b168';
-                const       formattedDate = selectedDate.toISOString().split('T')[0];
+                // Format date as YYYY-MM-DD in local timezone
+                const formattedDate = selectedDate.getFullYear() + '-' + 
+                    String(selectedDate.getMonth() + 1).padStart(2, '0') + '-' + 
+                    String(selectedDate.getDate()).padStart(2, '0');
                 
                 // console.log("=== FRONTEND: FETCHING PARCEL STATS ===");
                 // console.log("User center:", userCenter);
@@ -88,7 +83,7 @@ const DashboardPage = () => {
                 // console.log("Auth token exists:", !!localStorage.getItem('token'));
                 
                 const url = `http://localhost:8000/parcels/dashboard/stats/${userCenter}/${formattedDate}`;
-                console.log("API URL:", url);
+                // console.log("API URL:", url);
                 
                 const response = await fetch(url, {
                     method: 'GET',
@@ -103,9 +98,9 @@ const DashboardPage = () => {
 
                 if (response.ok) {
                     const data = await response.json();
-                    console.log("Response data:", data);
+                    // console.log("Response data:", data);
                     setParcelStats(data.stats);
-                    console.log("Parcel stats set:", data.stats);
+                    // console.log("Parcel stats set:", data.stats);
                     showNotificationMessage('Dashboard data loaded successfully', 'success');
                 } else {
                     const errorText = await response.text();
@@ -124,14 +119,12 @@ const DashboardPage = () => {
         const fetchDriverStats = async () => {
             try {
                 const userCenter = localStorage.getItem('userCenter') || '682e1059ce33c2a891c9b168';
-                const formattedDate = selectedDate.toISOString().split('T')[0];
-                
-                console.log("=== FRONTEND: FETCHING DRIVER STATS ===");
-                console.log("User center:", userCenter);
-                console.log("Formatted date:", formattedDate);
+                // Format date as YYYY-MM-DD in local timezone
+                const formattedDate = selectedDate.getFullYear() + '-' + 
+                    String(selectedDate.getMonth() + 1).padStart(2, '0') + '-' + 
+                    String(selectedDate.getDate()).padStart(2, '0');
                 
                 const url = `http://localhost:8000/drivers/stats/${userCenter}/${formattedDate}`;
-                console.log("Driver API URL:", url);
                 
                 const response = await fetch(url, {
                     method: 'GET',
@@ -140,99 +133,34 @@ const DashboardPage = () => {
                         'Authorization': `Bearer ${localStorage.getItem('token')}`
                     }
                 });
-                
-                console.log("Driver response status:", response.status);
-                console.log("Driver response ok:", response.ok);
 
                 if (response.ok) {
                     const data = await response.json();
-                    console.log("Driver response data:", data);
                     setDriverStats(data.drivers);
-                    console.log("Driver stats set:", data.drivers);
                 } else {
                     const errorText = await response.text();
                     console.error("Driver response error:", errorText);
                     showNotificationMessage('Failed to load driver statistics', 'error');
                 }
             } catch (error) {
-                console.error('=== FRONTEND: DRIVER STATS ERROR ===');
                 console.error('Error fetching driver stats:', error);
                 showNotificationMessage('Error fetching driver statistics', 'error');
             }
         };
 
         const fetchData = async () => {
-            console.log("=== FRONTEND: STARTING DATA FETCH ===");
-            console.log("Selected date changed to:", selectedDate);
             await fetchParcelStats();
             await fetchDriverStats();
-            console.log("=== FRONTEND: DATA FETCH COMPLETED ===");
         };
         fetchData();
     }, [selectedDate]);
 
-    // Fetch daily parcel details
-    const fetchDailyDetails = async (date) => {
-        try {
-            setLoading(true);
-            const userCenter = localStorage.getItem('userCenter') || '682e1059ce33c2a891c9b168';
-            const formattedDate = date.toISOString().split('T')[0];
-            
-            console.log("=== FRONTEND: FETCHING DAILY DETAILS ===");
-            console.log("User center:", userCenter);
-            console.log("Date:", date);
-            console.log("Formatted date:", formattedDate);
-            
-            const url = `http://localhost:8000/parcels/dashboard/daily/${userCenter}/${formattedDate}`;
-            console.log("Daily API URL:", url);
-            
-            const response = await fetch(url, {
-                method: 'GET',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${localStorage.getItem('token')}`
-                }
-            });
-            
-            console.log("Daily response status:", response.status);
-            console.log("Daily response ok:", response.ok);
-
-            if (response.ok) {
-                const data = await response.json();
-                console.log("Daily response data:", data);
-                setDailyDetails(data.data.parcels || []);
-                setDailyStats(data.data.statistics || {
-                    total: 0,
-                    arrived: 0,
-                    delivered: 0,
-                    failedDelivery: 0
-                });
-                console.log("Daily details set:", data.data.parcels?.length || 0, "parcels");
-                console.log("Daily stats set:", data.data.statistics);
-                setSelectedDateString(date.toLocaleDateString('en-US', { 
-                    year: 'numeric', 
-                    month: 'long', 
-                    day: 'numeric' 
-                }));
-                setShowDailyDetails(true);
-                showNotificationMessage('Daily details loaded successfully', 'success');
-            } else {
-                const errorText = await response.text();
-                console.error("Daily response error:", errorText);
-                showNotificationMessage('Failed to load daily details', 'error');
-            }
-        } catch (error) {
-            console.error('=== FRONTEND: DAILY DETAILS ERROR ===');
-            console.error('Error fetching daily details:', error);
-            showNotificationMessage('Error fetching daily details', 'error');
-        } finally {
-            setLoading(false);
-        }
-    };
-
     // Handle card clicks for navigation
     const handleCardClick = (type) => {
-        const formattedDate = selectedDate.toISOString().split('T')[0];
+        // Format date as YYYY-MM-DD in local timezone
+        const formattedDate = selectedDate.getFullYear() + '-' + 
+            String(selectedDate.getMonth() + 1).padStart(2, '0') + '-' + 
+            String(selectedDate.getDate()).padStart(2, '0');
         navigate(`/staff/collection-management/dashboard/parcels/${type}/${formattedDate}`);
     };
 
@@ -248,11 +176,7 @@ const DashboardPage = () => {
     // Handle date click
     const handleDateClick = (day) => {
         const clickedDate = new Date(currentYear, currentMonth, day);
-        console.log("=== FRONTEND: DATE CLICKED ===");
-        console.log("Clicked day:", day);
-        console.log("Clicked date:", clickedDate);
-        setSelectedDate(clickedDate); // Update selected date
-        fetchDailyDetails(clickedDate);
+        setSelectedDate(clickedDate); // Update selected date to refresh stats
     };
 
     // Render calendar days
@@ -288,150 +212,6 @@ const DashboardPage = () => {
         
         return days;
     };
-
-    if (showDailyDetails) {
-        return (
-            <div className="p-6 bg-gray-50 min-h-screen">
-                {/* Beautiful Notification */}
-                {showNotification && (
-                    <div className={`fixed top-4 right-4 z-50 p-4 rounded-lg shadow-lg border-l-4 transform transition-all duration-300 ease-in-out ${
-                        successMessage 
-                            ? 'bg-green-50 border-green-400 text-green-800' 
-                            : 'bg-red-50 border-red-400 text-red-800'
-                    }`}>
-                        <div className="flex items-center">
-                            <div className="flex-shrink-0">
-                                {successMessage ? (
-                                    <svg className="h-5 w-5 text-green-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                                    </svg>
-                                ) : (
-                                    <svg className="h-5 w-5 text-red-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
-                                    </svg>
-                                )}
-                            </div>
-                            <div className="ml-3">
-                                <p className="text-sm font-medium">
-                                    {successMessage || errorMessage}
-                                </p>
-                            </div>
-                            <div className="ml-auto pl-3">
-                                <button
-                                    onClick={() => {
-                                        setShowNotification(false);
-                                        setSuccessMessage('');
-                                        setErrorMessage('');
-                                    }}
-                                    className={`inline-flex rounded-md p-1.5 focus:outline-none focus:ring-2 focus:ring-offset-2 ${
-                                        successMessage 
-                                            ? 'text-green-500 hover:bg-green-100 focus:ring-green-600' 
-                                            : 'text-red-500 hover:bg-red-100 focus:ring-red-600'
-                                    }`}
-                                >
-                                    <span className="sr-only">Dismiss</span>
-                                    <svg className="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                                        <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
-                                    </svg>
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                )}
-
-                <div className="max-w-none mx-auto">
-                    {/* Date Statistics */}
-                    <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-                        <div className="bg-[#1F818C] text-white rounded-lg p-4 text-center shadow-md">
-                            <div className="text-sm font-medium mb-1">Total Processed</div>
-                            <div className="text-2xl font-bold">{dailyStats.total}</div>
-                        </div>
-                        <div className="bg-blue-600 text-white rounded-lg p-4 text-center shadow-md">
-                            <div className="text-sm font-medium mb-1">Arrived</div>
-                            <div className="text-2xl font-bold">{dailyStats.arrived}</div>
-                        </div>
-                        <div className="bg-green-600 text-white rounded-lg p-4 text-center shadow-md">
-                            <div className="text-sm font-medium mb-1">Delivered</div>
-                            <div className="text-2xl font-bold">{dailyStats.delivered}</div>
-                        </div>
-                        <div className="bg-red-600 text-white rounded-lg p-4 text-center shadow-md">
-                            <div className="text-sm font-medium mb-1">Failed Delivery</div>
-                            <div className="text-2xl font-bold">{dailyStats.failedDelivery}</div>
-                        </div>
-                    </div>
-
-                    <div className="flex items-center justify-between mb-6">
-                        <button
-                            onClick={() => setShowDailyDetails(false)}
-                            className="flex items-center gap-2 px-4 py-2 bg-[#1F818C] text-white rounded-md hover:bg-[#176872] transition-colors focus:outline-none focus:ring-2 focus:ring-opacity-50 focus:ring-cyan-600"
-                        >
-                            <ArrowLeft className="w-4 h-4" />
-                            Back
-                        </button>
-                        <h2 className="text-2xl font-bold text-gray-800">
-                            Parcel Details for {selectedDateString}
-                        </h2>
-                    </div>
-
-                    <div className="bg-white rounded-lg shadow-md overflow-hidden">
-                        <div className="bg-[#1F818C] text-white">
-                            <div className="grid grid-cols-4 gap-4 p-4">
-                                <div className="text-center">
-                                    <div className="text-sm font-medium">Parcel ID</div>
-                                </div>
-                                <div className="text-center">
-                                    <div className="text-sm font-medium">Tracking No</div>
-                                </div>
-                                <div className="text-center">
-                                    <div className="text-sm font-medium">Status</div>
-                                </div>
-                                <div className="text-center">
-                                    <div className="text-sm font-medium">Processed Date</div>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div className="divide-y divide-gray-200">
-                            {dailyDetails.map((parcel, index) => (
-                                <div
-                                    key={index}
-                                    className={`grid grid-cols-4 gap-4 p-4 ${
-                                        index % 2 === 0 ? 'bg-white' : 'bg-gray-50'
-                                    }`}
-                                >
-                                    <div className="text-center text-sm">
-                                        {parcel.parcelId || 'N/A'}
-                                    </div>
-                                    <div className="text-center text-sm">
-                                        {parcel.trackingNo || 'N/A'}
-                                    </div>
-                                    <div className="text-center text-sm">
-                                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                                            parcel.status === 'Delivered' ? 'bg-green-100 text-green-800' :
-                                            parcel.status === 'ArrivedAtCollectionCenter' ? 'bg-blue-100 text-blue-800' :
-                                            'bg-gray-100 text-gray-800'
-                                        }`}>
-                                            {parcel.status}
-                                        </span>
-                                    </div>
-                                    <div className="text-center text-sm">
-                                        {parcel.processedDate ? new Date(parcel.processedDate).toLocaleDateString() : 'N/A'}
-                                    </div>
-                                </div>
-                            ))}
-                            
-                            {dailyDetails.length === 0 && (
-                                <div className="text-center py-8 text-gray-500">
-                                    <Package className="w-12 h-12 mx-auto mb-2 text-gray-400" />
-                                    <p>No parcels processed on this date.</p>
-                                </div>
-                            )}
-                        </div>
-                    </div>
-                </div>
-            </div>
-        );
-    }
 
     return (
         <div className="p-6 bg-gray-50 min-h-screen">
@@ -494,7 +274,7 @@ const DashboardPage = () => {
                 )}
 
                 {/* Statistics Cards */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
                     <div 
                         className="bg-[#1F818C] text-white rounded-lg p-6 text-center shadow-md cursor-pointer hover:bg-[#176872] transition-colors"
                         onClick={() => handleCardClick('total')}
@@ -508,7 +288,7 @@ const DashboardPage = () => {
                     </div>
                     
                     <div 
-                        className="bg-[#1F818C] text-white rounded-lg p-6 text-center shadow-md cursor-pointer hover:bg-[#176872] transition-colors"
+                        className="bg-blue-600 text-white rounded-lg p-6 text-center shadow-md cursor-pointer hover:bg-blue-700 transition-colors"
                         onClick={() => handleCardClick('arrived')}
                     >
                         <div className="flex items-center justify-center mb-2">
@@ -520,7 +300,7 @@ const DashboardPage = () => {
                     </div>
                     
                     <div 
-                        className="bg-[#1F818C] text-white rounded-lg p-6 text-center shadow-md cursor-pointer hover:bg-[#176872] transition-colors"
+                        className="bg-green-600 text-white rounded-lg p-6 text-center shadow-md cursor-pointer hover:bg-green-700 transition-colors"
                         onClick={() => handleCardClick('delivered')}
                     >
                         <div className="flex items-center justify-center mb-2">
@@ -528,6 +308,18 @@ const DashboardPage = () => {
                         </div>
                         <div className="text-sm font-medium mb-1">Delivered Parcels</div>
                         <div className="text-3xl font-bold">{parcelStats.delivered}</div>
+                        <div className="text-xs mt-1 opacity-75">Click to view details</div>
+                    </div>
+
+                    <div 
+                        className="bg-red-600 text-white rounded-lg p-6 text-center shadow-md cursor-pointer hover:bg-red-700 transition-colors"
+                        onClick={() => handleCardClick('nonDelivered')}
+                    >
+                        <div className="flex items-center justify-center mb-2">
+                            <Package className="w-8 h-8" />
+                        </div>
+                        <div className="text-sm font-medium mb-1">Non-Delivered Parcels</div>
+                        <div className="text-3xl font-bold">{parcelStats.nonDelivered}</div>
                         <div className="text-xs mt-1 opacity-75">Click to view details</div>
                     </div>
                 </div>
