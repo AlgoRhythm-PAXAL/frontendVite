@@ -22,14 +22,13 @@ import {
 } from 'react-icons/fi';
 import { FaFacebook, FaTwitter, FaInstagram, FaLinkedin } from 'react-icons/fa';
 import { useState } from 'react';
-import about from '../../assets/lottie/about';
+import about from '@/assets/lottie/about';
 import Lottie from 'lottie-react';
-import { FiBell, FiCamera, FiArrowRight } from 'react-icons/fi';
 import { FiChevronLeft, FiChevronRight } from 'react-icons/fi';
 import { useEffect } from 'react';
-import lottie_animation_2 from '../../assets/lottie/lottie_animation_2.json';
-import lottie_animation_3 from '../../assets/lottie/lottie_animation_3.json';
-import { FiDollarSign, FiHeadphones, FiPlay } from 'react-icons/fi';
+import lottie_animation_2 from '@/assets/lottie/lottie_animation_2.json';
+import lottie_animation_3 from '@/assets/lottie/lottie_animation_3.json';
+import { FiDollarSign, FiHeadphones } from 'react-icons/fi';
 
 const AboutUs = () => {
   const [currentService, setCurrentService] = useState(0);

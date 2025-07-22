@@ -10,12 +10,12 @@ import {
 } from 'react-icons/fi';
 
 import { useState } from 'react';
-import lottie_animation_1 from '../../assets/lottie/lottie_animation_1.json';
+import lottie_animation_1 from '@/assets/lottie/lottie_animation_1.json';
 import Lottie from 'lottie-react';
 import { FiChevronLeft, FiChevronRight } from 'react-icons/fi';
 import { useEffect } from 'react';
-import lottie_animation_2 from '../../assets/lottie/lottie_animation_2.json';
-import lottie_animation_3 from '../../assets/lottie/lottie_animation_3.json';
+import lottie_animation_2 from '@/assets/lottie/lottie_animation_2.json';
+import lottie_animation_3 from '@/assets/lottie/lottie_animation_3.json';
 import { FiDollarSign, FiHeadphones } from 'react-icons/fi';
 import Footer from '../../components/User/Footer';
 

@@ -22,8 +22,8 @@ import {
   FiHome
 } from 'react-icons/fi';
 import Lottie from 'lottie-react';
-import scanningAnimation from '../../assets/lottie/QRScan.json';
-import notificationAnimation from '../../assets/lottie/Notification.json';
+import scanningAnimation from '@/assets/lottie/QRScan.json';
+import notificationAnimation from '@/assets/lottie/Notification.json';
 
 const FeaturesDetailsPage = () => {
   // Features data
