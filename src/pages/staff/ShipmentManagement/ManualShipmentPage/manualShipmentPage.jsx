@@ -614,11 +614,18 @@ const B2BShipmentCreationPage = () => {
                 createdAt: new Date()
             };
 
-            console.log('Shipment data being sent:', shipmentPayload);
+            console.log('=== FRONTEND SHIPMENT CREATION ===');
+            console.log('Shipment payload being sent:', JSON.stringify(shipmentPayload, null, 2));
+            console.log('Delivery Type:', shipmentPayload.deliveryType);
+            console.log('Source Center:', shipmentPayload.sourceCenter);
+            console.log('Parcels count:', shipmentPayload.parcels.length);
 
             const response = await fetch('http://localhost:8000/shipments/create', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: { 
+                    'Content-Type': 'application/json'
+                },
+                credentials: 'include', // Include cookies for staff authentication
                 body: JSON.stringify(shipmentPayload)
             });
 
