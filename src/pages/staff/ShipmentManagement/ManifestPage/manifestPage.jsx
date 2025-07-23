@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Download, ArrowLeft, Package, Truck, MapPin, Clock, CreditCard, User } from 'lucide-react';
+import { Download, ArrowLeft, Package, Truck, MapPin, Clock, User } from 'lucide-react';
 import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
 
@@ -729,7 +729,7 @@ const ManifestPage = () => {
                 {/* Professional Footer */}
                 <div className="mt-12 pt-8 border-t-2 border-gray-200 text-center">
                     <div className="bg-gradient-to-r from-[#1F818C] to-blue-600 text-white rounded-lg p-6">
-                        <div className="text-lg font-bold mb-2">📋 MANIFEST COMPLETE</div>
+                        <div className="text-lg font-bold mb-2">MANIFEST COMPLETE</div>
                         <p className="text-blue-100 text-sm mb-2">
                             This manifest was generated automatically by PAXAL Logistics System
                         </p>

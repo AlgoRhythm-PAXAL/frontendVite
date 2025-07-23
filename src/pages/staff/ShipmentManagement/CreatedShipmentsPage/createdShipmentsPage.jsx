@@ -69,9 +69,56 @@ const ShipmentManagement = () => {
     // Staff information state
     const [staffInfo, setStaffInfo] = useState(null);
     const [staffBranchId, setStaffBranchId] = useState(null);
+    
+    // Branch cache state for dynamic branch name resolution
+    const [branchCache, setBranchCache] = useState({});
+    const [fetchingBranches, setFetchingBranches] = useState(false);
 
-    // Function to get center name from ID or object
-    const getCenterName = (centerData) => {
+    // Function to fetch branch details from database
+    const fetchBranchDetails = useCallback(async (branchIds) => {
+        if (!branchIds || branchIds.length === 0) return {};
+        
+        // Filter out IDs that are already in cache
+        const uncachedIds = branchIds.filter(id => !branchCache[id]);
+        if (uncachedIds.length === 0) return branchCache;
+        
+        try {
+            setFetchingBranches(true);
+            const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/branches/details`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ branchIds: uncachedIds })
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to fetch branch details');
+            }
+
+            const data = await response.json();
+            const newBranchData = {};
+            
+            if (data.success && data.branches) {
+                data.branches.forEach(branch => {
+                    newBranchData[branch._id] = branch.location;
+                });
+            }
+
+            // Update cache
+            setBranchCache(prev => ({ ...prev, ...newBranchData }));
+            return { ...branchCache, ...newBranchData };
+            
+        } catch (error) {
+            console.error('Error fetching branch details:', error);
+            return branchCache;
+        } finally {
+            setFetchingBranches(false);
+        }
+    }, [branchCache]);
+
+    // Synchronous version for immediate use (returns cached value or ID)
+    const getCenterNameSync = (centerData) => {
         if (!centerData) return 'N/A';
         
         // If already a populated object with location
@@ -89,40 +136,24 @@ const ShipmentManagement = () => {
             return centerData.center.location;
         }
         
-        // If it's just a string (object ID), return it as is for now
-        // In a real application, you'd want to fetch the name from API
+        // If it's just a string (object ID), return cached value or ID
         if (typeof centerData === 'string') {
-            // Try to get a meaningful name from common center IDs
-            const centerMap = {
-                '682e1059ce33c2a891c9b168': 'Colombo',
-                '682e1068ce33c2a891c9b174': 'Gampaha', 
-                '682e1077ce33c2a891c9b180': 'Kalutara',
-                '682e1083ce33c2a891c9b18c': 'Kandy',
-                '682e1091ce33c2a891c9b198': 'Matale'
-            };
-            return centerMap[centerData] || centerData;
+            return branchCache[centerData] || centerData;
         }
         
         return 'Unknown Center';
     };
 
-    // Function to get group destination name (handles the destination field properly)
-    const getGroupDestinationName = (group) => {
+    // Synchronous version for immediate use
+    const getGroupDestinationNameSync = (group) => {
         // First try the destination field (which should be the location name)
         if (group.destination && typeof group.destination === 'string' && !group.destination.match(/^[0-9a-fA-F]{24}$/)) {
             return group.destination;
         }
         
-        // If destination is an ObjectId, try to get the name from destinationId or other fields
+        // If destination is an ObjectId, return cached value or ID
         if (group.destinationId) {
-            const centerMap = {
-                '682e1059ce33c2a891c9b168': 'Colombo',
-                '682e1068ce33c2a891c9b174': 'Gampaha', 
-                '682e1077ce33c2a891c9b180': 'Kalutara',
-                '682e1083ce33c2a891c9b18c': 'Kandy',
-                '682e1091ce33c2a891c9b198': 'Matale'
-            };
-            return centerMap[group.destinationId] || group.destinationId;
+            return branchCache[group.destinationId] || group.destinationId;
         }
         
         // Fallback to the destination field
@@ -211,6 +242,45 @@ const ShipmentManagement = () => {
             }
 
             setShipments(shipmentsData);
+            
+            // Extract all branch IDs from shipments data for pre-fetching
+            const branchIds = new Set();
+            shipmentsData.forEach(shipment => {
+                // Extract from route
+                if (shipment.route && Array.isArray(shipment.route)) {
+                    shipment.route.forEach(routeItem => {
+                        if (typeof routeItem === 'string') {
+                            branchIds.add(routeItem);
+                        } else if (routeItem && routeItem._id) {
+                            branchIds.add(routeItem._id);
+                        }
+                    });
+                }
+                
+                // Extract from sourceCenter
+                if (typeof shipment.sourceCenter === 'string') {
+                    branchIds.add(shipment.sourceCenter);
+                } else if (shipment.sourceCenter && shipment.sourceCenter._id) {
+                    branchIds.add(shipment.sourceCenter._id);
+                }
+                
+                // Extract from arrivalTimes
+                if (shipment.arrivalTimes && Array.isArray(shipment.arrivalTimes)) {
+                    shipment.arrivalTimes.forEach(arrival => {
+                        if (typeof arrival.center === 'string') {
+                            branchIds.add(arrival.center);
+                        } else if (arrival.center && arrival.center._id) {
+                            branchIds.add(arrival.center._id);
+                        }
+                    });
+                }
+            });
+            
+            // Pre-fetch branch details for all found IDs
+            if (branchIds.size > 0) {
+                await fetchBranchDetails(Array.from(branchIds));
+            }
+            
             setError(null);
         } catch (err) {
             setError(err.message);
@@ -218,7 +288,7 @@ const ShipmentManagement = () => {
         } finally {
             setLoading(false);
         }
-    }, [statusFilter, staffBranchId, staffInfo, fetchStaffInfo]);
+    }, [statusFilter, staffBranchId, staffInfo, fetchStaffInfo, fetchBranchDetails]);
 
     // Fetch shipments data on component mount and when status filter changes
     useEffect(() => {
@@ -328,9 +398,9 @@ const ShipmentManagement = () => {
                 )
             );
 
-            showPopup('success', '🎉 Shipment verified and confirmed successfully! Ready for processing.');
+            showPopup('success', 'Shipment verified and confirmed successfully! Ready for processing.');
         } catch (err) {
-            showPopup('error', `❌ Error verifying shipment: ${err.message}`);
+            showPopup('error', `Error verifying shipment: ${err.message}`);
         } finally {
             setProcessingShipment(null);
         }
@@ -385,7 +455,7 @@ const ShipmentManagement = () => {
             showPopup('success', 'Shipment dispatched successfully! Parcels have been updated to InTransit status.');
             await fetchShipments(); // Refresh the list
         } catch (err) {
-            showPopup('error', `❌ Error dispatching shipment: ${err.message}`);
+            showPopup('error', `Error dispatching shipment: ${err.message}`);
         } finally {
             setProcessingShipment(null);
         }
@@ -418,10 +488,10 @@ const ShipmentManagement = () => {
                 )
             );
 
-            showPopup('success', '✅ Shipment delivered successfully! Parcels have been updated to ArrivedAtCollectionCenter status.');
+            showPopup('success', 'Shipment delivered successfully! Parcels have been updated to ArrivedAtCollectionCenter status.');
             await fetchShipments(); // Refresh the list
         } catch (err) {
-            showPopup('error', `❌ Error completing shipment: ${err.message}`);
+            showPopup('error', `Error completing shipment: ${err.message}`);
         } finally {
             setProcessingShipment(null);
         }
@@ -432,7 +502,7 @@ const ShipmentManagement = () => {
         
         // Prevent deletion of shipments in certain stages
         if (shipment && ['In Transit', 'Dispatched', 'Completed'].includes(shipment.status)) {
-            showPopup('warning', `⚠️ Cannot delete shipment in "${shipment.status}" status. Only Pending and Verified shipments can be deleted.`);
+            showPopup('warning', `Cannot delete shipment in "${shipment.status}" status. Only Pending and Verified shipments can be deleted.`);
             return;
         }
         
@@ -471,9 +541,9 @@ const ShipmentManagement = () => {
             newSelected.delete(shipmentId);
             setSelectedShipments(newSelected);
 
-            showPopup('success', `🗑️ Shipment deleted successfully! ${data.updatedParcelsCount} parcels have been reset to pending status.`);
+            showPopup('success', `Shipment deleted successfully! ${data.updatedParcelsCount} parcels have been reset to pending status.`);
         } catch (err) {
-            showPopup('error', `❌ Error deleting shipment: ${err.message}`);
+            showPopup('error', `Error deleting shipment: ${err.message}`);
         } finally {
             setProcessingShipment(null);
         }
@@ -538,7 +608,7 @@ const ShipmentManagement = () => {
 
             if (data.success) {
                 // Vehicle assigned successfully
-                showPopup('success', '✅ Vehicle assigned successfully! Shipment is now In Transit and parcels updated to ShipmentAssigned status.');
+                showPopup('success', 'Vehicle assigned successfully! Shipment is now In Transit and parcels updated to ShipmentAssigned status.');
                 setVehicleSelectionModal(null);
                 
                 // Update local state with complete vehicle and driver information including current location
@@ -565,7 +635,7 @@ const ShipmentManagement = () => {
 
         } catch (error) {
             console.error('Error in manual vehicle assignment:', error);
-            showPopup('error', `❌ Failed to assign vehicle: ${error.message}`);
+            showPopup('error', `Failed to assign vehicle: ${error.message}`);
         } finally {
             setSearchingVehicle(false);
         }
@@ -590,7 +660,7 @@ const ShipmentManagement = () => {
 
             if (!response.ok) {
                 if (response.status === 404) {
-                    showPopup('error', '❌ ' + (data.message || 'No suitable vehicle available'), 5000);
+                    showPopup('error', (data.message || 'No suitable vehicle available'), 5000);
                 } else {
                     throw new Error(data.message || 'Failed to search for vehicles');
                 }
@@ -622,7 +692,7 @@ const ShipmentManagement = () => {
             }
 
         } catch (error) {
-            console.error('❌ Error in enhanced vehicle search:', error);
+            console.error('Error in enhanced vehicle search:', error);
             showPopup('error', `Failed to search for vehicle: ${error.message}`);
             setVehicleSelectionModal(null);
         } finally {
@@ -658,7 +728,7 @@ const ShipmentManagement = () => {
             }
 
             if (data.success) {
-                showPopup('success', '✅ Vehicle assigned successfully! Shipment is now In Transit and parcels updated to ShipmentAssigned status.');
+                showPopup('success', 'Vehicle assigned successfully! Shipment is now In Transit and parcels updated to ShipmentAssigned status.');
                 setVehicleSelectionModal(null);
                 setSmartSearchResult(null);
                 
@@ -900,7 +970,7 @@ const ShipmentManagement = () => {
             }
 
             if (data.success) {
-                showPopup('success', '✅ Vehicle assigned successfully! Shipment is now In Transit and parcels updated to ShipmentAssigned status.');
+                showPopup('success', 'Vehicle assigned successfully! Shipment is now In Transit and parcels updated to ShipmentAssigned status.');
                 setVehicleSelectionModal(null);
                 
                 // Update local state with complete vehicle and driver information including current location
@@ -932,7 +1002,7 @@ const ShipmentManagement = () => {
 
         } catch (error) {
             console.error('Error confirming vehicle assignment:', error);
-            showPopup('error', `❌ Failed to confirm assignment: ${error.message}`);
+            showPopup('error', `Failed to confirm assignment: ${error.message}`);
         } finally {
             setConfirmingAssignment(false);
         }
@@ -1004,7 +1074,7 @@ const ShipmentManagement = () => {
             }
 
             if (data.success) {
-                showPopup('success', `✅ ${data.message}`);
+                showPopup('success', `${data.message}`);
                 
                 // Update local shipment state with new totals
                 setShipments(prevShipments =>
@@ -1104,7 +1174,7 @@ const ShipmentManagement = () => {
             }
 
             if (data.success) {
-                showPopup('success', `✅ Parcel added successfully!`);
+                showPopup('success', `Parcel added successfully!`);
                 
                 // Update local shipment state
                 setShipments(prevShipments =>
@@ -1165,7 +1235,7 @@ const ShipmentManagement = () => {
     // Confirm smart parcels addition
     const confirmSmartParcelsAddition = async () => {
         try {
-            showPopup('success', `✅ Successfully added ${smartParcelsResults.addedParcels.length} parcels!`);
+            showPopup('success', `Successfully added ${smartParcelsResults.addedParcels.length} parcels!`);
             
             // Update local shipment state
             setShipments(prevShipments =>
@@ -1244,7 +1314,7 @@ const ShipmentManagement = () => {
 
         } catch (err) {
             console.error('Error finding vehicle:', err);
-            showPopup('error', `❌ Failed to find vehicle: ${err.message}`, 6000);
+            showPopup('error', `Failed to find vehicle: ${err.message}`, 6000);
             setVehicleAssignmentModal(null);
         } finally {
             setFindingVehicle(false);
@@ -1438,7 +1508,7 @@ const ShipmentManagement = () => {
             );
 
             // Show success message
-            showPopup('success', '✅ Vehicle assigned successfully! Shipment is now In Transit and parcels updated to ShipmentAssigned status.', 7000);
+            showPopup('success', 'Vehicle assigned successfully! Shipment is now In Transit and parcels updated to ShipmentAssigned status.', 7000);
 
             // Refresh shipments to get latest data
             setTimeout(() => {
@@ -1447,7 +1517,7 @@ const ShipmentManagement = () => {
 
         } catch (err) {
             console.error('Error assigning vehicle:', err);
-            showPopup('error', `❌ Failed to assign vehicle: ${err.message}`, 6000);
+            showPopup('error', `Failed to assign vehicle: ${err.message}`, 6000);
             setVehicleAssignmentModal(null);
         } finally {
             setAssigningVehicle(false);
@@ -2530,7 +2600,7 @@ const ShipmentManagement = () => {
                                                             <tbody className="bg-white divide-y divide-green-100">
                                                                 {Object.entries(vehicleSelectionModal.enhancedResult.availableParcelGroups.parcelGroups).map(([groupId, group]) => (
                                                                     <tr key={groupId} className="hover:bg-green-25 transition-colors">
-                                                                        <td className="px-6 py-4 text-sm font-medium text-gray-900">{getGroupDestinationName(group)}</td>
+                                                                        <td className="px-6 py-4 text-sm font-medium text-gray-900">{getGroupDestinationNameSync(group)}</td>
                                                                         <td className="px-6 py-4 text-sm text-gray-700 font-medium">{group.parcelCount}</td>
                                                                         <td className="px-6 py-4 text-sm text-gray-700">{group.totalWeight}kg</td>
                                                                         <td className="px-6 py-4 text-sm text-gray-700">{group.totalVolume}m³</td>
@@ -2712,7 +2782,7 @@ const ShipmentManagement = () => {
                                                                     />
                                                                     <div className="flex-1">
                                                                         <div className="flex items-center gap-4 mb-2">
-                                                                            <h5 className="font-semibold text-gray-800 text-lg">{getGroupDestinationName(group)}</h5>
+                                                                            <h5 className="font-semibold text-gray-800 text-lg">{getGroupDestinationNameSync(group)}</h5>
                                                                             <span className="px-3 py-1 text-xs font-medium rounded-full bg-green-100 text-green-800 border border-green-200">
                                                                                 Available
                                                                             </span>
@@ -2772,8 +2842,8 @@ const ShipmentManagement = () => {
                                                                                                 </span>
                                                                                             </td>
                                                                                             <td className="px-6 py-4 text-sm font-medium text-gray-700">{parcel.weight}kg</td>
-                                                                                            <td className="px-6 py-4 text-sm text-gray-700">{getCenterName(parcel.from)}</td>
-                                                                                            <td className="px-6 py-4 text-sm text-gray-700">{getCenterName(parcel.to)}</td>
+                                                                                            <td className="px-6 py-4 text-sm text-gray-700">{getCenterNameSync(parcel.from)}</td>
+                                                                                            <td className="px-6 py-4 text-sm text-gray-700">{getCenterNameSync(parcel.to)}</td>
                                                                                         </tr>
                                                                                     ))}
                                                                                 </tbody>
@@ -4068,7 +4138,7 @@ const ShipmentManagement = () => {
                                                                         <span className="text-gray-600 w-36">Created By Center:</span>
                                                                         <span className="font-medium text-gray-800">
                                                                             {shipment.createdByCenter?.location || 
-                                                                             getCenterName(shipment.createdByCenter) || 
+                                                                             getCenterNameSync(shipment.createdByCenter) || 
                                                                              'N/A'}
                                                                         </span>
                                                                     </div>
@@ -4319,7 +4389,7 @@ const ShipmentManagement = () => {
                                                                 {shipment.arrivalTimes.map((arrival, index) => (
                                                                     <div key={index} className="flex justify-between text-sm">
                                                                         <span className="text-gray-600">
-                                                                            {getCenterName(arrival.center || arrival.branchId || arrival)}
+                                                                            {getCenterNameSync(arrival.center || arrival.branchId || arrival)}
                                                                         </span>
                                                                         <span className="font-medium text-gray-800">{arrival.time} hours</span>
                                                                     </div>
