@@ -161,7 +161,7 @@ const Vehicle = () => {
   return (
     <div className="flex flex-col mx-5 space-y-6">
       {/* Header Section */}
-      <div className="bg-gradient-to-r from-gray-50 to-gray-100 p-6 rounded-lg shadow-sm border border-gray-200">
+      <div className="">
         <SectionTitle title="Vehicle Management" />
         
       </div>
