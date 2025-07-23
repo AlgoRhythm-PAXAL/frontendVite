@@ -82,7 +82,7 @@ const DashboardPage = () => {
                 // console.log("Formatted date:", formattedDate);
                 // console.log("Auth token exists:", !!localStorage.getItem('token'));
                 
-                const url = `http://localhost:8000/parcels/dashboard/stats/${userCenter}/${formattedDate}`;
+                const url = `${import.meta.env.VITE_BACKEND_URL}/parcels/dashboard/stats/${userCenter}/${formattedDate}`;
                 // console.log("API URL:", url);
                 
                 const response = await fetch(url, {
@@ -124,7 +124,7 @@ const DashboardPage = () => {
                     String(selectedDate.getMonth() + 1).padStart(2, '0') + '-' + 
                     String(selectedDate.getDate()).padStart(2, '0');
                 
-                const url = `http://localhost:8000/drivers/stats/${userCenter}/${formattedDate}`;
+                const url = `${import.meta.env.VITE_BACKEND_URL}/drivers/stats/${userCenter}/${formattedDate}`;
                 
                 const response = await fetch(url, {
                     method: 'GET',

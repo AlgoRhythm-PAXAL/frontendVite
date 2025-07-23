@@ -20,7 +20,7 @@ const ViewShipmentsPage = () => {
     // Function to fetch staff information from API (same as CreatedShipmentsPage)
     const fetchStaffInfo = useCallback(async () => {
         try {
-            const response = await fetch('http://localhost:8000/staff/ui/get-staff-information', {
+            const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/staff/ui/get-staff-information`, {
                 credentials: 'include'
             });
             
@@ -61,7 +61,7 @@ const ViewShipmentsPage = () => {
             queryParams.append('branchId', branchId);
             
             // Try fetching completed shipments for the staff's branch using the same API structure
-            let url = `http://localhost:8000/vehicles/b2b/shipments/branch/${branchId}?${queryParams.toString()}`;
+            let url = `${import.meta.env.VITE_BACKEND_URL}/vehicles/b2b/shipments/branch/${branchId}?${queryParams.toString()}`;
             let response = await fetch(url, {
                 credentials: 'include'
             });
@@ -70,13 +70,13 @@ const ViewShipmentsPage = () => {
             if (response.status === 404) {
                 // Use staff ID from staffInfo if available, otherwise use branch-based approach
                 const staffId = staffInfo?._id || branchId;
-                url = `http://localhost:8000/vehicles/b2b/shipments/${staffId}?${queryParams.toString()}`;
+                url = `${import.meta.env.VITE_BACKEND_URL}/vehicles/b2b/shipments/${staffId}?${queryParams.toString()}`;
                 response = await fetch(url, {
                     credentials: 'include'
                 });
                 
                 if (response.status === 404) {
-                    url = `http://localhost:8000/shipments/completed/${branchId}`;
+                    url = `${import.meta.env.VITE_BACKEND_URL}/shipments/completed/${branchId}`;
                     response = await fetch(url, {
                         credentials: 'include'
                     });

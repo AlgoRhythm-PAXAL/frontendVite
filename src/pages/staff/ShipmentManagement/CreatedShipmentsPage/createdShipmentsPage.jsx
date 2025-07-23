@@ -132,7 +132,7 @@ const ShipmentManagement = () => {
     // Function to fetch staff information and get branch
     const fetchStaffInfo = useCallback(async () => {
         try {
-            const response = await fetch('http://localhost:8000/staff/ui/get-staff-information', {
+            const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/staff/ui/get-staff-information`, {
                 credentials: 'include'
             });
             
@@ -176,18 +176,19 @@ const ShipmentManagement = () => {
             queryParams.append('branchId', branchId);
             
             // Try fetching shipments for the staff's branch
-            let url = `http://localhost:8000/vehicles/b2b/shipments/branch/${branchId}?${queryParams.toString()}`;
+            let url = `${import.meta.env.VITE_BACKEND_URL}/vehicles/b2b/shipments/branch/${branchId}?${queryParams.toString()}`;
+           // console.log('Fetching shipments from:', import.meta.env.VITE_BACKEND_URL);
             let response = await fetch(url);
             
             // Fallback to original endpoints if branch-specific endpoint doesn't exist
             if (response.status === 404) {
                 // Use staff ID from staffInfo if available, otherwise use branch-based approach
                 const staffId = staffInfo?._id || branchId;
-                url = `http://localhost:8000/vehicles/b2b/shipments/${staffId}?${queryParams.toString()}`;
+                url = `${import.meta.env.VITE_BACKEND_URL}/vehicles/b2b/shipments/${staffId}?${queryParams.toString()}`;
                 response = await fetch(url);
                 
                 if (response.status === 404) {
-                    url = `http://localhost:8000/shipments/active/${staffId}`;
+                    url = `${import.meta.env.VITE_BACKEND_URL}/shipments/active/${staffId}`;
                     response = await fetch(url);
                 }
             }
@@ -304,7 +305,7 @@ const ShipmentManagement = () => {
     const performSingleVerify = async (shipmentId) => {
         setProcessingShipment(shipmentId);
         try {
-            const response = await fetch(`http://localhost:8000/shipments/${shipmentId}/verify`, {
+            const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/shipments/${shipmentId}/verify`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
@@ -359,7 +360,7 @@ const ShipmentManagement = () => {
         try {
             setProcessingShipment(shipmentId);
             
-            const response = await fetch(`http://localhost:8000/shipments/${shipmentId}/dispatch`, {
+            const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/shipments/${shipmentId}/dispatch`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
@@ -395,7 +396,7 @@ const ShipmentManagement = () => {
         try {
             setProcessingShipment(shipmentId);
             
-            const response = await fetch(`http://localhost:8000/shipments/${shipmentId}/complete`, {
+            const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/shipments/${shipmentId}/complete`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
@@ -448,7 +449,7 @@ const ShipmentManagement = () => {
     const performSingleDelete = async (shipmentId) => {
         setProcessingShipment(shipmentId);
         try {
-            const response = await fetch(`http://localhost:8000/shipments/${shipmentId}`, {
+            const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/shipments/${shipmentId}`, {
                 method: 'DELETE',
                 headers: {
                     'Content-Type': 'application/json',
@@ -512,7 +513,7 @@ const ShipmentManagement = () => {
         setSearchingVehicle(true);
 
         try {
-            const response = await fetch(`http://localhost:8000/vehicles/b2b/shipments/${shipmentId}/assign-vehicle/manual`, {
+            const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/vehicles/b2b/shipments/${shipmentId}/assign-vehicle/manual`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -578,7 +579,7 @@ const ShipmentManagement = () => {
         setSearchingVehicle(true);
         
         try {
-            const response = await fetch(`http://localhost:8000/vehicles/b2b/shipments/${shipmentId}/${vehicleSelectionModal.deliveryType}/enhanced-find-vehicle`, {
+            const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/vehicles/b2b/shipments/${shipmentId}/${vehicleSelectionModal.deliveryType}/enhanced-find-vehicle`, {
                 method: 'GET',
                 headers: {
                     'Content-Type': 'application/json',
@@ -639,7 +640,7 @@ const ShipmentManagement = () => {
             const { shipmentId } = vehicleSelectionModal;
             const { vehicle } = vehicleSelectionModal.enhancedResult;
             
-            const response = await fetch(`http://localhost:8000/vehicles/b2b/shipments/${shipmentId}/assign-vehicle/confirm`, {
+            const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/vehicles/b2b/shipments/${shipmentId}/assign-vehicle/confirm`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -785,7 +786,7 @@ const ShipmentManagement = () => {
                 throw new Error('No parcels selected for addition to shipment');
             }
             
-            const response = await fetch(`http://localhost:8000/vehicles/b2b/shipments/${shipmentId}/add-parcels-to-current`, {
+            const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/vehicles/b2b/shipments/${shipmentId}/add-parcels-to-current`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -880,7 +881,7 @@ const ShipmentManagement = () => {
                 });
             }
 
-            const response = await fetch(`http://localhost:8000/vehicles/b2b/shipments/${shipmentId}/assign-vehicle/confirm`, {
+            const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/vehicles/b2b/shipments/${shipmentId}/assign-vehicle/confirm`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -989,7 +990,7 @@ const ShipmentManagement = () => {
         setAddingStandardParcels(true);
         
         try {
-            const response = await fetch(`http://localhost:8000/shipments/b2b/standard-shipments/${shipmentId}/add-more`, {
+            const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/shipments/b2b/standard-shipments/${shipmentId}/add-more`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -1053,7 +1054,7 @@ const ShipmentManagement = () => {
         setValidatingParcel(true);
         
         try {
-            const response = await fetch(`http://localhost:8000/parcels/validate-for-shipment`, {
+            const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/parcels/validate-for-shipment`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -1086,7 +1087,7 @@ const ShipmentManagement = () => {
     // Add manual parcel to shipment
     const addManualParcelToShipment = async (parcelId) => {
         try {
-            const response = await fetch(`http://localhost:8000/shipments/b2b/standard-shipments/${addMoreParcelsModal.shipmentId}/add-manual-parcel`, {
+            const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/shipments/b2b/standard-shipments/${addMoreParcelsModal.shipmentId}/add-manual-parcel`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -1135,7 +1136,7 @@ const ShipmentManagement = () => {
         setProcessingSmart(true);
         
         try {
-            const response = await fetch(`http://localhost:8000/shipments/b2b/standard-shipments/${addMoreParcelsModal.shipmentId}/add-more`, {
+            const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/shipments/b2b/standard-shipments/${addMoreParcelsModal.shipmentId}/add-more`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -1217,7 +1218,7 @@ const ShipmentManagement = () => {
         showPopup('info', 'Searching for available vehicles...', 5000);
 
         try {
-            const response = await fetch(`http://localhost:8000/vehicles/findVehicleForShipment/${shipmentId}/${deliveryType}`, {
+            const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/vehicles/findVehicleForShipment/${shipmentId}/${deliveryType}`, {
                 method: 'GET',
                 headers: {
                     'Content-Type': 'application/json',
@@ -1289,7 +1290,7 @@ const ShipmentManagement = () => {
                 note: 'Looking for parcels that need to go in same direction as vehicle movement'
             });
 
-            const response = await fetch(`http://localhost:8000/vehicles/findParcelsForReverseShipment?fromCenterId=${fromCenterId}&toCenterId=${toCenterId}&shipmentType=${deliveryType}&vehicleId=${vehicleId}`);
+            const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/vehicles/findParcelsForReverseShipment?fromCenterId=${fromCenterId}&toCenterId=${toCenterId}&shipmentType=${deliveryType}&vehicleId=${vehicleId}`);
             
             const data = await response.json();
             console.log('Parcel finding response:', data);
@@ -1352,7 +1353,7 @@ const ShipmentManagement = () => {
             const { deliveryType, shipmentId } = vehicleAssignmentModal;
             const { vehicle } = foundVehicle;
 
-            const response = await fetch('http://localhost:8000/vehicles/createReverseShipmentWithParcels', {
+            const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/vehicles/createReverseShipmentWithParcels`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -1399,7 +1400,7 @@ const ShipmentManagement = () => {
         try {
             showPopup('info', 'Assigning vehicle to shipment...', 5000);
 
-            const response = await fetch(`http://localhost:8000/vehicles/assignVehicleToShipment/${shipmentId}/${deliveryType}`, {
+            const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/vehicles/assignVehicleToShipment/${shipmentId}/${deliveryType}`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -1487,7 +1488,7 @@ const ShipmentManagement = () => {
     const performBulkVerify = async (pendingShipments) => {
         try {
             const promises = pendingShipments.map(shipment =>
-                fetch(`http://localhost:8000/shipments/${shipment._id || shipment.id}/verify`, {
+                fetch(`${import.meta.env.VITE_BACKEND_URL}/shipments/${shipment._id || shipment.id}/verify`, {
                     method: 'PUT',
                     headers: { 'Content-Type': 'application/json' }
                 })
@@ -1557,7 +1558,7 @@ const ShipmentManagement = () => {
     const performBulkDelete = async (selectedShipmentIds) => {
         try {
             const promises = selectedShipmentIds.map(shipmentId =>
-                fetch(`http://localhost:8000/shipments/${shipmentId}`, {
+                fetch(`${import.meta.env.VITE_BACKEND_URL}/shipments/${shipmentId}`, {
                     method: 'DELETE',
                     headers: { 'Content-Type': 'application/json' }
                 })

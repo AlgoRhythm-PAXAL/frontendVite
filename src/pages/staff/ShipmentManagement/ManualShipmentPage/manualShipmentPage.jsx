@@ -94,7 +94,7 @@ const B2BShipmentCreationPage = () => {
         setError(null);
 
         try {
-            const response = await fetch('http://localhost:8000/parcels/682e1059ce33c2a891c9b168');
+            const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/parcels/682e1059ce33c2a891c9b168`);
             if (!response.ok) {
                 throw new Error(`Error: ${response.status} - ${response.statusText}`);
             }
@@ -114,7 +114,7 @@ const B2BShipmentCreationPage = () => {
     // Fetch all branches for dropdown selections
     const fetchBranches = async () => {
         try {
-            const response = await fetch('http://localhost:8000/api/branches/all-branches');
+            const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/branches/all-branches`);
             if (!response.ok) {
                 throw new Error('Failed to fetch branches');
             }
@@ -620,7 +620,7 @@ const B2BShipmentCreationPage = () => {
             console.log('Source Center:', shipmentPayload.sourceCenter);
             console.log('Parcels count:', shipmentPayload.parcels.length);
 
-            const response = await fetch('http://localhost:8000/shipments/create', {
+            const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/shipments/create`, {
                 method: 'POST',
                 headers: { 
                     'Content-Type': 'application/json'
