@@ -50,7 +50,8 @@ const TrackingPage = () => {
 
             if (response.ok) {
                 const data = await response.json();
-                setTrackingResult(data.parcel);
+                setTrackingResult(data);
+                console.log('Tracking result:', data);
                 showNotificationMessage('Parcel found successfully!', 'success');
             } else {
                 const errorData = await response.json();

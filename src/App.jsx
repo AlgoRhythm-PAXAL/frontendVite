@@ -138,6 +138,7 @@ const App = () => {
             <Route path="branches" element={<Branches />} />
             <Route path="profile" element={<AdminProfile />} />
             <Route path="vehicles" element={<Vehicle />} />
+            
           </Route>
         </Route>
 
