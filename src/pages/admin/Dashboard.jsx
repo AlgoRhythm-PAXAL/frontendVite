@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faSync, faChartLine, faExclamationTriangle, faWifi } from "@fortawesome/free-solid-svg-icons";
 import PropTypes from 'prop-types';
+import { useAdminAuth } from "../../hooks/useAdminAuth";
 import SectionTitle from "../../components/admin/SectionTitle";
 
 // Lazy load components for better performance
@@ -96,6 +97,10 @@ DashboardStats.propTypes = {
 };
 
 const Dashboard = () => {
+  // Admin auth context
+  const { admin } = useAdminAuth();
+  
+  // State management
   const [isOnline, setIsOnline] = useState(navigator.onLine);
   const [lastRefresh, setLastRefresh] = useState(new Date().toLocaleTimeString());
   const [dashboardStats, setDashboardStats] = useState([]);
@@ -212,7 +217,14 @@ const Dashboard = () => {
     <div className="flex flex-col mx-3 md:mx-5 mb-10 min-h-screen">
       {/* Header Section */}
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-6">
-        <SectionTitle title="Dashboard" />
+        <div className="flex flex-col gap-2">
+          <SectionTitle title="Dashboard" />
+          {admin && (
+            <p className="text-gray-600 text-sm">
+              Welcome back, <span className="font-medium text-Primary">{admin.name}</span>
+            </p>
+          )}
+        </div>
         <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4">
           {/* Connection Status */}
           <div className={`flex items-center gap-2 px-3 py-1 rounded-full text-sm ${

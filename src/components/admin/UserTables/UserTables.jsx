@@ -688,21 +688,21 @@ const columnDefinitions = {
       header: "Contact",
       cell: ({ getValue }) => getValue() || "N/A",
     },
-    {
-      accessorKey: "address",
-      header: "Address",
-      cell: ({ getValue }) => {
-        const address = getValue();
-        return (
-          <span 
-            className="max-w-xs truncate block" 
-            title={address}
-          >
-            {address || "N/A"}
-          </span>
-        );
-      },
-    },
+    // {
+    //   accessorKey: "address",
+    //   header: "Address",
+    //   cell: ({ getValue }) => {
+    //     const address = getValue();
+    //     return (
+    //       <span 
+    //         className="max-w-xs truncate block" 
+    //         title={address}
+    //       >
+    //         {address || "N/A"}
+    //       </span>
+    //     );
+    //   },
+    // },
     {
       accessorKey: "createdAt",
       header: "Joined Date",

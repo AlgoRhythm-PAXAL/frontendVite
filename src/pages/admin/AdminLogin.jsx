@@ -1,18 +1,17 @@
 import { useState, useCallback, useMemo } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { toast } from "sonner";
-import axios from "axios";
+import { useAdminAuth } from "../../hooks/useAdminAuth";
 import FormField from "../../components/admin/FormField";
 import LOGO from "../../assets/Velox-Logo.png";
 import formValidator from "../../utils/formValidator.js";
 
-const backendURL = import.meta.env.VITE_BACKEND_URL;
-
 const AdminLogin = () => {
   const [formData, setFormData] = useState({ email: "", password: "" });
-  const [isLoading, setIsLoading] = useState(false);
   const [validationErrors, setValidationErrors] = useState({});
   const navigate = useNavigate();
+  
+  // Use admin auth context
+  const { login, loading: isLoading } = useAdminAuth();
 
   // Validate form data
   const validateForm = useCallback(() => {
@@ -42,47 +41,16 @@ const AdminLogin = () => {
       return;
     }
 
-    setIsLoading(true);
-    
     try {
-      const response = await axios.post(
-        `${backendURL}/api/admin/auth/login`,
-        formData,
-        {
-          withCredentials: true,
-          headers: { "Content-Type": "application/json" },
-        }
-      );
+      const result = await login(formData);
       
-      const { admin } = response.data;
-      
-      toast.success("Login Successful", {
-        description: `Welcome back, ${admin.name}`,
-        duration: 2000,
-        action: { 
-          label: "Dashboard", 
-          onClick: () => navigate("/admin") 
-        },
-      });
-      
-      // Navigate to dashboard after a brief delay
-      setTimeout(() => navigate("/admin"), 1000);
-      
+      if (result.success) {
+        // Navigate to dashboard after successful login
+        setTimeout(() => navigate("/admin"), 1000);
+      }
+      // Error handling is done in the context
     } catch (error) {
-      const errorMessage = error.response?.data?.message || 
-                          'Login failed. Please check your credentials.';
-      
-      toast.error("Authentication Error", {
-        description: errorMessage,
-        action: {
-          label: "Retry",
-          onClick: () => window.location.reload(),
-        },
-      });
-      
-      console.error("Login error:", error);
-    } finally {
-      setIsLoading(false);
+      console.error("Login submit error:", error);
     }
   };
 

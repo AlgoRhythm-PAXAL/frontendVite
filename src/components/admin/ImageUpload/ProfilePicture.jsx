@@ -1,11 +1,26 @@
 const ProfilePicture = ({ publicId, width }) => {
   const cloudName = import.meta.env.VITE_CLOUD_NAME;
 
+  // Debug logging in development
+  if (import.meta.env.DEV) {
+    console.log("ProfilePicture render:", { publicId, width, cloudName });
+  }
+
   // Handle missing publicId or cloudName
   if (!publicId || !cloudName) {
     return (
-      <div className="w-32 h-32  rounded-full bg-gray-200 flex items-center justify-center">
-        <span className="text-gray-500">No Image</span>
+      <div 
+        className="w-32 h-32 rounded-full bg-gray-200 flex items-center justify-center border-2 border-gray-300"
+        style={{
+          width: `${width}px`,
+          height: `${width}px`,
+          minWidth: `${width}px`,
+          minHeight: `${width}px`,
+        }}
+      >
+        <span className="text-gray-500 text-xs">
+          {!cloudName ? "No Cloud" : "No Image"}
+        </span>
       </div>
     );
   }
@@ -37,6 +52,16 @@ const ProfilePicture = ({ publicId, width }) => {
         height: `${width}px`,
         minWidth: `${width}px`,
         minHeight: `${width}px`,
+      }}
+      onError={(e) => {
+        console.log("Profile image failed to load:", imageUrl);
+        e.target.style.display = 'none';
+        // You could add a fallback div here
+      }}
+      onLoad={() => {
+        if (import.meta.env.DEV) {
+          console.log("Profile image loaded successfully:", imageUrl);
+        }
       }}
     />
   );
