@@ -1,5 +1,5 @@
 import './App.css';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { Routes, Route } from 'react-router-dom';
 import Dashboard from './pages/admin/Dashboard';
 import UserAccounts from './pages/admin/UserAccounts';
 import AdminLayout from './pages/admin/AdminLayout';
@@ -46,6 +46,7 @@ import Branches from "./pages/admin/Branches";
 import AdminProfile from "./pages/admin/AdminProfile";
 import { Toaster as SonnerToaster } from "sonner";
 import Vehicle from "./pages/admin/Vehicle";
+import Reports from "./pages/admin/Reports";
 
 {/* Staff login */}
 
@@ -89,7 +90,7 @@ import StaffProfile from "./pages/staff/StaffProfile";
 
 const App = () => {
   return (
-    <Router>
+    <>
       <SonnerToaster
         position="bottom-right"
         richColors
@@ -138,6 +139,7 @@ const App = () => {
             <Route path="branches" element={<Branches />} />
             <Route path="profile" element={<AdminProfile />} />
             <Route path="vehicles" element={<Vehicle />} />
+            <Route path="reports" element={<Reports />} />
             
           </Route>
         </Route>
@@ -190,7 +192,7 @@ const App = () => {
         </Route>
         </Route>
       </Routes>
-    </Router>
+    </>
   );
 };
 

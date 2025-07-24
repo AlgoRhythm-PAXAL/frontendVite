@@ -1,11 +1,6 @@
 const ProfilePicture = ({ publicId, width }) => {
   const cloudName = import.meta.env.VITE_CLOUD_NAME;
 
-  // Debug logging in development
-  if (import.meta.env.DEV) {
-    console.log("ProfilePicture render:", { publicId, width, cloudName });
-  }
-
   // Handle missing publicId or cloudName
   if (!publicId || !cloudName) {
     return (
@@ -54,15 +49,15 @@ const ProfilePicture = ({ publicId, width }) => {
         minHeight: `${width}px`,
       }}
       onError={(e) => {
-        console.log("Profile image failed to load:", imageUrl);
+        console.error("Error loading profile image:", e);
         e.target.style.display = 'none';
         // You could add a fallback div here
       }}
-      onLoad={() => {
-        if (import.meta.env.DEV) {
-          console.log("Profile image loaded successfully:", imageUrl);
-        }
-      }}
+      // onLoad={() => {
+      //   if (import.meta.env.DEV) {
+      //     console.log("Profile image loaded successfully:", imageUrl);
+      //   }
+      // }}
     />
   );
 };
