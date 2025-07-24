@@ -222,7 +222,7 @@ const ManifestPage = () => {
                 </div>
 
                 {/* Executive Summary */}
-                <div className="mb-8 p-6 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg border border-blue-200">
+                <div className="mb-8 p-6 bg-gray-50 rounded-lg border border-gray-200">
                     <div className="flex items-center justify-between mb-4">
                         <h2 className="text-xl font-bold text-gray-800 flex items-center gap-2">
                             <Package className="w-6 h-6 text-[#1F818C]" />
@@ -236,19 +236,19 @@ const ManifestPage = () => {
                     
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
                         <div className="text-center p-4 bg-white rounded-lg shadow-sm">
-                            <div className="text-2xl font-bold text-blue-600">{manifestData.parcelCount}</div>
+                            <div className="text-2xl font-bold text-[#1F818C]">{manifestData.parcelCount}</div>
                             <div className="text-sm text-gray-600 font-medium">Total Parcels</div>
                         </div>
                         <div className="text-center p-4 bg-white rounded-lg shadow-sm">
-                            <div className="text-2xl font-bold text-green-600">{manifestData.totalWeight} kg</div>
+                            <div className="text-2xl font-bold text-[#1F818C]">{manifestData.totalWeight} kg</div>
                             <div className="text-sm text-gray-600 font-medium">Total Weight</div>
                         </div>
                         <div className="text-center p-4 bg-white rounded-lg shadow-sm">
-                            <div className="text-2xl font-bold text-purple-600">{manifestData.totalVolume || 'N/A'}</div>
+                            <div className="text-2xl font-bold text-[#1F818C]">{manifestData.totalVolume || 'N/A'}</div>
                             <div className="text-sm text-gray-600 font-medium">Volume (m³)</div>
                         </div>
                         <div className="text-center p-4 bg-white rounded-lg shadow-sm">
-                            <div className="text-2xl font-bold text-orange-600">{manifestData.totalDistance || 'N/A'}</div>
+                            <div className="text-2xl font-bold text-[#1F818C]">{manifestData.totalDistance || 'N/A'}</div>
                             <div className="text-sm text-gray-600 font-medium">Distance (km)</div>
                         </div>
                     </div>
@@ -257,14 +257,14 @@ const ManifestPage = () => {
                         <div className="flex items-center justify-between p-3 bg-white rounded-lg">
                             <span className="font-semibold text-gray-700">Delivery Type:</span>
                             <span className={`px-3 py-1 rounded-full text-sm font-bold ${
-                                manifestData.deliveryType === 'Express' ? 'bg-red-100 text-red-800' : 'bg-blue-100 text-blue-800'
+                                manifestData.deliveryType === 'Express' ? 'bg-red-100 text-red-800' : 'bg-gray-100 text-gray-800'
                             }`}>
                                 {manifestData.deliveryType}
                             </span>
                         </div>
                         <div className="flex items-center justify-between p-3 bg-white rounded-lg">
                             <span className="font-semibold text-gray-700">Status:</span>
-                            <span className="px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm font-bold">
+                            <span className="px-3 py-1 bg-gray-100 text-gray-800 rounded-full text-sm font-bold">
                                 {manifestData.status}
                             </span>
                         </div>
@@ -279,7 +279,7 @@ const ManifestPage = () => {
 
                 {/* Vehicle Information */}
                 {manifestData.assignedVehicle ? (
-                    <div className="mb-8 p-6 bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg border border-green-200">
+                    <div className="mb-8 p-6 bg-gray-50 rounded-lg border border-gray-200">
                         <h2 className="text-xl font-bold text-gray-800 mb-6 flex items-center gap-2">
                             <Truck className="w-6 h-6 text-[#1F818C]" />
                             ASSIGNED VEHICLE
@@ -289,13 +289,13 @@ const ManifestPage = () => {
                                 {/* Vehicle Details */}
                                 <div>
                                     <h3 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2 border-b pb-2">
-                                        <Truck className="w-5 h-5 text-green-600" />
+                                        <Truck className="w-5 h-5 text-[#1F818C]" />
                                         Vehicle Details
                                     </h3>
                                     <div className="space-y-3">
                                         <div className="flex items-center justify-between">
                                             <span className="font-semibold text-gray-700">Registration No:</span>
-                                            <span className="px-3 py-2 bg-blue-600 text-white rounded-lg font-bold tracking-wider">
+                                            <span className="px-3 py-2 bg-[#1F818C] text-white rounded-lg font-bold tracking-wider">
                                                 {manifestData.assignedVehicle.registrationNo || 'N/A'}
                                             </span>
                                         </div>
@@ -307,19 +307,19 @@ const ManifestPage = () => {
                                         </div>
                                         <div className="flex items-center justify-between">
                                             <span className="font-semibold text-gray-700">Vehicle Type:</span>
-                                            <span className="px-3 py-1 bg-purple-100 text-purple-800 rounded-lg font-semibold">
+                                            <span className="px-3 py-1 bg-gray-100 text-gray-800 rounded-lg font-semibold">
                                                 {manifestData.assignedVehicle.vehicleType || 'N/A'}
                                             </span>
                                         </div>
                                         <div className="flex items-center justify-between">
                                             <span className="font-semibold text-gray-700">Weight Capacity:</span>
-                                            <span className="px-3 py-1 bg-blue-100 text-blue-800 rounded-lg font-bold">
+                                            <span className="px-3 py-1 bg-gray-100 text-gray-800 rounded-lg font-bold">
                                                 {manifestData.assignedVehicle.capableWeight || 'N/A'} kg
                                             </span>
                                         </div>
                                         <div className="flex items-center justify-between">
                                             <span className="font-semibold text-gray-700">Volume Capacity:</span>
-                                            <span className="px-3 py-1 bg-green-100 text-green-800 rounded-lg font-bold">
+                                            <span className="px-3 py-1 bg-gray-100 text-gray-800 rounded-lg font-bold">
                                                 {manifestData.assignedVehicle.capableVolume || 'N/A'} m³
                                             </span>
                                         </div>
@@ -330,7 +330,7 @@ const ManifestPage = () => {
                                 {manifestData.assignedDriver && (
                                     <div>
                                         <h3 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2 border-b pb-2">
-                                            <User className="w-5 h-5 text-blue-600" />
+                                            <User className="w-5 h-5 text-[#1F818C]" />
                                             Driver Information
                                         </h3>
                                         <div className="space-y-3">
@@ -342,7 +342,7 @@ const ManifestPage = () => {
                                             </div>
                                             <div className="flex items-center justify-between">
                                                 <span className="font-semibold text-gray-700">Contact Number:</span>
-                                                <span className="font-mono text-blue-600 bg-blue-50 px-2 py-1 rounded">
+                                                <span className="font-mono text-gray-800 bg-gray-100 px-2 py-1 rounded">
                                                     {manifestData.assignedDriver.contactNo || 'N/A'}
                                                 </span>
                                             </div>
@@ -354,7 +354,7 @@ const ManifestPage = () => {
                                             </div>
                                             <div className="flex items-center justify-between">
                                                 <span className="font-semibold text-gray-700">Experience:</span>
-                                                <span className="px-2 py-1 bg-orange-100 text-orange-800 rounded font-semibold">
+                                                <span className="px-2 py-1 bg-gray-100 text-gray-800 rounded font-semibold">
                                                     {manifestData.assignedDriver.experience || 'N/A'}
                                                 </span>
                                             </div>
@@ -365,13 +365,13 @@ const ManifestPage = () => {
                         </div>
                     </div>
                 ) : (
-                    <div className="mb-8 p-6 bg-gradient-to-r from-yellow-50 to-orange-50 rounded-lg border border-yellow-200">
+                    <div className="mb-8 p-6 bg-gray-50 rounded-lg border border-gray-200">
                         <h2 className="text-xl font-bold text-gray-800 mb-6 flex items-center gap-2">
                             <Truck className="w-6 h-6 text-[#1F818C]" />
                             ASSIGNED VEHICLE
                         </h2>
                         <div className="bg-white rounded-lg p-8 shadow-sm text-center">
-                            <div className="text-yellow-600 mb-4">
+                            <div className="text-gray-600 mb-4">
                                 <Truck className="w-16 h-16 mx-auto opacity-60" />
                             </div>
                             <h3 className="text-xl font-bold text-gray-800 mb-2">No Vehicle Assigned</h3>
@@ -382,26 +382,26 @@ const ManifestPage = () => {
                 )}
 
                 {/* Shipment Timeline */}
-                <div className="mb-8 p-6 bg-gradient-to-r from-indigo-50 to-purple-50 rounded-lg border border-indigo-200">
+                <div className="mb-8 p-6 bg-gray-50 rounded-lg border border-gray-200">
                     <h2 className="text-xl font-bold text-gray-800 mb-6 flex items-center gap-2">
                         <Clock className="w-6 h-6 text-[#1F818C]" />
                         SHIPMENT TIMELINE
                     </h2>
                     <div className="space-y-4">
-                        <div className="timeline-item bg-white rounded-lg p-5 shadow-sm border-l-4 border-blue-500">
+                        <div className="timeline-item bg-white rounded-lg p-5 shadow-sm border-l-4 border-[#1F818C]">
                             <div className="flex justify-between items-start">
                                 <div className="flex items-start gap-3">
-                                    <div className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center">
+                                    <div className="w-10 h-10 bg-[#1F818C] rounded-full flex items-center justify-center">
                                         <Package className="w-5 h-5 text-white" />
                                     </div>
                                     <div>
-                                        <div className="font-bold text-blue-800 text-lg">Shipment Created</div>
-                                        <div className="text-sm text-blue-600 mt-1">Initial shipment created and parcels assigned</div>
+                                        <div className="font-bold text-gray-800 text-lg">Shipment Created</div>
+                                        <div className="text-sm text-gray-600 mt-1">Initial shipment created and parcels assigned</div>
                                         <div className="text-xs text-gray-500 mt-2">Status: Preparation Phase</div>
                                     </div>
                                 </div>
                                 <div className="text-right">
-                                    <div className="text-sm text-blue-700 font-bold">
+                                    <div className="text-sm text-gray-700 font-bold">
                                         {new Date(manifestData.createdAt).toLocaleDateString()}
                                     </div>
                                     <div className="text-xs text-gray-500">
@@ -412,15 +412,15 @@ const ManifestPage = () => {
                         </div>
 
                         {manifestData.assignedVehicle && (
-                            <div className="timeline-item bg-white rounded-lg p-5 shadow-sm border-l-4 border-green-500">
+                            <div className="timeline-item bg-white rounded-lg p-5 shadow-sm border-l-4 border-[#1F818C]">
                                 <div className="flex justify-between items-start">
                                     <div className="flex items-start gap-3">
-                                        <div className="w-10 h-10 bg-green-500 rounded-full flex items-center justify-center">
+                                        <div className="w-10 h-10 bg-[#1F818C] rounded-full flex items-center justify-center">
                                             <Truck className="w-5 h-5 text-white" />
                                         </div>
                                         <div>
-                                            <div className="font-bold text-green-800 text-lg">Vehicle Assigned</div>
-                                            <div className="text-sm text-green-600 mt-1">
+                                            <div className="font-bold text-gray-800 text-lg">Vehicle Assigned</div>
+                                            <div className="text-sm text-gray-600 mt-1">
                                                 Vehicle {manifestData.assignedVehicle.registrationNo || manifestData.assignedVehicle.vehicleId} assigned
                                             </div>
                                             <div className="text-xs text-gray-500 mt-2">
@@ -429,7 +429,7 @@ const ManifestPage = () => {
                                         </div>
                                     </div>
                                     <div className="text-right">
-                                        <div className="text-sm text-green-700 font-bold">
+                                        <div className="text-sm text-gray-700 font-bold">
                                             {manifestData.vehicleAssignedAt ? new Date(manifestData.vehicleAssignedAt).toLocaleDateString() : 'Today'}
                                         </div>
                                         <div className="text-xs text-gray-500">
@@ -441,20 +441,20 @@ const ManifestPage = () => {
                         )}
 
                         {manifestData.status === 'In Transit' && (
-                            <div className="timeline-item bg-white rounded-lg p-5 shadow-sm border-l-4 border-yellow-500">
+                            <div className="timeline-item bg-white rounded-lg p-5 shadow-sm border-l-4 border-gray-400">
                                 <div className="flex justify-between items-start">
                                     <div className="flex items-start gap-3">
-                                        <div className="w-10 h-10 bg-yellow-500 rounded-full flex items-center justify-center">
+                                        <div className="w-10 h-10 bg-gray-400 rounded-full flex items-center justify-center">
                                             <MapPin className="w-5 h-5 text-white" />
                                         </div>
                                         <div>
-                                            <div className="font-bold text-yellow-800 text-lg">In Transit</div>
-                                            <div className="text-sm text-yellow-600 mt-1">Shipment is currently on the road</div>
+                                            <div className="font-bold text-gray-800 text-lg">In Transit</div>
+                                            <div className="text-sm text-gray-600 mt-1">Shipment is currently on the road</div>
                                             <div className="text-xs text-gray-500 mt-2">Status: Active Transport</div>
                                         </div>
                                     </div>
                                     <div className="text-right">
-                                        <div className="text-sm text-yellow-700 font-bold">
+                                        <div className="text-sm text-gray-700 font-bold">
                                             {manifestData.transitStartedAt ? new Date(manifestData.transitStartedAt).toLocaleDateString() : 'Pending'}
                                         </div>
                                         <div className="text-xs text-gray-500">
@@ -466,13 +466,13 @@ const ManifestPage = () => {
                         )}
 
                         {manifestData.status === 'Completed' && (
-                            <div className="timeline-item bg-emerald-50 rounded-lg p-4 border-l-4 border-emerald-500">
+                            <div className="timeline-item bg-gray-50 rounded-lg p-4 border-l-4 border-gray-400">
                                 <div className="flex justify-between items-center">
                                     <div>
-                                        <div className="font-semibold text-emerald-800">Shipment Completed</div>
-                                        <div className="text-sm text-emerald-600">All parcels delivered successfully</div>
+                                        <div className="font-semibold text-gray-800">Shipment Completed</div>
+                                        <div className="text-sm text-gray-600">All parcels delivered successfully</div>
                                     </div>
-                                    <div className="text-sm text-emerald-700 font-medium">
+                                    <div className="text-sm text-gray-700 font-medium">
                                         {manifestData.completedAt ? new Date(manifestData.completedAt).toLocaleString() : 'N/A'}
                                     </div>
                                 </div>
@@ -490,18 +490,18 @@ const ManifestPage = () => {
                         </div>
                         <div className="space-y-3">
                             {manifestData.arrivalTimes.map((arrival, index) => (
-                                <div key={index} className="bg-indigo-50 rounded-lg p-4 flex justify-between items-center">
+                                <div key={index} className="bg-gray-50 rounded-lg p-4 flex justify-between items-center">
                                     <div>
-                                        <div className="font-semibold text-indigo-800">
+                                        <div className="font-semibold text-gray-800">
                                             {arrival.center?.location || arrival.center?.branchId || arrival.center}
                                         </div>
-                                        <div className="text-sm text-indigo-600">
+                                        <div className="text-sm text-gray-600">
                                             Branch ID: {arrival.center?.branchId || 'N/A'}
                                         </div>
                                     </div>
                                     <div className="text-right">
-                                        <div className="font-semibold text-indigo-800">{arrival.time} hours</div>
-                                        <div className="text-sm text-indigo-600">from start</div>
+                                        <div className="font-semibold text-gray-800">{arrival.time} hours</div>
+                                        <div className="text-sm text-gray-600">from start</div>
                                     </div>
                                 </div>
                             ))}
@@ -518,16 +518,16 @@ const ManifestPage = () => {
                         </div>
                         <div className="space-y-3">
                             {manifestData.route.map((location, index) => (
-                                <div key={index} className="route-item bg-blue-50 rounded-lg p-4 flex items-center gap-4">
-                                    <div className="flex-shrink-0 w-8 h-8 bg-blue-500 text-white rounded-full flex items-center justify-center font-bold">
+                                <div key={index} className="route-item bg-gray-50 rounded-lg p-4 flex items-center gap-4">
+                                    <div className="flex-shrink-0 w-8 h-8 bg-[#1F818C] text-white rounded-full flex items-center justify-center font-bold">
                                         {index + 1}
                                     </div>
                                     <div className="flex-1">
-                                        <div className="font-semibold text-blue-800">{location.location}</div>
-                                        <div className="text-sm text-blue-600">Branch ID: {location.branchId}</div>
+                                        <div className="font-semibold text-gray-800">{location.location}</div>
+                                        <div className="text-sm text-gray-600">Branch ID: {location.branchId}</div>
                                     </div>
                                     {index < manifestData.route.length - 1 && (
-                                        <div className="text-blue-400">→</div>
+                                        <div className="text-gray-400">→</div>
                                     )}
                                 </div>
                             ))}
@@ -553,7 +553,7 @@ const ManifestPage = () => {
                                 {manifestData.parcels.map((parcel, index) => (
                                     <div key={index} className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden parcel-section">
                                         {/* Parcel Header */}
-                                        <div className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white p-4">
+                                        <div className="bg-[#1F818C] text-white p-4">
                                             <div className="flex items-center justify-between">
                                                 <div className="flex items-center gap-3">
                                                     <div className="w-10 h-10 bg-white bg-opacity-20 rounded-full flex items-center justify-center">
@@ -566,10 +566,10 @@ const ManifestPage = () => {
                                                 </div>
                                                 <div className="text-right">
                                                     <span className={`px-3 py-1 rounded-full text-sm font-bold ${
-                                                        parcel.status === 'Delivered' ? 'bg-green-500 text-white' :
-                                                        parcel.status === 'InTransit' ? 'bg-blue-500 text-white' :
-                                                        parcel.status === 'PendingPickup' ? 'bg-yellow-500 text-white' :
-                                                        'bg-gray-500 text-white'
+                                                        parcel.status === 'Delivered' ? 'bg-gray-100 text-gray-800' :
+                                                        parcel.status === 'InTransit' ? 'bg-gray-100 text-gray-800' :
+                                                        parcel.status === 'PendingPickup' ? 'bg-red-100 text-red-800' :
+                                                        'bg-gray-100 text-gray-800'
                                                     }`}>
                                                         {parcel.status || 'Pending'}
                                                     </span>
@@ -588,13 +588,13 @@ const ManifestPage = () => {
                                                     <div className="space-y-3">
                                                         <div className="flex justify-between items-center">
                                                             <span className="text-gray-600 font-medium">Item Type:</span>
-                                                            <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded font-semibold">
+                                                            <span className="px-2 py-1 bg-gray-100 text-gray-800 rounded font-semibold">
                                                                 {parcel.itemType || 'General'}
                                                             </span>
                                                         </div>
                                                         <div className="flex justify-between items-center">
                                                             <span className="text-gray-600 font-medium">Size:</span>
-                                                            <span className="px-2 py-1 bg-purple-100 text-purple-800 rounded font-semibold">
+                                                            <span className="px-2 py-1 bg-gray-100 text-gray-800 rounded font-semibold">
                                                                 {parcel.itemSize || 'N/A'}
                                                             </span>
                                                         </div>
@@ -628,28 +628,28 @@ const ManifestPage = () => {
                                                     <h4 className="font-bold text-gray-800 text-lg border-b pb-2 text-[#1F818C]">
                                                         Sender Details
                                                     </h4>
-                                                    <div className="bg-blue-50 rounded-lg p-4">
+                                                    <div className="bg-gray-50 rounded-lg p-4">
                                                         <div className="space-y-3">
                                                             <div>
-                                                                <div className="text-sm font-medium text-blue-700">Name</div>
+                                                                <div className="text-sm font-medium text-gray-700">Name</div>
                                                                 <div className="font-semibold text-gray-800">
                                                                     {parcel.senderId?.name || 'N/A'}
                                                                 </div>
                                                             </div>
                                                             <div>
-                                                                <div className="text-sm font-medium text-blue-700">Email</div>
+                                                                <div className="text-sm font-medium text-gray-700">Email</div>
                                                                 <div className="font-mono text-sm text-gray-700">
                                                                     {parcel.senderId?.email || 'N/A'}
                                                                 </div>
                                                             </div>
                                                             <div>
-                                                                <div className="text-sm font-medium text-blue-700">Phone</div>
+                                                                <div className="text-sm font-medium text-gray-700">Phone</div>
                                                                 <div className="font-mono text-sm text-gray-700">
                                                                     {parcel.senderId?.phone || 'N/A'}
                                                                 </div>
                                                             </div>
                                                             <div>
-                                                                <div className="text-sm font-medium text-blue-700">Address</div>
+                                                                <div className="text-sm font-medium text-gray-700">Address</div>
                                                                 <div className="text-sm text-gray-700">
                                                                     {parcel.senderId?.address || 'N/A'}
                                                                 </div>
@@ -663,28 +663,28 @@ const ManifestPage = () => {
                                                     <h4 className="font-bold text-gray-800 text-lg border-b pb-2 text-[#1F818C]">
                                                         Receiver Details
                                                     </h4>
-                                                    <div className="bg-green-50 rounded-lg p-4">
+                                                    <div className="bg-gray-50 rounded-lg p-4">
                                                         <div className="space-y-3">
                                                             <div>
-                                                                <div className="text-sm font-medium text-green-700">Name</div>
+                                                                <div className="text-sm font-medium text-gray-700">Name</div>
                                                                 <div className="font-semibold text-gray-800">
                                                                     {parcel.receiverId?.name || 'N/A'}
                                                                 </div>
                                                             </div>
                                                             <div>
-                                                                <div className="text-sm font-medium text-green-700">Email</div>
+                                                                <div className="text-sm font-medium text-gray-700">Email</div>
                                                                 <div className="font-mono text-sm text-gray-700">
                                                                     {parcel.receiverId?.email || 'N/A'}
                                                                 </div>
                                                             </div>
                                                             <div>
-                                                                <div className="text-sm font-medium text-green-700">Phone</div>
+                                                                <div className="text-sm font-medium text-gray-700">Phone</div>
                                                                 <div className="font-mono text-sm text-gray-700">
                                                                     {parcel.receiverId?.phone || 'N/A'}
                                                                 </div>
                                                             </div>
                                                             <div>
-                                                                <div className="text-sm font-medium text-green-700">Address</div>
+                                                                <div className="text-sm font-medium text-gray-700">Address</div>
                                                                 <div className="text-sm text-gray-700">
                                                                     {parcel.receiverId?.address || 'N/A'}
                                                                 </div>
@@ -696,14 +696,14 @@ const ManifestPage = () => {
 
                                             {/* Special Instructions */}
                                             {parcel.specialInstructions && (
-                                                <div className="mt-6 p-4 bg-yellow-50 rounded-lg border border-yellow-200">
+                                                <div className="mt-6 p-4 bg-red-50 rounded-lg border border-red-200">
                                                     <div className="flex items-start gap-2">
-                                                        <div className="w-6 h-6 bg-yellow-400 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                                                        <div className="w-6 h-6 bg-red-400 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
                                                             <span className="text-white text-sm font-bold">!</span>
                                                         </div>
                                                         <div>
-                                                            <div className="font-semibold text-yellow-800 text-sm">Special Instructions</div>
-                                                            <div className="text-yellow-700 text-sm mt-1">
+                                                            <div className="font-semibold text-red-800 text-sm">Special Instructions</div>
+                                                            <div className="text-red-700 text-sm mt-1">
                                                                 {parcel.specialInstructions}
                                                             </div>
                                                         </div>
@@ -728,12 +728,12 @@ const ManifestPage = () => {
 
                 {/* Professional Footer */}
                 <div className="mt-12 pt-8 border-t-2 border-gray-200 text-center">
-                    <div className="bg-gradient-to-r from-[#1F818C] to-blue-600 text-white rounded-lg p-6">
+                    <div className="bg-[#1F818C] text-white rounded-lg p-6">
                         <div className="text-lg font-bold mb-2">MANIFEST COMPLETE</div>
-                        <p className="text-blue-100 text-sm mb-2">
+                        <p className="text-white opacity-90 text-sm mb-2">
                             This manifest was generated automatically by PAXAL Logistics System
                         </p>
-                        <div className="text-xs text-blue-200">
+                        <div className="text-xs text-white opacity-70">
                             Generated on {new Date().toLocaleString()} | For queries: support@paxal.com
                         </div>
                     </div>

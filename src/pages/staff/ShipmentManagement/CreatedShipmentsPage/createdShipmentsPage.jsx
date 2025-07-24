@@ -40,6 +40,7 @@ const ShipmentManagement = () => {
     const [searchingVehicle, setSearchingVehicle] = useState(false);
     const [findingVehicle, setFindingVehicle] = useState(false);
     const [assigningVehicle, setAssigningVehicle] = useState(false);
+    const [assignVehicleOnlyMode, setAssignVehicleOnlyMode] = useState(false);
     
     // Parcel management state
     const [selectedParcelGroups, setSelectedParcelGroups] = useState({});
@@ -510,7 +511,7 @@ const ShipmentManagement = () => {
         showConfirmation(
             'delete',
             'Delete Shipment',
-            `Are you sure you want to delete shipment "${shipment?.trackingNumber || shipmentId}"? This action cannot be undone and will reset the associated parcels to PendingPickup status.`,
+            `Are you sure you want to delete shipment "${shipment?.trackingNumber || shipmentId}"? This action cannot be undone and will reset the associated parcels to ArrivedAtCollectionCenter status.`,
             async () => await performSingleDelete(shipmentId)
         );
     };
@@ -541,7 +542,7 @@ const ShipmentManagement = () => {
             newSelected.delete(shipmentId);
             setSelectedShipments(newSelected);
 
-            showPopup('success', `Shipment deleted successfully! ${data.updatedParcelsCount} parcels have been reset to pending status.`);
+            showPopup('success', `Shipment deleted successfully! ${data.updatedParcelsCount} parcels have been reset to ArrivedAtCollectionCenter status.`);
         } catch (err) {
             showPopup('error', `Error deleting shipment: ${err.message}`);
         } finally {
@@ -704,6 +705,8 @@ const ShipmentManagement = () => {
     const handleAssignVehicleOnly = async () => {
         if (!vehicleSelectionModal?.enhancedResult) return;
         
+        // Set the mode to indicate user chose "Assign Vehicle Only"
+        setAssignVehicleOnlyMode(true);
         setConfirmingAssignment(true);
         
         try {
@@ -715,6 +718,7 @@ const ShipmentManagement = () => {
                 headers: {
                     'Content-Type': 'application/json',
                 },
+                credentials: 'include',
                 body: JSON.stringify({
                     vehicleId: vehicle.vehicleId,
                     checkParcels: false
@@ -731,6 +735,7 @@ const ShipmentManagement = () => {
                 showPopup('success', 'Vehicle assigned successfully! Shipment is now In Transit and parcels updated to ShipmentAssigned status.');
                 setVehicleSelectionModal(null);
                 setSmartSearchResult(null);
+                setAssignVehicleOnlyMode(false);
                 
                 // Update local state
                 updateShipmentInState(shipmentId, data.shipment);
@@ -742,6 +747,7 @@ const ShipmentManagement = () => {
             showPopup('error', `Failed to assign vehicle: ${error.message}`);
         } finally {
             setConfirmingAssignment(false);
+            setAssignVehicleOnlyMode(false);
         }
     };
 
@@ -928,6 +934,11 @@ const ShipmentManagement = () => {
     const confirmSmartAssignment = async (checkParcels = false) => {
         if (!vehicleSelectionModal || !smartSearchResult) return;
 
+        // Set the mode when user chooses "Assign Only"
+        if (!checkParcels) {
+            setAssignVehicleOnlyMode(true);
+        }
+
         if (checkParcels && !showParcelSelection) {
             // First time clicking "Check for Parcels" - show parcel selection UI
             setShowParcelSelection(true);
@@ -956,6 +967,7 @@ const ShipmentManagement = () => {
                 headers: {
                     'Content-Type': 'application/json',
                 },
+                credentials: 'include',
                 body: JSON.stringify({
                     vehicleId: vehicle.vehicleId || vehicle._id,
                     selectedParcelIds: selectedParcelIds,
@@ -1005,6 +1017,7 @@ const ShipmentManagement = () => {
             showPopup('error', `Failed to confirm assignment: ${error.message}`);
         } finally {
             setConfirmingAssignment(false);
+            setAssignVehicleOnlyMode(false);
         }
     };
 
@@ -1017,6 +1030,7 @@ const ShipmentManagement = () => {
         setConfirmingAssignment(false);
         setSelectedParcelGroups([]);
         setShowParcelSelection(false);
+        setAssignVehicleOnlyMode(false); // Reset the "Assign Vehicle Only" mode
     };
 
     // === STANDARD SHIPMENT FUNCTIONS ===
@@ -1210,7 +1224,11 @@ const ShipmentManagement = () => {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                }
+                },
+                credentials: 'include',
+                body: JSON.stringify({
+                    searchOnly: true // Only search for parcels, don't update shipment IDs yet
+                })
             });
 
             const data = await response.json();
@@ -1235,6 +1253,25 @@ const ShipmentManagement = () => {
     // Confirm smart parcels addition
     const confirmSmartParcelsAddition = async () => {
         try {
+            // Make the actual API call to update shipment IDs
+            const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/shipments/b2b/standard-shipments/${addMoreParcelsModal.shipmentId}/add-more`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                credentials: 'include',
+                body: JSON.stringify({
+                    searchOnly: false, // Actually update shipment IDs
+                    parcelIds: smartParcelsResults.addedParcels?.map(p => p._id) || []
+                })
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(data.error || 'Failed to add parcels');
+            }
+
             showPopup('success', `Successfully added ${smartParcelsResults.addedParcels.length} parcels!`);
             
             // Update local shipment state
@@ -1619,7 +1656,7 @@ const ShipmentManagement = () => {
         showConfirmation(
             'delete',
             'Delete Shipments',
-            `Are you sure you want to delete ${selectedShipmentIds.length} shipment${selectedShipmentIds.length > 1 ? 's' : ''}? This action cannot be undone and will also reset the associated parcels.`,
+            `Are you sure you want to delete ${selectedShipmentIds.length} shipment${selectedShipmentIds.length > 1 ? 's' : ''}? This action cannot be undone and will reset the associated parcels to ArrivedAtCollectionCenter status.`,
             async () => await performBulkDelete(selectedShipmentIds)
         );
     };
@@ -2652,8 +2689,8 @@ const ShipmentManagement = () => {
                                             )}
                                             Assign Vehicle Only
                                         </button>
-                                        {/* Check for Parcels Button */}
-                                        {vehicleSelectionModal.enhancedResult.availableParcelGroups && vehicleSelectionModal.enhancedResult.availableParcelGroups.totalParcelsFound > 0 && (
+                                        {/* Check for Parcels Button - Only show if not in "Assign Vehicle Only" mode */}
+                                        {!assignVehicleOnlyMode && vehicleSelectionModal.enhancedResult.availableParcelGroups && vehicleSelectionModal.enhancedResult.availableParcelGroups.totalParcelsFound > 0 && (
                                             <button
                                                 onClick={handleCheckForParcels}
                                                 disabled={confirmingAssignment}
@@ -2891,7 +2928,7 @@ const ShipmentManagement = () => {
                                 </>
                             )}
 
-                            {/* ENHANCED WORKFLOW - Direct Assignment Modal - Clean Version */}
+                            {/* ENHANCED WORKFLOW - Direct Assignment Modal - Clean Version
                             {vehicleSelectionModal.step === 'confirm_direct_assignment' && vehicleSelectionModal.enhancedResult && (
                                 <div>
                                     <div className="bg-green-50 rounded-lg p-4 mb-4">
@@ -2919,7 +2956,7 @@ const ShipmentManagement = () => {
                                         </button>
                                     </div>
                                 </div>
-                            )}
+                            )} */}
 
                             {/* LEGACY - Keep existing confirm step for compatibility */}
                             {vehicleSelectionModal.step === 'confirm' && smartSearchResult && (
@@ -2945,18 +2982,20 @@ const ShipmentManagement = () => {
                                                 )}
                                                 Assign Only
                                             </button>
-                                            <button
-                                                onClick={() => confirmSmartAssignment(true)}
-                                                disabled={confirmingAssignment}
-                                                className="px-6 py-2 bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-lg hover:from-green-700 hover:to-emerald-700 disabled:opacity-50 flex items-center gap-2 transition-all"
-                                            >
-                                                {confirmingAssignment ? (
-                                                    <Loader className="w-4 h-4 animate-spin" />
-                                                ) : (
-                                                    <Package className="w-4 h-4" />
-                                                )}
-                                                Check for Parcels
-                                            </button>
+                                            {!assignVehicleOnlyMode && (
+                                                <button
+                                                    onClick={() => confirmSmartAssignment(true)}
+                                                    disabled={confirmingAssignment}
+                                                    className="px-6 py-2 bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-lg hover:from-green-700 hover:to-emerald-700 disabled:opacity-50 flex items-center gap-2 transition-all"
+                                                >
+                                                    {confirmingAssignment ? (
+                                                        <Loader className="w-4 h-4 animate-spin" />
+                                                    ) : (
+                                                        <Package className="w-4 h-4" />
+                                                    )}
+                                                    Check for Parcels
+                                                </button>
+                                            )}
                                         </>
                                     ) : (
                                         <button
@@ -4145,10 +4184,7 @@ const ShipmentManagement = () => {
                                                                     <div className="flex">
                                                                         <span className="text-gray-600 w-36">Created By Staff:</span>
                                                                         <span className="font-medium text-gray-800">
-                                                                            {shipment.createdByStaff?.name || 
-                                                                             shipment.createdByStaff?.firstName || 
-                                                                             shipment.createdByStaff?.staffName ||
-                                                                             'N/A'}
+                                                                            {shipment.createdByStaff?.name || 'N/A'}
                                                                         </span>
                                                                     </div>
                                                                     <div className="flex">
@@ -4292,7 +4328,7 @@ const ShipmentManagement = () => {
                                                                                         <div className="text-sm text-yellow-600">
                                                                                             <p><strong>Parcel Reference:</strong> {typeof parcel === 'string' ? parcel : (parcel?._id || parcel?.id || 'Unknown')}</p>
                                                                                             <p className="mt-2 italic bg-yellow-100 p-2 rounded">
-                                                                                                ⚠️ <strong>API Issue:</strong> Parcel details are not populated. The backend API needs to use .populate(&apos;parcels&apos;) to show detailed parcel information.
+                                                                                                 <strong>API Issue:</strong> Parcel details are not populated. The backend API needs to use .populate(&apos;parcels&apos;) to show detailed parcel information.
                                                                                             </p>
                                                                                         </div>
                                                                                     </div>
@@ -4313,15 +4349,29 @@ const ShipmentManagement = () => {
                                                                                             <div className="text-sm space-y-1">
                                                                                                 <div><span className="text-gray-600">Parcel ID:</span> <span className="font-medium">{parcel.parcelId || 'N/A'}</span></div>
                                                                                                 <div><span className="text-gray-600">Tracking No:</span> <span className="font-medium">{parcel.trackingNo || 'N/A'}</span></div>
-                                                                                                <div><span className="text-gray-600">QR Code:</span> <span className="font-medium">{parcel.qrCodeNo || 'N/A'}</span></div>
+                                                                                                <div><span className="text-gray-600">QR Code:</span> 
+                                                                                                    {parcel.qrCodeNo ? (
+                                                                                                        parcel.qrCodeNo.startsWith('data:image/') ? (
+                                                                                                            <div className="mt-2">
+                                                                                                                <img 
+                                                                                                                    src={parcel.qrCodeNo} 
+                                                                                                                    alt="QR Code" 
+                                                                                                                    className="w-16 h-16 border border-gray-300 rounded"
+                                                                                                                />
+                                                                                                            </div>
+                                                                                                        ) : (
+                                                                                                            <span className="font-medium ml-2">{parcel.qrCodeNo}</span>
+                                                                                                        )
+                                                                                                    ) : (
+                                                                                                        <span className="font-medium ml-2">N/A</span>
+                                                                                                    )}
+                                                                                                </div>
                                                                                                 <div><span className="text-gray-600">Item Type:</span> <span className="font-medium">{parcel.itemType || 'N/A'}</span></div>
                                                                                                 <div><span className="text-gray-600">Item Size:</span> <span className="font-medium">{parcel.itemSize || 'N/A'}</span></div>
                                                                                                 <div><span className="text-gray-600">Shipping Method:</span> <span className="font-medium">{parcel.shippingMethod || 'N/A'}</span></div>
                                                                                                 <div><span className="text-gray-600">Status:</span> 
                                                                                                     <span className={`ml-2 px-2 py-1 text-xs rounded-full ${
-                                                                                                        parcel.status === 'Delivered' ? 'bg-green-100 text-green-800' :
-                                                                                                        parcel.status === 'InTransit' ? 'bg-blue-100 text-blue-800' :
-                                                                                                        parcel.status === 'PendingPickup' ? 'bg-yellow-100 text-yellow-800' :
+                                                                                                        parcel.status === 'ArrivedAtCollectionCenter' ? 'bg-green-100 text-green-800' :
                                                                                                         'bg-gray-100 text-gray-800'
                                                                                                     }`}>
                                                                                                         {parcel.status || 'N/A'}

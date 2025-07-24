@@ -94,7 +94,9 @@ const B2BShipmentCreationPage = () => {
         setError(null);
 
         try {
-            const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/parcels/682e1059ce33c2a891c9b168`);
+            const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/parcels/staff/assigned-parcels`, {
+                credentials: 'include' // Include cookies for staff authentication
+            });
             if (!response.ok) {
                 throw new Error(`Error: ${response.status} - ${response.statusText}`);
             }
