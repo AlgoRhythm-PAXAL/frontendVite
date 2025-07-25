@@ -1683,15 +1683,15 @@ const ShipmentManagement = () => {
                 setSelectedShipments(new Set());
 
                 if (failedCount === 0) {
-                    showPopup('success', `🗑️ Successfully deleted ${successCount} shipment${successCount > 1 ? 's' : ''}! Associated parcels have been reset.`);
+                    showPopup('success', `Successfully deleted ${successCount} shipment${successCount > 1 ? 's' : ''}! Associated parcels have been reset.`);
                 } else {
-                    showPopup('warning', `✅ ${successCount} shipment${successCount > 1 ? 's' : ''} deleted successfully, ❌ ${failedCount} failed to delete.`);
+                    showPopup('warning', `${successCount} shipment${successCount > 1 ? 's' : ''} deleted successfully, ❌ ${failedCount} failed to delete.`);
                 }
             } else {
-                showPopup('error', '❌ All shipments failed to delete. Please check your connection and try again.');
+                showPopup('error', 'All shipments failed to delete. Please check your connection and try again.');
             }
         } catch (err) {
-            showPopup('error', `❌ Error in bulk deletion: ${err.message}`);
+            showPopup('error', `Error in bulk deletion: ${err.message}`);
         }
     };
 
