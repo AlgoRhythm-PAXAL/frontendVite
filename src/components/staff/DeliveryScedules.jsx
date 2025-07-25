@@ -87,7 +87,6 @@ const DeliverySchedules = ({ onAssignmentChange, parcelId }) => {
         setSelectedScheduleId(newSchedule._id);
         await getDeliverySchedules();
         toast.success("New Schedule created", {
-          description: response.data.message,
           duration: 3000,
         });
         
@@ -98,8 +97,7 @@ const DeliverySchedules = ({ onAssignmentChange, parcelId }) => {
         error.response?.data.message ||
         "Failed to create a new delivery schedule. Please try again.";
 
-      toast.error("Failed to Create a new delivery schedule", {
-        description: errorMessage,
+      toast.error(errorMessage ,{
         duration: 4000,
       });
     } finally {
