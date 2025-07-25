@@ -140,8 +140,8 @@ const App = () => {
             <Route path="branches" element={<Branches />} />
             <Route path="profile" element={<AdminProfile />} />
             <Route path="vehicles" element={<Vehicle />} />
-            <Route path="reports" element={<Reports />} />
-            <Route path="comprehensive-reports" element={<ComprehensiveReports />} />
+            <Route path="reports" element={<ComprehensiveReports />} />
+            <Route path="reports-before" element={<Reports />} />
             
           </Route>
         </Route>
