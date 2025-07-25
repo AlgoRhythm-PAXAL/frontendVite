@@ -46,7 +46,8 @@ import Branches from "./pages/admin/Branches";
 import AdminProfile from "./pages/admin/AdminProfile";
 import { Toaster as SonnerToaster } from "sonner";
 import Vehicle from "./pages/admin/Vehicle";
-import Reports from "./pages/admin/Reports";
+import ComprehensiveReports from "./pages/admin/ComprehensiveReports";
+import Reports from "./pages/admin/Reports"; // Import the Reports component
 
 {/* Staff login */}
 
@@ -140,6 +141,7 @@ const App = () => {
             <Route path="profile" element={<AdminProfile />} />
             <Route path="vehicles" element={<Vehicle />} />
             <Route path="reports" element={<Reports />} />
+            <Route path="comprehensive-reports" element={<ComprehensiveReports />} />
             
           </Route>
         </Route>

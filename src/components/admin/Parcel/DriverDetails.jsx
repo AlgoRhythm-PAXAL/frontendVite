@@ -3,17 +3,15 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { 
-  AlertTriangle, 
-  Truck, 
-  User, 
-  MapPin, 
-  Phone, 
-  Mail,
-  CreditCard,
+import {
+  AlertTriangle,
+  User,
+  Truck,
   Calendar,
+  Package,
   RefreshCw,
-  Shield
+  Activity,
+  Building
 } from "lucide-react";
 import PropTypes from "prop-types";
 import axios from "axios";
@@ -134,17 +132,35 @@ const DriverDetails = ({ entryId }) => {
   };
 
   const getStatusColor = (status) => {
-    const colors = {
-      active: "bg-green-100 text-green-800 border-green-200",
-      inactive: "bg-red-100 text-red-800 border-red-200",
-      suspended: "bg-yellow-100 text-yellow-800 border-yellow-200",
-    };
-    return colors[status?.toLowerCase()] || "bg-gray-100 text-gray-800 border-gray-200";
+    switch (status?.toLowerCase()) {
+      case "completed":
+        return "bg-green-100 text-green-800";
+      case "in transit":
+      case "dispatched":
+        return "bg-blue-100 text-blue-800";
+      case "pending":
+        return "bg-yellow-100 text-yellow-800";
+      case "verified":
+        return "bg-purple-100 text-purple-800";
+      default:
+        return "bg-gray-100 text-gray-800";
+    }
+  };
+
+  const getScheduleTypeColor = (type) => {
+    switch (type?.toLowerCase()) {
+      case "pickup":
+        return "bg-orange-100 text-orange-800";
+      case "delivery":
+        return "bg-green-100 text-green-800";
+      default:
+        return "bg-gray-100 text-gray-800";
+    }
   };
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center py-12">
+      <div className="flex items-center justify-center p-8">
         <LoadingAnimation />
       </div>
     );
@@ -152,12 +168,17 @@ const DriverDetails = ({ entryId }) => {
 
   if (error) {
     return (
-      <Alert variant="destructive" className="m-6">
+      <Alert className="m-4">
         <AlertTriangle className="h-4 w-4" />
-        <AlertDescription className="flex items-center justify-between">
-          <span>{error}</span>
-          <Button variant="outline" size="sm" onClick={refetch} className="ml-4">
-            <RefreshCw className="h-4 w-4 mr-2" />
+        <AlertDescription>
+          {error}
+          <Button
+            onClick={refetch}
+            variant="outline"
+            size="sm"
+            className="ml-2"
+          >
+            <RefreshCw className="h-4 w-4 mr-1" />
             Retry
           </Button>
         </AlertDescription>
@@ -167,7 +188,7 @@ const DriverDetails = ({ entryId }) => {
 
   if (!driverData) {
     return (
-      <Alert className="m-6">
+      <Alert className="m-4">
         <AlertTriangle className="h-4 w-4" />
         <AlertDescription>No driver data available</AlertDescription>
       </Alert>
@@ -175,125 +196,308 @@ const DriverDetails = ({ entryId }) => {
   }
 
   return (
-    <div className="w-full max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg border">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">Driver Details</h1>
-          <p className="text-gray-600 mt-1">Complete driver information and profile</p>
+    <div className="space-y-6 p-6">
+      {/* Header with Driver Photo and Basic Info */}
+      <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg p-6">
+        <div className="flex items-center space-x-4">
+          <div className="relative">
+            <div className="w-20 h-20 bg-blue-600 rounded-full flex items-center justify-center">
+              <User className="h-10 w-10 text-white" />
+            </div>
+            <div className="absolute -bottom-1 -right-1">
+              <Badge className="bg-green-100 text-green-800">
+                Active
+              </Badge>
+            </div>
+          </div>
+          <div className="flex-1">
+            <h2 className="text-2xl font-bold text-gray-900">{driverData.name}</h2>
+            <p className="text-gray-600">{driverData.email}</p>
+            <div className="flex items-center gap-2 mt-2">
+              <Badge className="bg-blue-100 text-blue-800">
+                <Truck className="h-3 w-3 mr-1" />
+                Driver
+              </Badge>
+              <Badge variant="outline">
+                ID: {driverData.driverId}
+              </Badge>
+              <Badge variant="outline">
+                License: {driverData.licenseId}
+              </Badge>
+            </div>
+          </div>
         </div>
-        {driverData.status && (
-          <Badge className={getStatusColor(driverData.status)}>
-            {driverData.status || "Unknown"}
-          </Badge>
-        )}
       </div>
 
-      {/* Main Content Grid */}
-      <div className="grid lg:grid-cols-2 gap-6">
+      {/* Driver Statistics */}
+      {driverData.driverStats && (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          {driverData.vehicleType === 'shipment' ? (
+            // Statistics for shipment vehicles
+            <>
+              <Card className="text-center">
+                <CardContent className="p-4">
+                  <div className="text-2xl font-bold text-blue-600">
+                    {driverData.driverStats.totalShipments || 0}
+                  </div>
+                  <div className="text-sm text-gray-600">Total Shipments</div>
+                </CardContent>
+              </Card>
+              <Card className="text-center">
+                <CardContent className="p-4">
+                  <div className="text-2xl font-bold text-green-600">
+                    {driverData.driverStats.completedShipments || 0}
+                  </div>
+                  <div className="text-sm text-gray-600">Completed Shipments</div>
+                </CardContent>
+              </Card>
+              <Card className="text-center">
+                <CardContent className="p-4">
+                  <div className="text-2xl font-bold text-purple-600">
+                    {driverData.driverStats.completionRate || 0}%
+                  </div>
+                  <div className="text-sm text-gray-600">Success Rate</div>
+                </CardContent>
+              </Card>
+              <Card className="text-center">
+                <CardContent className="p-4">
+                  <div className="text-2xl font-bold text-orange-600">
+                    {driverData.driverStats.inTransitShipments || 0}
+                  </div>
+                  <div className="text-sm text-gray-600">In Transit</div>
+                </CardContent>
+              </Card>
+            </>
+          ) : (
+            // Statistics for pickup/delivery vehicles
+            <>
+              <Card className="text-center">
+                <CardContent className="p-4">
+                  <div className="text-2xl font-bold text-blue-600">
+                    {driverData.driverStats.totalSchedules || 0}
+                  </div>
+                  <div className="text-sm text-gray-600">Total Schedules</div>
+                </CardContent>
+              </Card>
+              <Card className="text-center">
+                <CardContent className="p-4">
+                  <div className="text-2xl font-bold text-green-600">
+                    {driverData.driverStats.completedSchedules || 0}
+                  </div>
+                  <div className="text-sm text-gray-600">Completed Schedules</div>
+                </CardContent>
+              </Card>
+              <Card className="text-center">
+                <CardContent className="p-4">
+                  <div className="text-2xl font-bold text-purple-600">
+                    {driverData.driverStats.completionRate || 0}%
+                  </div>
+                  <div className="text-sm text-gray-600">Success Rate</div>
+                </CardContent>
+              </Card>
+              <Card className="text-center">
+                <CardContent className="p-4">
+                  <div className="text-2xl font-bold text-orange-600">
+                    {driverData.driverStats.activeSchedules || 0}
+                  </div>
+                  <div className="text-sm text-gray-600">Active Schedules</div>
+                </CardContent>
+              </Card>
+            </>
+          )}
+        </div>
+      )}
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Personal Information */}
         <Section title="Personal Information" icon={User}>
           <InfoGrid>
             <Info label="Full Name" value={driverData.name} />
             <Info label="Driver ID" value={driverData.driverId} />
-            <Info label="NIC Number" value={driverData.nic} />
+            <Info label="NIC" value={driverData.nic} />
             <Info label="Email" value={driverData.email} type="email" />
             <Info label="Contact Number" value={driverData.contactNo} type="phone" />
-          </InfoGrid>
-        </Section>
-
-        {/* Professional Information */}
-        <Section title="Professional Information" icon={Truck}>
-          <InfoGrid>
             <Info label="License ID" value={driverData.licenseId} />
-            <Info label="License Type" value={driverData.licenseType} />
-            <Info label="Experience" value={driverData.experience ? `${driverData.experience} years` : "N/A"} />
-            <Info label="Employment Status" value={driverData.employmentStatus} />
-            {driverData.vehicleAssigned && (
-              <Info label="Assigned Vehicle" value={driverData.vehicleAssigned} />
-            )}
-          </InfoGrid>
-        </Section>
-
-        {/* Branch Information */}
-        <Section title="Branch Information" icon={MapPin}>
-          <InfoGrid>
-            <Info label="Branch Location" value={driverData.branchLocation} />
-            <Info label="Branch Contact" value={driverData.branchContactNo} type="phone" />
-            <Info label="Branch Manager" value={driverData.branchManager} />
-          </InfoGrid>
-        </Section>
-
-        {/* Administrative Information */}
-        <Section title="Administrative Information" icon={Shield}>
-          <InfoGrid>
-            <Info label="Added by Admin" value={driverData.adminName} />
-            <Info label="Date Joined" value={formatDate(driverData.createdAt)} />
+            <Info label="Account Created" value={formatDate(driverData.createdAt)} />
             <Info label="Last Updated" value={formatDate(driverData.updatedAt)} />
-            <Info label="Employee ID" value={driverData.employeeId} />
+          </InfoGrid>
+        </Section>
+
+        {/* Work Assignment */}
+        <Section title="Work Assignment" icon={Building}>
+          <InfoGrid>
+            <Info 
+              label="Assigned Branch"
+              value={driverData.branchId ? `${driverData.branchId.branchId} - ${driverData.branchId.location}` : "N/A"}
+            />
+            <Info 
+              label="Assigned Vehicle"
+              value={driverData.vehicleId ? `${driverData.vehicleId.registrationNo} (${driverData.vehicleId.vehicleType})` : "N/A"}
+            />
+            <Info 
+              label="Vehicle Capacity"
+              value={driverData.vehicleId ? `${driverData.vehicleId.capableWeight}kg / ${driverData.vehicleId.capableVolume}m³` : "N/A"}
+            />
+            <Info 
+              label="Managed By" 
+              value={driverData.adminId ? `${driverData.adminId.name} (${driverData.adminId.email})` : "N/A"} 
+            />
           </InfoGrid>
         </Section>
       </div>
 
-      {/* Additional Information */}
-      {(driverData.emergencyContact || driverData.address) && (
-        <div className="grid lg:grid-cols-2 gap-6">
-          {/* Emergency Contact */}
-          {driverData.emergencyContact && (
-            <Section title="Emergency Contact" icon={Phone}>
-              <InfoGrid>
-                <Info label="Contact Name" value={driverData.emergencyContact.name} />
-                <Info label="Relationship" value={driverData.emergencyContact.relationship} />
-                <Info label="Phone Number" value={driverData.emergencyContact.phone} type="phone" />
-              </InfoGrid>
-            </Section>
-          )}
-
-          {/* Address Information */}
-          {driverData.address && (
-            <Section title="Address Information" icon={MapPin}>
-              <InfoGrid>
-                <Info label="Address" value={driverData.address} />
-                <Info label="City" value={driverData.city} />
-                <Info label="District" value={driverData.district} />
-                <Info label="Province" value={driverData.province} />
-              </InfoGrid>
-            </Section>
-          )}
-        </div>
-      )}
-
-      {/* Performance Metrics */}
-      {driverData.performance && (
-        <Section title="Performance Metrics" icon={Calendar}>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div className="text-center p-4 bg-blue-50 rounded-lg">
-              <div className="text-2xl font-bold text-blue-600">
-                {driverData.performance.totalDeliveries || 0}
+      {/* Recent Shipments - Only for shipment vehicles */}
+      {driverData.vehicleType === 'shipment' && (
+        <Section title="Recent Shipments" icon={Package}>
+          <div className="space-y-3">
+            {driverData.shipments?.length > 0 ? (
+              driverData.shipments.map((shipment, index) => (
+                <div key={index} className="border rounded-lg p-4 hover:bg-gray-50">
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center gap-2">
+                      <Package className="h-4 w-4 text-blue-600" />
+                      <span className="font-medium">{shipment.shipmentId}</span>
+                      <Badge className={getStatusColor(shipment.status)}>
+                        {shipment.status}
+                      </Badge>
+                    </div>
+                    <span className="text-sm text-gray-500">
+                      {formatDate(shipment.createdAt)}
+                    </span>
+                  </div>
+                  <div className="grid grid-cols-2 gap-4 text-sm">
+                    <div>
+                      <span className="text-gray-500">From: </span>
+                      <span className="font-medium">
+                        {shipment.sourceCenter?.location || "N/A"}
+                      </span>
+                    </div>
+                    <div>
+                      <span className="text-gray-500">Vehicle: </span>
+                      <span className="font-medium">
+                        {shipment.assignedVehicle?.registrationNo || "N/A"}
+                      </span>
+                    </div>
+                    <div>
+                      <span className="text-gray-500">Parcels: </span>
+                      <span className="font-medium">
+                        {shipment.parcels?.length || 0} items
+                      </span>
+                    </div>
+                    <div>
+                      <span className="text-gray-500">Weight: </span>
+                      <span className="font-medium">
+                        {shipment.totalWeight || 0} kg
+                      </span>
+                    </div>
+                  </div>
+                  {shipment.route && shipment.route.length > 1 && (
+                    <div className="mt-2 pt-2 border-t">
+                      <span className="text-sm text-gray-500">Route: </span>
+                      <span className="text-sm">
+                        {shipment.route.map(r => r.location || r.branchId).join(" → ")}
+                      </span>
+                    </div>
+                  )}
+                </div>
+              ))
+            ) : (
+              <div className="text-center py-8 text-gray-500">
+                <Package className="h-12 w-12 mx-auto mb-4 text-gray-300" />
+                <p>No recent shipments found</p>
               </div>
-              <div className="text-sm text-gray-600">Total Deliveries</div>
-            </div>
-            <div className="text-center p-4 bg-green-50 rounded-lg">
-              <div className="text-2xl font-bold text-green-600">
-                {driverData.performance.successRate || "0%"}
-              </div>
-              <div className="text-sm text-gray-600">Success Rate</div>
-            </div>
-            <div className="text-center p-4 bg-purple-50 rounded-lg">
-              <div className="text-2xl font-bold text-purple-600">
-                {driverData.performance.rating || "N/A"}
-              </div>
-              <div className="text-sm text-gray-600">Rating</div>
-            </div>
-            <div className="text-center p-4 bg-orange-50 rounded-lg">
-              <div className="text-2xl font-bold text-orange-600">
-                {driverData.performance.monthlyDeliveries || 0}
-              </div>
-              <div className="text-sm text-gray-600">This Month</div>
-            </div>
+            )}
           </div>
         </Section>
       )}
+
+      {/* Vehicle Schedules - Only for pickup/delivery vehicles */}
+      {driverData.vehicleType === 'pickupDelivery' && (
+        <Section title="Vehicle Schedules" icon={Calendar}>
+          <div className="space-y-3">
+            {driverData.vehicleSchedules?.length > 0 ? (
+              driverData.vehicleSchedules.map((schedule, index) => (
+                <div key={index} className="border rounded-lg p-4 hover:bg-gray-50">
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center gap-2">
+                      <Calendar className="h-4 w-4 text-blue-600" />
+                      <span className="font-medium">
+                        {new Date(schedule.scheduleDate).toLocaleDateString()}
+                      </span>
+                      <Badge className={getScheduleTypeColor(schedule.type)}>
+                        {schedule.type}
+                      </Badge>
+                    </div>
+                    <span className="text-sm text-gray-500">
+                      {schedule.timeSlot}
+                    </span>
+                  </div>
+                  <div className="grid grid-cols-2 gap-4 text-sm">
+                    <div>
+                      <span className="text-gray-500">Branch: </span>
+                      <span className="font-medium">
+                        {schedule.branch?.location || schedule.branch?.branchId || "N/A"}
+                      </span>
+                    </div>
+                    <div>
+                      <span className="text-gray-500">Parcels: </span>
+                      <span className="font-medium">
+                        {schedule.assignedParcels?.length || 0} items
+                      </span>
+                    </div>
+                    <div>
+                      <span className="text-gray-500">Total Weight: </span>
+                      <span className="font-medium">
+                        {schedule.totalWeight || 0} kg
+                      </span>
+                    </div>
+                    <div>
+                      <span className="text-gray-500">Total Volume: </span>
+                      <span className="font-medium">
+                        {schedule.totalVolume || 0} m³
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              ))
+            ) : (
+              <div className="text-center py-8 text-gray-500">
+                <Calendar className="h-12 w-12 mx-auto mb-4 text-gray-300" />
+                <p>No schedules found</p>
+              </div>
+            )}
+          </div>
+        </Section>
+      )}
+
+      {/* Recent Activities */}
+      <Section title="Recent Activities" icon={Activity}>
+        <div className="space-y-3">
+          {driverData.recentActivities?.length > 0 ? (
+            driverData.recentActivities.map((activity, index) => (
+              <div key={index} className="flex items-start space-x-3 p-3 border-l-4 border-blue-200 bg-blue-50 rounded-r-lg">
+                <div className="flex-shrink-0 mt-1">
+                  <div className="w-2 h-2 bg-blue-600 rounded-full"></div>
+                </div>
+                <div className="flex-1">
+                  <div className="flex items-center justify-between">
+                    <h4 className="font-medium text-gray-900">{activity.action}</h4>
+                    <span className="text-sm text-gray-500">
+                      {formatDate(activity.timestamp)}
+                    </span>
+                  </div>
+                  <p className="text-sm text-gray-600 mt-1">{activity.description}</p>
+                </div>
+              </div>
+            ))
+          ) : (
+            <div className="text-center py-8 text-gray-500">
+              <Activity className="h-12 w-12 mx-auto mb-4 text-gray-300" />
+              <p>No recent activities recorded</p>
+            </div>
+          )}
+        </div>
+      </Section>
     </div>
   );
 };
