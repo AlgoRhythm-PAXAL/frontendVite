@@ -18,9 +18,13 @@ import lottie_animation_2 from '@/assets/lottie/lottie_animation_2.json';
 import lottie_animation_3 from '@/assets/lottie/lottie_animation_3.json';
 import { FiDollarSign, FiHeadphones } from 'react-icons/fi';
 import Footer from '../../components/User/Footer';
+import { useNavigate } from 'react-router-dom';
+
 
 const HomePage = () => {
   const [currentService, setCurrentService] = useState(0);
+  const navigate = useNavigate();
+
 
   const services = [
     {
@@ -158,24 +162,27 @@ const HomePage = () => {
               application.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 mb-4">
-              <a
-                href="#"
-                className="bg-[#1f818c] hover:bg-[#16626b] text-white font-medium px-6 py-3 rounded shadow transition duration-200 text-center"
+            
+              <button
+                   onClick={() => navigate('/signup')}
+                    className="bg-[#1f818c] hover:bg-[#16626b] text-white font-medium px-6 py-3 rounded shadow transition duration-200 text-center"
               >
-                Sign up for Free
-              </a>
-              <a
-                href="#"
+              Sign up for Free
+              </button>
+
+               <button
+                   onClick={() => navigate('/aboutus')}
                 className="border border-[#1f818c] text-[#1f818c] font-medium px-6 py-3 rounded hover:bg-[#f0f9fa] transition duration-200 text-center"
               >
                 About Us
-              </a>
+              </button>
             </div>
             <p className="text-gray-700">
               Talk to sales team{' '}
-              <a href="#" className="text-[#1f818c] font-medium">
+               <button
+                   onClick={() => navigate('/contactus')} className="text-[#1f818c] font-medium">
                 Contact us →
-              </a>
+              </button>
             </p>
           </div>
 
@@ -328,8 +335,8 @@ const HomePage = () => {
                 </span>
                 . What would you do with this extra time?
               </p>
-              <a
-                href="#"
+               <button
+                   onClick={() => navigate('/moreabout')}
                 className="inline-flex items-center text-[#1f818c] font-semibold text-lg border-b-2 border-[#1f818c] pb-1 hover:text-[#16626b] transition-colors"
               >
                 Learn more about Scanning
@@ -346,7 +353,7 @@ const HomePage = () => {
                     d="M14 5l7 7m0 0l-7 7m7-7H3"
                   ></path>
                 </svg>
-              </a>
+              </button>
             </div>
           </div>
         </div>
@@ -374,8 +381,8 @@ const HomePage = () => {
               <p className="text-lg text-gray-700 mb-8">
               It's easy, efficient, and a great way to be part of a trusted delivery ecosystem!
               </p>
-              <a
-                href="#"
+               <button
+                   onClick={() => navigate('/moreabout')}
                 className="inline-flex items-center text-[#1f818c] font-semibold text-lg border-b-2 border-[#1f818c] pb-1 hover:text-[#16626b] transition-colors"
               >
                 Learn more about Notifications
@@ -392,7 +399,7 @@ const HomePage = () => {
                     d="M14 5l7 7m0 0l-7 7m7-7H3"
                   ></path>
                 </svg>
-              </a>
+              </button>
             </div>
           </div>
         </div>
@@ -586,10 +593,12 @@ const HomePage = () => {
             deliveries
           </p>
           <div className="flex flex-col sm:flex-row justify-center gap-4">
-            <button className="bg-white text-[#1f818c] hover:bg-gray-100 px-8 py-4 rounded-lg font-semibold transition-all hover:scale-105 shadow-lg text-lg">
+             <button
+                   onClick={() => navigate('/addparcel')} className="bg-white text-[#1f818c] hover:bg-gray-100 px-8 py-4 rounded-lg font-semibold transition-all hover:scale-105 shadow-lg text-lg">
               Book a Pickup Now
             </button>
-            <button className="border-2 border-white text-white hover:bg-white hover:text-[#1f818c] px-8 py-4 rounded-lg font-semibold transition-all hover:scale-105 shadow-lg text-lg">
+             <button
+                   onClick={() => navigate('/contactus')} className="border-2 border-white text-white hover:bg-white hover:text-[#1f818c] px-8 py-4 rounded-lg font-semibold transition-all hover:scale-105 shadow-lg text-lg">
               Contact Our Team
             </button>
           </div>

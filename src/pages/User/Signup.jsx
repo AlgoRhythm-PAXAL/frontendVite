@@ -72,12 +72,49 @@ const Signup = () => {
     });
   };
 
+ const isValidEmail = (email) => {
+  return /^[^\s@]+@[^\s@]+\.(com|net|org|gov|edu|lk|io|info|me|co|biz|int|mil|name|pro|aero|asia|jobs|museum|tv|xyz|cloud|dev)$/i.test(email);
+};
+
+
+const isValidContact = (contact) => {
+  return /^07\d{8}$/.test(contact); // Sri Lankan mobile format: 07XXXXXXXX
+};
+
+const isValidNIC = (nic) => {
+  return (
+    /^(\d{9}[VvXx])$/.test(nic) || // Old format: 123456789V or 123456789X
+    /^(\d{12})$/.test(nic)         // New format: 12 digits only
+  );
+};
+
+
   const submitHandler = async (e) => {
     e.preventDefault();
     setLoading(true);
 
     // Basic validation
-    if (formData.password !== formData.passwordconfirm) {
+     // Validation
+  if (!isValidEmail(formData.email)) {
+    setError('Please enter a valid email address.');
+    setLoading(false);
+    return;
+  }
+
+  if (!isValidContact(formData.contact)) {
+    setError('Please enter a valid contact number (07XXXXXXXX).');
+    setLoading(false);
+    return;
+  }
+
+  if (!isValidNIC(formData.nic)) {
+    setError('Please enter a valid NIC number (9 digits + V/X or 12 digits).');
+    setLoading(false);
+    return;
+  }
+
+
+ if (formData.password !== formData.passwordconfirm) {
       setError('Passwords do not match');
       setLoading(false);
       return;
@@ -389,11 +426,11 @@ const Signup = () => {
                   className="ml-2 block text-sm text-gray-700"
                 >
                   I agree to the{' '}
-                  <a href="#" className="text-teal-600 hover:underline">
+                  <a href="/terms" className="text-teal-600 hover:underline">
                     Terms of Service
                   </a>{' '}
                   and{' '}
-                  <a href="#" className="text-teal-600 hover:underline">
+                  <a href="/privacy" className="text-teal-600 hover:underline">
                     Privacy Policy
                   </a>
                 </label>
