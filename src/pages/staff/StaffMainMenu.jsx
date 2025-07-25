@@ -32,12 +32,12 @@ const StaffMainMenu = () => {
             />
             <MainMenuButton
               text="Collection Management"
-              link="#"
+              link="/staff/collection-management/dashboard"
               icon={<QueueListIcon className="w-6 h-6" />}
             />
             <MainMenuButton
               text="Shipment Management"
-              link="#"
+              link="/staff/shipment-management/parcel-table-page"
               icon={<TruckIcon className="w-6 h-6" />}
             />
             <MainMenuButton

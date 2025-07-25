@@ -33,10 +33,10 @@ const SideBar = () => {
         {
             title: "Shipment Management",
             items: [
-                { title: "Create Shipment", path: "/staff/shipment-management/parcel-table-page" },
-                { title: "Create Shipment Manually", path: "/staff/shipment-management/manual-shipment-page" },
-                { title: "Created Shipments", path: "/staff/shipment-management/created-shipments-page" },
-                { title: "View Shipments", path: "/staff/shipment-management/view-shipments" }
+                { title: "Smart B2B Shipment Creation", path: "/staff/shipment-management/parcel-table-page" },
+                { title: "Manual B2B Shipment Creation", path: "/staff/shipment-management/manual-shipment-page" },
+                { title: "Created B2B Shipments", path: "/staff/shipment-management/created-shipments-page" },
+                { title: "B2B Shipment History", path: "/staff/shipment-management/view-shipments" }
             ]
         },
         {

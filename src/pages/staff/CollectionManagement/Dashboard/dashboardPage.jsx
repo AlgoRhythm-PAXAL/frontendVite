@@ -25,6 +25,8 @@ const DashboardPage = () => {
     const [successMessage, setSuccessMessage] = useState('');
     const [errorMessage, setErrorMessage] = useState('');
     const [showNotification, setShowNotification] = useState(false);
+    const [selectedSchedule, setSelectedSchedule] = useState(null);
+    const [showParcelModal, setShowParcelModal] = useState(false);
 
     // Show notification function
     const showNotificationMessage = (message, type = 'success') => {
@@ -82,7 +84,7 @@ const DashboardPage = () => {
                 // console.log("Formatted date:", formattedDate);
                 // console.log("Auth token exists:", !!localStorage.getItem('token'));
                 
-                const url = `http://localhost:8000/parcels/dashboard/stats/${userCenter}/${formattedDate}`;
+                const url = `${import.meta.env.VITE_BACKEND_URL}/parcels/dashboard/stats/${userCenter}/${formattedDate}`;
                 // console.log("API URL:", url);
                 
                 const response = await fetch(url, {
@@ -124,7 +126,7 @@ const DashboardPage = () => {
                     String(selectedDate.getMonth() + 1).padStart(2, '0') + '-' + 
                     String(selectedDate.getDate()).padStart(2, '0');
                 
-                const url = `http://localhost:8000/drivers/stats/${userCenter}/${formattedDate}`;
+                const url = `${import.meta.env.VITE_BACKEND_URL}/vehicles/schedules/stats/${userCenter}/${formattedDate}`;
                 
                 const response = await fetch(url, {
                     method: 'GET',
@@ -136,15 +138,15 @@ const DashboardPage = () => {
 
                 if (response.ok) {
                     const data = await response.json();
-                    setDriverStats(data.drivers);
+                    setDriverStats(data.vehicles);
                 } else {
                     const errorText = await response.text();
-                    console.error("Driver response error:", errorText);
-                    showNotificationMessage('Failed to load driver statistics', 'error');
+                    console.error("Vehicle schedule response error:", errorText);
+                    showNotificationMessage('Failed to load vehicle schedule statistics', 'error');
                 }
             } catch (error) {
-                console.error('Error fetching driver stats:', error);
-                showNotificationMessage('Error fetching driver statistics', 'error');
+                console.error('Error fetching vehicle schedule stats:', error);
+                showNotificationMessage('Error fetching vehicle schedule statistics', 'error');
             }
         };
 
@@ -154,6 +156,30 @@ const DashboardPage = () => {
         };
         fetchData();
     }, [selectedDate]);
+
+    // Handle parcel details view
+    const handleViewParcels = async (scheduleId) => {
+        try {
+            const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/vehicles/schedules/${scheduleId}/parcels`, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${localStorage.getItem('token')}`
+                }
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                setSelectedSchedule(data);
+                setShowParcelModal(true);
+            } else {
+                showNotificationMessage('Failed to load parcel details', 'error');
+            }
+        } catch (error) {
+            console.error('Error fetching parcel details:', error);
+            showNotificationMessage('Error fetching parcel details', 'error');
+        }
+    };
 
     // Handle card clicks for navigation
     const handleCardClick = (type) => {
@@ -361,45 +387,154 @@ const DashboardPage = () => {
                         </div>
                     </div>
 
-                    {/* Shipment Details */}
+                    {/* Vehicle Schedule Details */}
                     <div className="bg-white rounded-lg shadow-md p-6">
                         <h2 className="text-xl font-bold text-gray-800 mb-6">
-                            Dispatched Parcels for {monthNames[currentMonth]} {selectedDate.getDate()}th, {currentYear}
+                            Vehicle Delivery Schedules for {monthNames[currentMonth]} {selectedDate.getDate()}th, {currentYear}
                         </h2>
                         
                         <div className="bg-[#1F818C] text-white rounded-lg overflow-hidden">
-                            <div className="grid grid-cols-3 gap-4 p-4">
+                            <div className="grid grid-cols-4 gap-4 p-4">
                                 <div className="text-center">
-                                    <div className="text-sm font-medium">Driver ID</div>
+                                    <div className="text-sm font-medium">Vehicle ID</div>
                                 </div>
                                 <div className="text-center">
-                                    <div className="text-sm font-medium">Driver Name</div>
+                                    <div className="text-sm font-medium">Assigned Parcels</div>
                                 </div>
                                 <div className="text-center">
-                                    <div className="text-sm font-medium">Dispatched Parcels</div>
+                                    <div className="text-sm font-medium">Time Slot</div>
+                                </div>
+                                <div className="text-center">
+                                    <div className="text-sm font-medium">Actions</div>
                                 </div>
                             </div>
                         </div>
                         
                         <div className="divide-y divide-gray-200 mt-4">
-                            {driverStats.map((driver, index) => (
-                                <div key={driver.driverId} className={`grid grid-cols-3 gap-4 p-4 ${index % 2 === 0 ? 'hover:bg-gray-50' : 'bg-gray-50 hover:bg-gray-100'}`}>
-                                    <div className="text-center text-sm">{driver.driverId}</div>
-                                    <div className="text-center text-sm">{driver.driverName}</div>
-                                    <div className="text-center text-sm font-medium">{driver.parcels}</div>
+                            {driverStats.map((vehicle, index) => (
+                                <div key={vehicle.vehicleId || index} className={`grid grid-cols-4 gap-4 p-4 ${index % 2 === 0 ? 'hover:bg-gray-50' : 'bg-gray-50 hover:bg-gray-100'}`}>
+                                    <div className="text-center text-sm">{vehicle.vehicleId}</div>
+                                    <div className="text-center text-sm font-medium">{vehicle.parcels}</div>
+                                    <div className="text-center text-sm">{vehicle.timeSlot}</div>
+                                    <div className="text-center">
+                                        {vehicle.parcels > 0 && vehicle.scheduleId ? (
+                                            <button
+                                                onClick={() => handleViewParcels(vehicle.scheduleId)}
+                                                className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-xs font-medium transition-colors"
+                                            >
+                                                View Parcels
+                                            </button>
+                                        ) : (
+                                            <span className="text-gray-400 text-xs">No parcels</span>
+                                        )}
+                                    </div>
                                 </div>
                             ))}
                             
                             {driverStats.length === 0 && (
                                 <div className="text-center py-8 text-gray-500">
                                     <Package className="w-12 h-12 mx-auto mb-2 text-gray-400" />
-                                    <p>No dispatched parcels for this date.</p>
+                                    <p>No vehicle delivery schedules for this date.</p>
                                 </div>
                             )}
                         </div>
                     </div>
                 </div>
             </div>
+
+            {/* Parcel Details Modal */}
+            {showParcelModal && selectedSchedule && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                    <div className="bg-white rounded-lg p-6 max-w-4xl w-full mx-4 max-h-[80vh] overflow-y-auto">
+                        <div className="flex justify-between items-center mb-4">
+                            <h3 className="text-lg font-bold text-gray-800">
+                                Parcel Details - Vehicle {selectedSchedule.schedule?.vehicleId}
+                            </h3>
+                            <button
+                                onClick={() => {
+                                    setShowParcelModal(false);
+                                    setSelectedSchedule(null);
+                                }}
+                                className="text-gray-500 hover:text-gray-700"
+                            >
+                                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                            </button>
+                        </div>
+                        
+                        <div className="bg-gray-50 rounded-lg p-4 mb-4">
+                            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                                <div>
+                                    <span className="font-medium text-gray-600">Vehicle:</span>
+                                    <p>{selectedSchedule.schedule?.vehicleId} ({selectedSchedule.schedule?.vehicleRegistration})</p>
+                                </div>
+                                <div>
+                                    <span className="font-medium text-gray-600">Time Slot:</span>
+                                    <p>{selectedSchedule.schedule?.timeSlot}</p>
+                                </div>
+                                <div>
+                                    <span className="font-medium text-gray-600">Type:</span>
+                                    <p className="capitalize">{selectedSchedule.schedule?.scheduleType}</p>
+                                </div>
+                                <div>
+                                    <span className="font-medium text-gray-600">Total Parcels:</span>
+                                    <p>{selectedSchedule.totalParcels}</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="overflow-x-auto">
+                            <table className="min-w-full bg-white border border-gray-200">
+                                <thead className="bg-gray-50">
+                                    <tr>
+                                        <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Parcel ID</th>
+                                        <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tracking Number</th>
+                                        <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Delivery Type</th>
+                                        <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Item Size</th>
+                                        <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody className="bg-white divide-y divide-gray-200">
+                                    {selectedSchedule.parcels?.map((parcel, index) => (
+                                        <tr key={parcel.parcelId} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
+                                            <td className="px-4 py-2 text-sm font-medium text-gray-900">
+                                                {parcel.parcelId || 'N/A'}
+                                            </td>
+                                            <td className="px-4 py-2 text-sm font-mono text-blue-600">
+                                                {parcel.trackingNumber || 'N/A'}
+                                            </td>
+                                            <td className="px-4 py-2 text-sm text-gray-500">
+                                                {parcel.deliveryType || 'N/A'}
+                                            </td>
+                                            <td className="px-4 py-2 text-sm text-gray-500 capitalize">
+                                                {parcel.itemSize || 'N/A'}
+                                            </td>
+                                            <td className="px-4 py-2 text-sm">
+                                                <span className={`px-2 py-1 text-xs rounded-full ${
+                                                    parcel.status === 'Delivered' ? 'bg-green-100 text-green-800' :
+                                                    parcel.status === 'DeliveryDispatched' ? 'bg-blue-100 text-blue-800' :
+                                                    parcel.status === 'InTransit' ? 'bg-yellow-100 text-yellow-800' :
+                                                    'bg-gray-100 text-gray-800'
+                                                }`}>
+                                                    {parcel.status}
+                                                </span>
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                        
+                        {selectedSchedule.parcels?.length === 0 && (
+                            <div className="text-center py-8 text-gray-500">
+                                <Package className="w-12 h-12 mx-auto mb-2 text-gray-400" />
+                                <p>No parcels assigned to this schedule.</p>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            )}
         </div>
     );
 };

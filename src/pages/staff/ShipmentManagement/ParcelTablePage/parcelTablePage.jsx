@@ -36,7 +36,7 @@ const ParcelTablePage = () => {
         try {
             setLoading(true);
             // Updated to use staff authentication endpoint
-            const response = await fetch('http://localhost:8000/parcels/staff/assigned-parcels', {
+            const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/parcels/staff/assigned-parcels`, {
                 method: 'GET',
                 credentials: 'include', // Include cookies for staff authentication
                 headers: {
@@ -208,7 +208,7 @@ const ParcelTablePage = () => {
             
             // Use staff's branch ID instead of hardcoded value
             const branchId = staffInfo?.branchId || '682e1059ce33c2a891c9b168'; // fallback for backward compatibility
-            const response = await fetch(`http://localhost:8000/shipments/process/${type}/${branchId}`, {
+            const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/shipments/process/${type}/${branchId}`, {
                 method: 'POST',
                 credentials: 'include', // Include cookies for authentication
                 headers: {
