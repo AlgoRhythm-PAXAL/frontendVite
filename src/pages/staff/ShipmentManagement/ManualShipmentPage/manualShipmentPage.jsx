@@ -1291,8 +1291,8 @@ const B2BShipmentCreationPage = () => {
                                                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 capitalize">
                                                                     <span className={`px-2 py-1 text-xs font-medium rounded-full ${
                                                                         parcel.shippingMethod?.toLowerCase() === 'express' 
-                                                                            ? 'bg-red-100 text-red-800' 
-                                                                            : 'bg-green-100 text-green-800'
+                                                                        ? 'bg-purple-100 text-purple-800' 
+                                                                        : 'bg-blue-100 text-blue-800'
                                                                     }`}>
                                                                         {parcel.shippingMethod || 'N/A'}
                                                                     </span>
@@ -1464,8 +1464,8 @@ const B2BShipmentCreationPage = () => {
                                                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 capitalize">
                                                                 <span className={`px-2 py-1 text-xs font-medium rounded-full ${
                                                                     parcel.shippingMethod?.toLowerCase() === 'express' 
-                                                                        ? 'bg-red-100 text-red-800' 
-                                                                        : 'bg-green-100 text-green-800'
+                                                                    ? 'bg-purple-100 text-purple-800' 
+                                                                    : 'bg-blue-100 text-blue-800'
                                                                 }`}>
                                                                     {parcel.shippingMethod || 'N/A'}
                                                                 </span>
