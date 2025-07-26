@@ -93,8 +93,7 @@ const ParcelTablePage = () => {
             setParcels(parcelsWithSelection);
             setLoading(false);
             if (parcelsWithSelection.length > 0) {
-                // Use a ref or state to track if this is initial load - for now, we'll skip the notification on fetch
-                // showNotificationMessage(`Successfully loaded ${parcelsWithSelection.length} parcels`, 'success');
+                showNotificationMessage(`Successfully loaded ${parcelsWithSelection.length} parcels`, 'success');
             }
         } catch (error) {
             console.error('Error fetching parcels:', error);
@@ -206,8 +205,8 @@ const ParcelTablePage = () => {
             
             setLoading(true);
             
-            // Use staff's branch ID instead of hardcoded value
-            const branchId = staffInfo?.branchId || '682e1059ce33c2a891c9b168'; // fallback for backward compatibility
+            // Use staff's branch ID 
+            const branchId = staffInfo?.branchId; // fallback for backward compatibility
             const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/shipments/process/${type}/${branchId}`, {
                 method: 'POST',
                 credentials: 'include', // Include cookies for authentication
@@ -663,27 +662,21 @@ const ParcelTablePage = () => {
 
                         <h2 className="text-2xl font-bold text-gray-800 mb-4 text-center pr-8">Create B2B Shipment</h2>
                         <p className="mb-6 text-gray-600 text-center">
-                            Choose your preferred method to create a shipment for the selected {selectedParcels.length} parcel(s):
+                            Choose your preferred method to create a shipment for the selected <h2 className="text-xl font-bold text-red-800 mb-3">{selectedParcels.length}</h2>parcel(s):
                         </p>
 
                         <div className="grid md:grid-cols-2 gap-6">
                             {/* PAXAL Enhanced Shipment Page */}
                             <div className="bg-gradient-to-br from-blue-50 to-cyan-50 rounded-xl p-6 border-2 border-blue-200 hover:border-blue-400 transition-colors cursor-pointer"
                                 onClick={handleManualShipment}>
-                                <div className="text-blue-600 mb-4 text-center">
-                                    <svg className="w-10 h-10 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                                    </svg>
-                                </div>
-                                <h3 className="text-xl font-bold text-blue-800 mb-3 text-center">PAXAL Enhanced Shipment Page</h3>
+                                <h3 className="text-xl font-bold text-blue-800 mb-3 text-center">PAXEL Manual Shipment Creation</h3>
                                 <div className="text-blue-700 text-sm">
                                     <p className="mb-3">Advanced manual shipment creation with full control:</p>
                                     <ul className="list-disc list-inside space-y-1 text-xs">
                                         <li>Customize routes and destinations</li>
-                                        <li>Smart arrival time calculations</li>
+                                        <li>Automated arrival time calculations</li>
                                         <li>Real-time capacity monitoring</li>
                                         <li>Advanced parcel filtering & selection</li>
-                                        <li>Vehicle assignment with constraints</li>
                                         <li>Complete shipment customization</li>
                                     </ul>
                                 </div>
@@ -692,19 +685,14 @@ const ParcelTablePage = () => {
                             {/* PAXAL Smart Algorithm */}
                             <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl p-6 border-2 border-green-200 hover:border-green-400 transition-colors cursor-pointer"
                                 onClick={openAutoShipmentModal}>
-                                <div className="text-green-600 mb-4 text-center">
-                                    <svg className="w-10 h-10 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
-                                    </svg>
-                                </div>
-                                <h3 className="text-xl font-bold text-green-800 mb-3 text-center">PAXAL Smart Algorithm</h3>
+                                
+                                <h3 className="text-xl font-bold text-green-800 mb-3 text-center">PAXAL Automated Shipment Creation</h3>
                                 <div className="text-green-700 text-sm">
-                                    <p className="mb-3">Automated intelligent shipment creation:</p>
+                                    <p className="mb-3">Automated shipment creation:</p>
                                     <ul className="list-disc list-inside space-y-1 text-xs">
-                                        <li>AI-powered route optimization</li>
+                                        <li>Efficient route optimization</li>
                                         <li>Automatic capacity management</li>
-                                        <li>Smart parcel grouping by destination</li>
-                                        <li>Optimal vehicle selection</li>
+                                        <li>Automated parcel grouping by destination</li>
                                         <li>Time-efficient processing</li>
                                         <li>Zero manual configuration required</li>
                                     </ul>
@@ -790,24 +778,27 @@ const ParcelTablePage = () => {
                             {/* Standard Shipment */}
                             <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-2xl p-6 border-2 border-blue-200 hover:border-blue-400 transition-all duration-300 cursor-pointer transform hover:scale-105"
                                 onClick={() => createAutomaticShipment('standard')}>
-                                <div className="text-blue-600 mb-4 text-center">
-                                    <svg className="w-8 h-8 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M9 5l7 7-7 7" />
-                                    </svg>
-                                </div>
-                                <h3 className="text-xl font-bold text-blue-800 mb-3 text-center">Standard Shipment</h3>
+                                <h3 className="text-xl font-bold text-blue-800 mb-3 text-center">Create Standard Shipment</h3>
 
                                 {/* Constraints */}
                                 <div className="bg-blue-50 rounded-lg p-3 mb-3">
                                     <h4 className="font-semibold text-blue-800 mb-2 text-center text-sm">Capacity Constraints</h4>
                                     <div className="grid grid-cols-2 gap-3 text-xs text-blue-700">
                                         <div className="text-center">
-                                            <div className="font-bold text-base">2,500 kg</div>
+                                            <div className="font-bold text-base">2,500kg</div>
                                             <div>Maximum Weight</div>
                                         </div>
                                         <div className="text-center">
-                                            <div className="font-bold text-base">10 m³</div>
+                                            <div className="font-bold text-base">10m³</div>
                                             <div>Maximum Volume</div>
+                                        </div>
+                                        <div className="text-center">
+                                            <div className="font-bold text-base">300km</div>
+                                            <div>Maximum Route Length</div>
+                                        </div>
+                                        <div className="text-center">
+                                            <div className="font-bold text-base">72h</div>
+                                            <div>Maximum Shipment Time</div>
                                         </div>
                                     </div>
                                 </div>
@@ -831,38 +822,33 @@ const ParcelTablePage = () => {
                                     </div>
                                 </div>
 
-                                {/* Features */}
-                                <div className="text-blue-700 text-xs">
-                                    <ul className="list-disc list-inside space-y-0.5">
-                                        <li>Cost-effective shipping</li>
-                                        <li>Higher capacity for bulk</li>
-                                        <li>Flexible delivery times</li>
-                                        <li>Route optimization</li>
-                                    </ul>
-                                </div>
                             </div>
 
                             {/* Express Shipment */}
                             <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-2xl p-6 border-2 border-purple-200 hover:border-purple-400 transition-all duration-300 cursor-pointer transform hover:scale-105"
                                 onClick={() => createAutomaticShipment('express')}>
-                                <div className="text-purple-600 mb-4 text-center">
-                                    <svg className="w-8 h-8 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
-                                    </svg>
-                                </div>
-                                <h3 className="text-xl font-bold text-purple-800 mb-3 text-center">Express Shipment</h3>
+                               
+                                <h3 className="text-xl font-bold text-purple-800 mb-3 text-center">Create Express Shipment</h3>
 
                                 {/* Constraints */}
                                 <div className="bg-purple-50 rounded-lg p-3 mb-3">
                                     <h4 className="font-semibold text-purple-800 mb-2 text-center text-sm">Capacity Constraints</h4>
                                     <div className="grid grid-cols-2 gap-3 text-xs text-purple-700">
                                         <div className="text-center">
-                                            <div className="font-bold text-base">1,000 kg</div>
+                                            <div className="font-bold text-base">1,000kg</div>
                                             <div>Maximum Weight</div>
                                         </div>
                                         <div className="text-center">
-                                            <div className="font-bold text-base">5 m³</div>
+                                            <div className="font-bold text-base">5m³</div>
                                             <div>Maximum Volume</div>
+                                        </div>
+                                        <div className="text-center">
+                                            <div className="font-bold text-base">150km</div>
+                                            <div>Maximum Route Length</div>
+                                        </div>
+                                        <div className="text-center">
+                                            <div className="font-bold text-base">24h</div>
+                                            <div>Maximum Shipment Time</div>
                                         </div>
                                     </div>
                                 </div>
@@ -872,7 +858,7 @@ const ParcelTablePage = () => {
                                     <h4 className="font-semibold text-purple-800 mb-2 text-center text-sm">Time Buffers</h4>
                                     <div className="grid grid-cols-3 gap-2 text-xs text-purple-700">
                                         <div className="text-center">
-                                            <div className="font-bold text-sm">1h</div>
+                                            <div className="font-bold text-sm">2h</div>
                                             <div className="text-xs">Source Prep</div>
                                         </div>
                                         <div className="text-center">
@@ -886,15 +872,6 @@ const ParcelTablePage = () => {
                                     </div>
                                 </div>
 
-                                {/* Features */}
-                                <div className="text-purple-700 text-xs">
-                                    <ul className="list-disc list-inside space-y-0.5">
-                                        <li>Priority processing</li>
-                                        <li>Faster transit times</li>
-                                        <li>Premium service level</li>
-                                        <li>Enhanced tracking</li>
-                                    </ul>
-                                </div>
                             </div>
                         </div>
 

@@ -91,8 +91,9 @@ const DashboardPage = () => {
                     method: 'GET',
                     headers: {
                         'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${localStorage.getItem('token')}`
-                    }
+                        
+                    },
+                    credentials: 'include'
                 });
                 
                 // console.log("Response status:", response.status);
@@ -132,8 +133,8 @@ const DashboardPage = () => {
                     method: 'GET',
                     headers: {
                         'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${localStorage.getItem('token')}`
-                    }
+                                      },
+                    credentials: 'include'
                 });
 
                 if (response.ok) {
@@ -164,8 +165,8 @@ const DashboardPage = () => {
                 method: 'GET',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${localStorage.getItem('token')}`
-                }
+                },
+                credentials: 'include'
             });
 
             if (response.ok) {
