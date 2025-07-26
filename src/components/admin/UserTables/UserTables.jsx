@@ -294,23 +294,7 @@ const UserTables = React.memo(() => {
             </p>
           </div>
           
-          {/* Quick Stats */}
-          {/* <div className="hidden lg:flex space-x-4">
-            {tabConfig.map(({ value, label, icon: Icon, color }) => (
-              <div 
-                key={value}
-                className="bg-white rounded-lg p-4 shadow-sm border border-gray-200 min-w-[120px]"
-              >
-                <div className="flex items-center space-x-2">
-                  <Icon className={`h-5 w-5 ${color}`} />
-                  <div>
-                    <p className="text-sm font-medium text-gray-600">{label}</p>
-                    <p className="text-xl font-bold text-gray-900">--</p>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div> */}
+          
         </div>
       </div>
 
@@ -339,12 +323,7 @@ const UserTables = React.memo(() => {
                   >
                     <Icon className="h-5 w-5" />
                     <span className="font-semibold">{label}</span>
-                    {/* <Badge 
-                      variant="secondary" 
-                      className="ml-2 bg-gray-200 text-gray-700 text-xs"
-                    >
-                      --
-                    </Badge> */}
+                    
                   </TabsTrigger>
                 ))}
               </div>

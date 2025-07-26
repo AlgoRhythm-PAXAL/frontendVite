@@ -7,7 +7,7 @@ import {
   validateAllStaffFields
 } from "../../../utils/staffValidation";
 
-const StaffDetails = ({ entryId }) => {
+const StaffDetails = ({ entryId, onDataChange }) => {
   const backendURL = import.meta.env.VITE_BACKEND_URL;
   const [staffData, setStaffData] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -37,8 +37,9 @@ const StaffDetails = ({ entryId }) => {
           `${backendURL}/api/admin/users/staff/${entryId}`,
           { withCredentials: true }
         );
+        console.log("Fetched staff data:", response.data);
         
-        setStaffData(response.data.data || response.data);
+        setStaffData( response.data);
       } catch (err) {
         console.error("Error fetching staff data:", err);
         setError(
@@ -153,6 +154,12 @@ const StaffDetails = ({ entryId }) => {
         setStaffData(response.data.data.staff);
         setUpdateSuccess(true);
         setIsEditing(false);
+        
+        // Notify parent to refresh table data
+        if (onDataChange) {
+          onDataChange();
+        }
+        
         setTimeout(() => setUpdateSuccess(false), 3000);
       }
     } catch (err) {
@@ -257,7 +264,7 @@ const StaffDetails = ({ entryId }) => {
   return (
     <div className="min-h-screen bg-gray-50 py-8 px-4">
       {/* Staff Information */}
-      <div className="max-w-4xl mx-auto space-y-6">
+      <div className="max-w-4xl lg:max-w-6xl xl:max-w-7xl mx-auto space-y-6">
         <div className="bg-white rounded-lg shadow-lg overflow-hidden">
           {/* Header with Edit Button */}
           <div className="p-6 border-b border-gray-200 flex justify-between items-center">
@@ -545,6 +552,7 @@ const StaffDetails = ({ entryId }) => {
 
 StaffDetails.propTypes = {
   entryId: PropTypes.string.isRequired,
+  onDataChange: PropTypes.func,
 };
 
 export default StaffDetails;

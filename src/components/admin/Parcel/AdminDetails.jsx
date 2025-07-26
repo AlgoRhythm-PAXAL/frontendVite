@@ -3,6 +3,8 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
   AlertTriangle,
   User,
@@ -10,11 +12,16 @@ import {
   RefreshCw,
   Activity,
   Users,
-  Settings
+  Settings,
+  Edit3,
+  Save,
+  X,
+  Check
 } from "lucide-react";
 import PropTypes from "prop-types";
 import axios from "axios";
 import LoadingAnimation from "../../../utils/LoadingAnimation";
+import { validateField } from "../../../utils/adminValidation";
 
 // Reusable components
 const Section = ({ title, icon: Icon, children }) => (
@@ -33,7 +40,7 @@ const InfoGrid = ({ children }) => (
   <div className="grid grid-cols-1 gap-3">{children}</div>
 );
 
-const Info = ({ label, value, type = "text" }) => {
+const Info = ({ label, value, type = "text", isEditing = false, field, editValue, onEditChange, validationError, isValid }) => {
   const renderValue = () => {
     if (!value || value === "N/A") return "N/A";
     
@@ -57,12 +64,69 @@ const Info = ({ label, value, type = "text" }) => {
     }
   };
 
+  const renderEditField = () => {
+    if (field === 'status') {
+      return (
+        <Select value={editValue} onValueChange={(value) => onEditChange(field, value)}>
+          <SelectTrigger className="w-full">
+            <SelectValue placeholder="Select status" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="active">Active</SelectItem>
+            <SelectItem value="inactive">Inactive</SelectItem>
+            <SelectItem value="suspended">Suspended</SelectItem>
+          </SelectContent>
+        </Select>
+      );
+    }
+
+    if (field === 'role') {
+      return (
+        <Select value={editValue} onValueChange={(value) => onEditChange(field, value)}>
+          <SelectTrigger className="w-full">
+            <SelectValue placeholder="Select role" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="Administrator">Administrator</SelectItem>
+            <SelectItem value="Super Admin">Super Admin</SelectItem>
+            <SelectItem value="Branch Manager">Branch Manager</SelectItem>
+            <SelectItem value="System Admin">System Admin</SelectItem>
+          </SelectContent>
+        </Select>
+      );
+    }
+
+    return (
+      <div className="relative">
+        <Input
+          type={type === "email" ? "email" : type === "phone" ? "tel" : "text"}
+          value={editValue}
+          onChange={(e) => onEditChange(field, e.target.value)}
+          className={`w-full ${validationError ? 'border-red-500' : isValid ? 'border-green-500' : ''}`}
+          placeholder={`Enter ${label.toLowerCase()}`}
+        />
+        {isValid && (
+          <Check className="absolute right-2 top-2.5 h-4 w-4 text-green-500" />
+        )}
+      </div>
+    );
+  };
+
   return (
     <div className="flex flex-col space-y-1">
       <span className="text-sm font-medium text-gray-500">{label}</span>
-      <span className="text-sm text-gray-900 break-words">
-        {renderValue()}
-      </span>
+      {isEditing && field ? (
+        <div className="space-y-1">
+          {renderEditField()}
+          {validationError && (
+            <span className="text-xs text-red-500">{validationError}</span>
+          )}
+        </div>
+      ) : (
+        <span className="text-sm text-gray-900 break-words">
+          {renderValue()}
+        </span>
+      )}
     </div>
   );
 };
@@ -114,12 +178,173 @@ const useAdminData = (entryId, backendURL) => {
     fetchAdminData();
   }, [fetchAdminData]);
 
-  return { adminData, loading, error, refetch: fetchAdminData };
+  return { adminData, loading, error, refetch: fetchAdminData, setAdminData };
 };
 
-const AdminDetails = ({ entryId }) => {
+const AdminDetails = ({ entryId, onDataChange }) => {
   const backendURL = import.meta.env.VITE_BACKEND_URL;
-  const { adminData, loading, error, refetch } = useAdminData(entryId, backendURL);
+  const { adminData, loading, error, refetch, setAdminData } = useAdminData(entryId, backendURL);
+
+  // Edit state
+  const [isEditing, setIsEditing] = useState(false);
+  const [editFormData, setEditFormData] = useState({});
+  const [validationErrors, setValidationErrors] = useState({});
+  const [validFields, setValidFields] = useState({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitMessage, setSubmitMessage] = useState({ type: '', content: '' });
+
+  // Initialize edit form data when admin data loads
+  useEffect(() => {
+    if (adminData && !isEditing) {
+      setEditFormData({
+        name: adminData.name || '',
+        email: adminData.email || '',
+        contactNo: adminData.contactNo || adminData.phone || '',
+        role: adminData.role || 'Administrator',
+        status: adminData.status || 'active'
+      });
+    }
+  }, [adminData, isEditing]);
+
+  // Handle edit form change
+  const handleEditChange = (field, value) => {
+    setEditFormData(prev => ({
+      ...prev,
+      [field]: value
+    }));
+
+    // Real-time validation for text fields
+    if (field !== 'role' && field !== 'status') {
+      const error = validateField(field, value);
+      setValidationErrors(prev => ({
+        ...prev,
+        [field]: error
+      }));
+
+      setValidFields(prev => ({
+        ...prev,
+        [field]: !error && value.trim() !== ''
+      }));
+    }
+
+    // Clear any submit messages when user starts typing
+    if (submitMessage.content) {
+      setSubmitMessage({ type: '', content: '' });
+    }
+  };
+
+  // Handle edit save
+  const handleEditSave = async () => {
+    setIsSubmitting(true);
+    setSubmitMessage({ type: '', content: '' });
+
+    try {
+      // Validate all fields
+      const errors = {};
+      Object.keys(editFormData).forEach(field => {
+        if (field !== 'role' && field !== 'status') { // Skip validation for select fields
+          const error = validateField(field, editFormData[field]);
+          if (error) {
+            errors[field] = error;
+          }
+        }
+      });
+
+      if (Object.keys(errors).length > 0) {
+        setValidationErrors(errors);
+        setSubmitMessage({ 
+          type: 'error', 
+          content: 'Please fix the validation errors before saving.' 
+        });
+        setIsSubmitting(false);
+        return;
+      }
+
+      // Prepare update data (only include changed fields)
+      const updateData = {};
+      Object.keys(editFormData).forEach(key => {
+        const currentValue = key === 'contactNo' 
+          ? (adminData.contactNo || adminData.phone) 
+          : adminData[key];
+        
+        if (editFormData[key] !== currentValue) {
+          updateData[key] = editFormData[key];
+        }
+      });
+
+      if (Object.keys(updateData).length === 0) {
+        setSubmitMessage({ 
+          type: 'info', 
+          content: 'No changes detected.' 
+        });
+        setIsSubmitting(false);
+        return;
+      }
+
+      // Send update request
+      const response = await axios.put(
+        `${backendURL}/api/admin/users/admin/${entryId}`,
+        updateData,
+        {
+          withCredentials: true,
+          timeout: 10000,
+        }
+      );
+
+      if (response.data?.status === "success") {
+        setSubmitMessage({ 
+          type: 'success', 
+          content: 'Admin details updated successfully!' 
+        });
+        setIsEditing(false);
+        
+        // Update local admin data
+        setAdminData(prev => ({
+          ...prev,
+          ...updateData
+        }));
+        
+        // Notify parent to refresh table data
+        if (onDataChange) {
+          onDataChange();
+        }
+        
+        // Refresh data after a short delay
+        setTimeout(() => {
+          refetch();
+          setSubmitMessage({ type: '', content: '' });
+        }, 2000);
+      }
+    } catch (err) {
+      console.error("Error updating admin:", err);
+      const errorMessage = err.response?.data?.message || "Failed to update admin details";
+      setSubmitMessage({ 
+        type: 'error', 
+        content: errorMessage 
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  // Handle edit cancel
+  const handleEditCancel = () => {
+    setIsEditing(false);
+    setValidationErrors({});
+    setValidFields({});
+    setSubmitMessage({ type: '', content: '' });
+    
+    // Reset form data
+    if (adminData) {
+      setEditFormData({
+        name: adminData.name || '',
+        email: adminData.email || '',
+        contactNo: adminData.contactNo || adminData.phone || '',
+        role: adminData.role || 'Administrator',
+        status: adminData.status || 'active'
+      });
+    }
+  };
 
   const formatDate = (dateString) => {
     if (!dateString) return "N/A";
@@ -273,15 +498,121 @@ const AdminDetails = ({ entryId }) => {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Personal Information */}
         <Section title="Personal Information" icon={User}>
-          <InfoGrid>
-            <Info label="Full Name" value={adminData.name} />
-            <Info label="Admin ID" value={adminData.adminId || adminData._id} />
-            <Info label="Email" value={adminData.email} type="email" />
-            <Info label="Contact Number" value={adminData.contactNo || adminData.phone} type="phone" />
-            <Info label="Role" value={adminData.role || "Administrator"} />
-            <Info label="Account Created" value={formatDate(adminData.createdAt)} />
-            <Info label="Last Updated" value={formatDate(adminData.updatedAt)} />
-          </InfoGrid>
+          <div className="space-y-4">
+            {/* Edit Controls */}
+            <div className="flex justify-between items-center border-b pb-2">
+              <span className="text-sm font-medium text-gray-700">Admin Details</span>
+              <div className="flex gap-2">
+                {!isEditing ? (
+                  <Button
+                    onClick={() => setIsEditing(true)}
+                    variant="outline"
+                    size="sm"
+                    className="flex items-center gap-1"
+                  >
+                    <Edit3 className="h-4 w-4" />
+                    Edit
+                  </Button>
+                ) : (
+                  <>
+                    <Button
+                      onClick={handleEditSave}
+                      disabled={isSubmitting}
+                      size="sm"
+                      className="flex items-center gap-1"
+                    >
+                      {isSubmitting ? (
+                        <RefreshCw className="h-4 w-4 animate-spin" />
+                      ) : (
+                        <Save className="h-4 w-4" />
+                      )}
+                      Save
+                    </Button>
+                    <Button
+                      onClick={handleEditCancel}
+                      variant="outline"
+                      size="sm"
+                      className="flex items-center gap-1"
+                    >
+                      <X className="h-4 w-4" />
+                      Cancel
+                    </Button>
+                  </>
+                )}
+              </div>
+            </div>
+
+            {/* Submit Message */}
+            {submitMessage.content && (
+              <Alert className={`${
+                submitMessage.type === 'success' ? 'border-green-500 bg-green-50' :
+                submitMessage.type === 'error' ? 'border-red-500 bg-red-50' :
+                'border-blue-500 bg-blue-50'
+              }`}>
+                <AlertDescription className={`${
+                  submitMessage.type === 'success' ? 'text-green-700' :
+                  submitMessage.type === 'error' ? 'text-red-700' :
+                  'text-blue-700'
+                }`}>
+                  {submitMessage.content}
+                </AlertDescription>
+              </Alert>
+            )}
+
+            <InfoGrid>
+              <Info 
+                label="Full Name" 
+                value={adminData.name}
+                isEditing={isEditing}
+                field="name"
+                editValue={editFormData.name}
+                onEditChange={handleEditChange}
+                validationError={validationErrors.name}
+                isValid={validFields.name}
+              />
+              <Info label="Admin ID" value={adminData.adminId || adminData._id} />
+              <Info 
+                label="Email" 
+                value={adminData.email} 
+                type="email"
+                isEditing={isEditing}
+                field="email"
+                editValue={editFormData.email}
+                onEditChange={handleEditChange}
+                validationError={validationErrors.email}
+                isValid={validFields.email}
+              />
+              <Info 
+                label="Contact Number" 
+                value={adminData.contactNo || adminData.phone} 
+                type="phone"
+                isEditing={isEditing}
+                field="contactNo"
+                editValue={editFormData.contactNo}
+                onEditChange={handleEditChange}
+                validationError={validationErrors.contactNo}
+                isValid={validFields.contactNo}
+              />
+              <Info 
+                label="Role" 
+                value={adminData.role || "Administrator"}
+                isEditing={isEditing}
+                field="role"
+                editValue={editFormData.role}
+                onEditChange={handleEditChange}
+              />
+              <Info 
+                label="Status" 
+                value={adminData.status || "Active"}
+                isEditing={isEditing}
+                field="status"
+                editValue={editFormData.status}
+                onEditChange={handleEditChange}
+              />
+              <Info label="Account Created" value={formatDate(adminData.createdAt)} />
+              <Info label="Last Updated" value={formatDate(adminData.updatedAt)} />
+            </InfoGrid>
+          </div>
         </Section>
 
         {/* Permissions & Access */}
@@ -396,6 +727,7 @@ const AdminDetails = ({ entryId }) => {
 
 AdminDetails.propTypes = {
   entryId: PropTypes.string.isRequired,
+  onDataChange: PropTypes.func,
 };
 
 export default AdminDetails;

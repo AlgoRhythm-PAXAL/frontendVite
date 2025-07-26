@@ -1,9 +1,8 @@
-import { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect } from "react";
 import PropTypes from "prop-types";
 import axios from "axios";
 import LoadingAnimation from "../../../utils/LoadingAnimation";
 import { validateField, validateAllDriverFields } from "../../../utils/driverValidation";
-import { toast } from "sonner";
 
 const DriverDetails = ({ entryId, onDataChange }) => {
   const backendURL = import.meta.env.VITE_BACKEND_URL;
@@ -28,7 +27,7 @@ const DriverDetails = ({ entryId, onDataChange }) => {
         hour: '2-digit',
         minute: '2-digit'
       });
-    } catch {
+    } catch (error) {
       return "Invalid Date";
     }
   };
@@ -59,17 +58,16 @@ const DriverDetails = ({ entryId, onDataChange }) => {
     }
   };
 
-  const fetchDriverData = useCallback(async () => {
+  const fetchDriverData = async () => {
     if (!entryId) return;
     
     try {
       setLoading(true);
       setError(null);
       const response = await axios.get(
-        `${backendURL}/api/admin/users/driver/${entryId}`,
+        `${backendURL}/admin/getDriverById/${entryId}`,
         { withCredentials: true }
       );
-      console.log("Driver Data", response.data);
 
       if (response.data && response.data.success) {
         setDriverData(response.data.driver);
@@ -79,6 +77,7 @@ const DriverDetails = ({ entryId, onDataChange }) => {
           contactNo: response.data.driver.contactNo || "",
           nic: response.data.driver.nic || "",
           licenseId: response.data.driver.licenseId || "",
+          status: response.data.driver.status || "active",
           branchId: response.data.driver.branchId?._id || "",
         });
       } else {
@@ -89,26 +88,25 @@ const DriverDetails = ({ entryId, onDataChange }) => {
     } finally {
       setLoading(false);
     }
-  }, [entryId, backendURL]);
+  };
 
-  const fetchBranches = useCallback(async () => {
+  const fetchBranches = async () => {
     try {
-      const response = await axios.get(`${backendURL}/api/admin/users/branches`, {
+      const response = await axios.get(`${backendURL}/admin/getBranches`, {
         withCredentials: true,
       });
-      console.log("Branches Data", response.data);
-      if (response.data?.status === "success") {
-        setBranches(response.data.data.branches || []);
+      if (response.data?.success) {
+        setBranches(response.data.branches || []);
       }
     } catch (err) {
       console.error("Error fetching branches:", err);
     }
-  }, [backendURL]);
+  };
 
   useEffect(() => {
     fetchDriverData();
     fetchBranches();
-  }, [fetchDriverData, fetchBranches]);
+  }, [entryId]);
 
   const handleInputChange = (field, value) => {
     setEditForm(prev => ({ ...prev, [field]: value }));
@@ -135,6 +133,7 @@ const DriverDetails = ({ entryId, onDataChange }) => {
         contactNo: driverData.contactNo || "",
         nic: driverData.nic || "",
         licenseId: driverData.licenseId || "",
+        status: driverData.status || "active",
         branchId: driverData.branchId?._id || "",
       });
       setValidationErrors({});
@@ -158,7 +157,7 @@ const DriverDetails = ({ entryId, onDataChange }) => {
       }
 
       const response = await axios.put(
-        `${backendURL}/api/admin/users/driver/${entryId}`,
+        `${backendURL}/admin/updateDriver/${entryId}`,
         editForm,
         { withCredentials: true }
       );
@@ -173,7 +172,6 @@ const DriverDetails = ({ entryId, onDataChange }) => {
         if (onDataChange) {
           onDataChange();
         }
-        toast.success("Driver details updated successfully!");
 
         // Clear success message after 3 seconds
         setTimeout(() => {
@@ -466,7 +464,7 @@ const DriverDetails = ({ entryId, onDataChange }) => {
               )}
             </div>
 
-            {/* <div className="flex flex-col">
+            <div className="flex flex-col">
               <div className="w-24 text-sm font-medium text-gray-500 mb-1">Status:</div>
               {isEditing ? (
                 <div className="flex-1">
@@ -488,7 +486,7 @@ const DriverDetails = ({ entryId, onDataChange }) => {
                   </span>
                 </div>
               )}
-            </div> */}
+            </div>
 
             <div className="flex flex-col">
               <div className="w-24 text-sm font-medium text-gray-500 mb-1">Created:</div>
@@ -521,8 +519,8 @@ const DriverDetails = ({ entryId, onDataChange }) => {
                   >
                     <option value="">Select branch</option>
                     {branches.map((branch) => (
-                      <option key={branch.value} value={branch.value}>
-                        {branch.label}
+                      <option key={branch._id} value={branch._id}>
+                        {branch.branchId} - {branch.location}
                       </option>
                     ))}
                   </select>
