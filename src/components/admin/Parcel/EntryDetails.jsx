@@ -72,8 +72,8 @@ const ParcelDetails = lazy(() => import("./ParcelDetails"));
 const UserDetails = lazy(() => import("./UserDetails"));
 const StaffDetails = lazy(() => import("./StaffDetails"));
 const DriverDetails = lazy(() => import("./DriverDetails"));
-const ShipmentDetails = lazy(() => import("./ShipmentDetail"));
 const AdminDetails = lazy(() => import("./AdminDetails"));
+const ShipmentDetails = lazy(() => import("./ShipmentDetail"));
 const VehicleDetails = lazy(() => import("./VehicleDetail"));
 const BranchDetails = lazy(() => import("./BranchDetails"));
 
