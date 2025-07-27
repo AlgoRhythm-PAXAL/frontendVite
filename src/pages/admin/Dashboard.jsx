@@ -103,66 +103,9 @@ const Dashboard = () => {
   // State management
   const [isOnline, setIsOnline] = useState(navigator.onLine);
   const [lastRefresh, setLastRefresh] = useState(new Date().toLocaleTimeString());
-  const [dashboardStats, setDashboardStats] = useState([]);
-  const [statsLoading, setStatsLoading] = useState(true);
-  const [statsError, setStatsError] = useState(null);
   const [refreshKey, setRefreshKey] = useState(0);
 
-  // Fetch dashboard statistics
-  const fetchDashboardStats = useCallback(async () => {
-    try {
-      setStatsLoading(true);
-      setStatsError(null);
-      
-      // Simulate API call - replace with actual endpoint
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      const mockStats = [
-        {
-          label: "Total Parcels",
-          value: "1,234",
-          icon: faChartLine,
-          bgColor: "bg-blue-100",
-          iconColor: "text-blue-600",
-          change: 12.5
-        },
-        {
-          label: "Active Shipments",
-          value: "856",
-          icon: faChartLine,
-          bgColor: "bg-green-100",
-          iconColor: "text-green-600",
-          change: 8.2
-        },
-        {
-          label: "Pending Deliveries",
-          value: "234",
-          icon: faChartLine,
-          bgColor: "bg-yellow-100",
-          iconColor: "text-yellow-600",
-          change: -3.1
-        },
-        {
-          label: "Completed Today",
-          value: "89",
-          icon: faChartLine,
-          bgColor: "bg-purple-100",
-          iconColor: "text-purple-600",
-          change: 15.7
-        }
-      ];
-      
-      setDashboardStats(mockStats);
-    } catch (error) {
-      console.error("Failed to fetch dashboard stats:", error);
-      setStatsError("Failed to load dashboard statistics");
-      toast.error("Failed to load statistics", {
-        description: "Please try refreshing the page",
-      });
-    } finally {
-      setStatsLoading(false);
-    }
-  }, []);
+
 
   // Refresh handler
   const handleRefresh = useCallback(() => {
@@ -175,12 +118,12 @@ const Dashboard = () => {
     
     setRefreshKey(prev => prev + 1);
     setLastRefresh(new Date().toLocaleTimeString());
-    fetchDashboardStats();
+   
     
     toast.success("Dashboard refreshed", {
       description: "All data has been updated",
     });
-  }, [isOnline, fetchDashboardStats]);
+  }, [isOnline]);
 
   // Monitor online/offline status
   useEffect(() => {
@@ -209,9 +152,7 @@ const Dashboard = () => {
   }, [handleRefresh]);
 
   // Initial data fetch
-  useEffect(() => {
-    fetchDashboardStats();
-  }, [fetchDashboardStats]);
+
 
   return (
     <div className="flex flex-col mx-3 md:mx-5 mb-10 min-h-screen">
@@ -253,13 +194,7 @@ const Dashboard = () => {
         </div>
       </div>
 
-      {/* Dashboard Stats */}
-      {/* <DashboardStats 
-        stats={dashboardStats}
-        isLoading={statsLoading}
-        error={statsError}
-        onRefresh={fetchDashboardStats}
-      /> */}
+   
 
       {/* Main Content */}
       <div className="flex flex-col gap-6">

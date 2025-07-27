@@ -18,6 +18,7 @@ import {
   faUserCircle,
   faSync,
   faChartBar,
+  faCalendarWeek
 } from "@fortawesome/free-solid-svg-icons";
 
 /**
@@ -59,6 +60,16 @@ export default function Sidebar() {
       title: "Parcels",
       icon: faBox,
       path: "/admin/parcels",
+    },
+    {
+      title: "Vehicle Schedules",
+      icon: faCalendarWeek,
+      path: "/admin/vehicleSchedules",
+    },
+    {
+      title: "B2B Shipments",
+      icon: faTruck,
+      path: "/admin/b2b-shipments",
     },
     {
       title: "Shipments",
