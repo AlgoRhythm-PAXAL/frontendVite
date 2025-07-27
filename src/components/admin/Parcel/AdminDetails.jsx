@@ -1,27 +1,19 @@
-import React, { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
   AlertTriangle,
   User,
   Shield,
   RefreshCw,
-  Activity,
   Users,
-  Settings,
-  Edit3,
-  Save,
-  X,
-  Check
+  Settings
 } from "lucide-react";
 import PropTypes from "prop-types";
 import axios from "axios";
 import LoadingAnimation from "../../../utils/LoadingAnimation";
-import { validateField } from "../../../utils/adminValidation";
 
 // Reusable components
 const Section = ({ title, icon: Icon, children }) => (
@@ -36,11 +28,21 @@ const Section = ({ title, icon: Icon, children }) => (
   </Card>
 );
 
+Section.propTypes = {
+  title: PropTypes.string.isRequired,
+  icon: PropTypes.elementType,
+  children: PropTypes.node.isRequired,
+};
+
 const InfoGrid = ({ children }) => (
   <div className="grid grid-cols-1 gap-3">{children}</div>
 );
 
-const Info = ({ label, value, type = "text", isEditing = false, field, editValue, onEditChange, validationError, isValid }) => {
+InfoGrid.propTypes = {
+  children: PropTypes.node.isRequired,
+};
+
+const Info = ({ label, value, type = "text" }) => {
   const renderValue = () => {
     if (!value || value === "N/A") return "N/A";
     
@@ -64,71 +66,24 @@ const Info = ({ label, value, type = "text", isEditing = false, field, editValue
     }
   };
 
-  const renderEditField = () => {
-    if (field === 'status') {
-      return (
-        <Select value={editValue} onValueChange={(value) => onEditChange(field, value)}>
-          <SelectTrigger className="w-full">
-            <SelectValue placeholder="Select status" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="active">Active</SelectItem>
-            <SelectItem value="inactive">Inactive</SelectItem>
-            <SelectItem value="suspended">Suspended</SelectItem>
-          </SelectContent>
-        </Select>
-      );
-    }
-
-    if (field === 'role') {
-      return (
-        <Select value={editValue} onValueChange={(value) => onEditChange(field, value)}>
-          <SelectTrigger className="w-full">
-            <SelectValue placeholder="Select role" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="Administrator">Administrator</SelectItem>
-            <SelectItem value="Super Admin">Super Admin</SelectItem>
-            <SelectItem value="Branch Manager">Branch Manager</SelectItem>
-            <SelectItem value="System Admin">System Admin</SelectItem>
-          </SelectContent>
-        </Select>
-      );
-    }
-
-    return (
-      <div className="relative">
-        <Input
-          type={type === "email" ? "email" : type === "phone" ? "tel" : "text"}
-          value={editValue}
-          onChange={(e) => onEditChange(field, e.target.value)}
-          className={`w-full ${validationError ? 'border-red-500' : isValid ? 'border-green-500' : ''}`}
-          placeholder={`Enter ${label.toLowerCase()}`}
-        />
-        {isValid && (
-          <Check className="absolute right-2 top-2.5 h-4 w-4 text-green-500" />
-        )}
-      </div>
-    );
-  };
-
   return (
     <div className="flex flex-col space-y-1">
       <span className="text-sm font-medium text-gray-500">{label}</span>
-      {isEditing && field ? (
-        <div className="space-y-1">
-          {renderEditField()}
-          {validationError && (
-            <span className="text-xs text-red-500">{validationError}</span>
-          )}
-        </div>
-      ) : (
-        <span className="text-sm text-gray-900 break-words">
-          {renderValue()}
-        </span>
-      )}
+      <span className="text-sm text-gray-900 break-words">
+        {renderValue()}
+      </span>
     </div>
   );
+};
+
+Info.propTypes = {
+  label: PropTypes.string.isRequired,
+  value: PropTypes.oneOfType([
+    PropTypes.string,
+    PropTypes.number,
+    PropTypes.array,
+  ]),
+  type: PropTypes.oneOf(["text", "email", "phone", "array"]),
 };
 
 // Custom hook for admin data
@@ -181,170 +136,9 @@ const useAdminData = (entryId, backendURL) => {
   return { adminData, loading, error, refetch: fetchAdminData, setAdminData };
 };
 
-const AdminDetails = ({ entryId, onDataChange }) => {
+const AdminDetails = ({ entryId }) => {
   const backendURL = import.meta.env.VITE_BACKEND_URL;
-  const { adminData, loading, error, refetch, setAdminData } = useAdminData(entryId, backendURL);
-
-  // Edit state
-  const [isEditing, setIsEditing] = useState(false);
-  const [editFormData, setEditFormData] = useState({});
-  const [validationErrors, setValidationErrors] = useState({});
-  const [validFields, setValidFields] = useState({});
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [submitMessage, setSubmitMessage] = useState({ type: '', content: '' });
-
-  // Initialize edit form data when admin data loads
-  useEffect(() => {
-    if (adminData && !isEditing) {
-      setEditFormData({
-        name: adminData.name || '',
-        email: adminData.email || '',
-        contactNo: adminData.contactNo || adminData.phone || '',
-        role: adminData.role || 'Administrator',
-        status: adminData.status || 'active'
-      });
-    }
-  }, [adminData, isEditing]);
-
-  // Handle edit form change
-  const handleEditChange = (field, value) => {
-    setEditFormData(prev => ({
-      ...prev,
-      [field]: value
-    }));
-
-    // Real-time validation for text fields
-    if (field !== 'role' && field !== 'status') {
-      const error = validateField(field, value);
-      setValidationErrors(prev => ({
-        ...prev,
-        [field]: error
-      }));
-
-      setValidFields(prev => ({
-        ...prev,
-        [field]: !error && value.trim() !== ''
-      }));
-    }
-
-    // Clear any submit messages when user starts typing
-    if (submitMessage.content) {
-      setSubmitMessage({ type: '', content: '' });
-    }
-  };
-
-  // Handle edit save
-  const handleEditSave = async () => {
-    setIsSubmitting(true);
-    setSubmitMessage({ type: '', content: '' });
-
-    try {
-      // Validate all fields
-      const errors = {};
-      Object.keys(editFormData).forEach(field => {
-        if (field !== 'role' && field !== 'status') { // Skip validation for select fields
-          const error = validateField(field, editFormData[field]);
-          if (error) {
-            errors[field] = error;
-          }
-        }
-      });
-
-      if (Object.keys(errors).length > 0) {
-        setValidationErrors(errors);
-        setSubmitMessage({ 
-          type: 'error', 
-          content: 'Please fix the validation errors before saving.' 
-        });
-        setIsSubmitting(false);
-        return;
-      }
-
-      // Prepare update data (only include changed fields)
-      const updateData = {};
-      Object.keys(editFormData).forEach(key => {
-        const currentValue = key === 'contactNo' 
-          ? (adminData.contactNo || adminData.phone) 
-          : adminData[key];
-        
-        if (editFormData[key] !== currentValue) {
-          updateData[key] = editFormData[key];
-        }
-      });
-
-      if (Object.keys(updateData).length === 0) {
-        setSubmitMessage({ 
-          type: 'info', 
-          content: 'No changes detected.' 
-        });
-        setIsSubmitting(false);
-        return;
-      }
-
-      // Send update request
-      const response = await axios.put(
-        `${backendURL}/api/admin/users/admin/${entryId}`,
-        updateData,
-        {
-          withCredentials: true,
-          timeout: 10000,
-        }
-      );
-
-      if (response.data?.status === "success") {
-        setSubmitMessage({ 
-          type: 'success', 
-          content: 'Admin details updated successfully!' 
-        });
-        setIsEditing(false);
-        
-        // Update local admin data
-        setAdminData(prev => ({
-          ...prev,
-          ...updateData
-        }));
-        
-        // Notify parent to refresh table data
-        if (onDataChange) {
-          onDataChange();
-        }
-        
-        // Refresh data after a short delay
-        setTimeout(() => {
-          refetch();
-          setSubmitMessage({ type: '', content: '' });
-        }, 2000);
-      }
-    } catch (err) {
-      console.error("Error updating admin:", err);
-      const errorMessage = err.response?.data?.message || "Failed to update admin details";
-      setSubmitMessage({ 
-        type: 'error', 
-        content: errorMessage 
-      });
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  // Handle edit cancel
-  const handleEditCancel = () => {
-    setIsEditing(false);
-    setValidationErrors({});
-    setValidFields({});
-    setSubmitMessage({ type: '', content: '' });
-    
-    // Reset form data
-    if (adminData) {
-      setEditFormData({
-        name: adminData.name || '',
-        email: adminData.email || '',
-        contactNo: adminData.contactNo || adminData.phone || '',
-        role: adminData.role || 'Administrator',
-        status: adminData.status || 'active'
-      });
-    }
-  };
+  const { adminData, loading, error, refetch } = useAdminData(entryId, backendURL);
 
   const formatDate = (dateString) => {
     if (!dateString) return "N/A";
@@ -386,69 +180,83 @@ const AdminDetails = ({ entryId, onDataChange }) => {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center p-8">
-        <LoadingAnimation />
+      <div className="flex items-center justify-center p-12">
+        <div className="text-center">
+          <LoadingAnimation />
+          <p className="mt-4 text-gray-600">Loading admin details...</p>
+        </div>
       </div>
     );
   }
 
   if (error) {
     return (
-      <Alert className="m-4">
-        <AlertTriangle className="h-4 w-4" />
-        <AlertDescription>
-          {error}
-          <Button
-            onClick={refetch}
-            variant="outline"
-            size="sm"
-            className="ml-2"
-          >
-            <RefreshCw className="h-4 w-4 mr-1" />
-            Retry
-          </Button>
-        </AlertDescription>
-      </Alert>
+      <div className="p-6">
+        <Alert className="border-red-200 bg-red-50">
+          <AlertTriangle className="h-5 w-5 text-red-600" />
+          <AlertDescription className="text-red-700">
+            <div className="flex flex-col gap-3">
+              <span className="font-medium">Failed to load admin details</span>
+              <span className="text-sm">{error}</span>
+              <Button
+                onClick={refetch}
+                variant="outline"
+                size="sm"
+                className="w-fit border-red-300 text-red-700 hover:bg-red-100"
+              >
+                <RefreshCw className="h-4 w-4 mr-2" />
+                Try Again
+              </Button>
+            </div>
+          </AlertDescription>
+        </Alert>
+      </div>
     );
   }
 
   if (!adminData) {
     return (
-      <Alert className="m-4">
-        <AlertTriangle className="h-4 w-4" />
-        <AlertDescription>No admin data available</AlertDescription>
-      </Alert>
+      <div className="p-6">
+        <Alert className="border-yellow-200 bg-yellow-50">
+          <AlertTriangle className="h-5 w-5 text-yellow-600" />
+          <AlertDescription className="text-yellow-700">
+            <span className="font-medium">No admin data available</span>
+            <br />
+            <span className="text-sm">The requested admin information could not be found.</span>
+          </AlertDescription>
+        </Alert>
+      </div>
     );
   }
 
   return (
-    <div className="space-y-6 p-6">
+    <div className="space-y-6 p-6 max-w-7xl mx-auto">
       {/* Header with Admin Photo and Basic Info */}
-      <div className="bg-gradient-to-r from-purple-50 to-indigo-50 rounded-lg p-6">
-        <div className="flex items-center space-x-4">
+      <div className="bg-gradient-to-r from-purple-50 to-indigo-50 rounded-lg p-6 border border-purple-100">
+        <div className="flex items-center space-x-6">
           <div className="relative">
-            <div className="w-20 h-20 bg-purple-600 rounded-full flex items-center justify-center">
-              <Shield className="h-10 w-10 text-white" />
+            <div className="w-24 h-24 bg-gradient-to-br from-purple-600 to-indigo-600 rounded-full flex items-center justify-center shadow-lg">
+              <Shield className="h-12 w-12 text-white" />
             </div>
-            <div className="absolute -bottom-1 -right-1">
-              <Badge className={getStatusColor(adminData.status || "active")}>
+            <div className="absolute -bottom-2 -right-2">
+              <Badge className={`${getStatusColor(adminData.status || "active")} shadow-sm`}>
                 {adminData.status || "Active"}
               </Badge>
             </div>
           </div>
           <div className="flex-1">
-            <h2 className="text-2xl font-bold text-gray-900">{adminData.name}</h2>
-            <p className="text-gray-600">{adminData.email}</p>
-            <div className="flex items-center gap-2 mt-2">
-              <Badge className="bg-purple-100 text-purple-800">
-                <Shield className="h-3 w-3 mr-1" />
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">{adminData.name}</h1>
+            <p className="text-lg text-gray-600 mb-3">{adminData.email}</p>
+            <div className="flex items-center gap-3 flex-wrap">
+              <Badge className="bg-purple-100 text-purple-800 px-3 py-1">
+                <Shield className="h-4 w-4 mr-2" />
                 Administrator
               </Badge>
-              <Badge variant="outline">
+              <Badge variant="outline" className="px-3 py-1">
                 ID: {adminData.adminId || adminData._id}
               </Badge>
               {adminData.role && (
-                <Badge variant="outline">
+                <Badge variant="outline" className="px-3 py-1">
                   Role: {adminData.role}
                 </Badge>
               )}
@@ -499,115 +307,29 @@ const AdminDetails = ({ entryId, onDataChange }) => {
         {/* Personal Information */}
         <Section title="Personal Information" icon={User}>
           <div className="space-y-4">
-            {/* Edit Controls */}
-            <div className="flex justify-between items-center border-b pb-2">
-              <span className="text-sm font-medium text-gray-700">Admin Details</span>
-              <div className="flex gap-2">
-                {!isEditing ? (
-                  <Button
-                    onClick={() => setIsEditing(true)}
-                    variant="outline"
-                    size="sm"
-                    className="flex items-center gap-1"
-                  >
-                    <Edit3 className="h-4 w-4" />
-                    Edit
-                  </Button>
-                ) : (
-                  <>
-                    <Button
-                      onClick={handleEditSave}
-                      disabled={isSubmitting}
-                      size="sm"
-                      className="flex items-center gap-1"
-                    >
-                      {isSubmitting ? (
-                        <RefreshCw className="h-4 w-4 animate-spin" />
-                      ) : (
-                        <Save className="h-4 w-4" />
-                      )}
-                      Save
-                    </Button>
-                    <Button
-                      onClick={handleEditCancel}
-                      variant="outline"
-                      size="sm"
-                      className="flex items-center gap-1"
-                    >
-                      <X className="h-4 w-4" />
-                      Cancel
-                    </Button>
-                  </>
-                )}
-              </div>
-            </div>
-
-            {/* Submit Message */}
-            {submitMessage.content && (
-              <Alert className={`${
-                submitMessage.type === 'success' ? 'border-green-500 bg-green-50' :
-                submitMessage.type === 'error' ? 'border-red-500 bg-red-50' :
-                'border-blue-500 bg-blue-50'
-              }`}>
-                <AlertDescription className={`${
-                  submitMessage.type === 'success' ? 'text-green-700' :
-                  submitMessage.type === 'error' ? 'text-red-700' :
-                  'text-blue-700'
-                }`}>
-                  {submitMessage.content}
-                </AlertDescription>
-              </Alert>
-            )}
-
             <InfoGrid>
               <Info 
                 label="Full Name" 
                 value={adminData.name}
-                isEditing={isEditing}
-                field="name"
-                editValue={editFormData.name}
-                onEditChange={handleEditChange}
-                validationError={validationErrors.name}
-                isValid={validFields.name}
               />
               <Info label="Admin ID" value={adminData.adminId || adminData._id} />
               <Info 
                 label="Email" 
                 value={adminData.email} 
                 type="email"
-                isEditing={isEditing}
-                field="email"
-                editValue={editFormData.email}
-                onEditChange={handleEditChange}
-                validationError={validationErrors.email}
-                isValid={validFields.email}
               />
               <Info 
                 label="Contact Number" 
                 value={adminData.contactNo || adminData.phone} 
                 type="phone"
-                isEditing={isEditing}
-                field="contactNo"
-                editValue={editFormData.contactNo}
-                onEditChange={handleEditChange}
-                validationError={validationErrors.contactNo}
-                isValid={validFields.contactNo}
               />
               <Info 
                 label="Role" 
                 value={adminData.role || "Administrator"}
-                isEditing={isEditing}
-                field="role"
-                editValue={editFormData.role}
-                onEditChange={handleEditChange}
               />
               <Info 
                 label="Status" 
                 value={adminData.status || "Active"}
-                isEditing={isEditing}
-                field="status"
-                editValue={editFormData.status}
-                onEditChange={handleEditChange}
               />
               <Info label="Account Created" value={formatDate(adminData.createdAt)} />
               <Info label="Last Updated" value={formatDate(adminData.updatedAt)} />
@@ -617,59 +339,69 @@ const AdminDetails = ({ entryId, onDataChange }) => {
 
         {/* Permissions & Access */}
         <Section title="Permissions & Access" icon={Settings}>
-          <InfoGrid>
-            <Info 
-              label="Access Level"
-              value={adminData.accessLevel || "Full Access"}
-            />
-            <Info 
-              label="Assigned Branch"
-              value={adminData.branchId ? `${adminData.branchId.branchName} (${adminData.branchId.city})` : "All Branches"}
-            />
-            <Info 
-              label="Permissions"
-              value={adminData.permissions || ["Full Access"]}
-              type="array"
-            />
-            
-          </InfoGrid>
+          <div className="space-y-4">
+            <InfoGrid>
+              <Info 
+                label="Access Level"
+                value={adminData.accessLevel || "Full Access"}
+              />
+              <Info 
+                label="Assigned Branch"
+                value={adminData.branchId ? `${adminData.branchId.branchName} (${adminData.branchId.city})` : "All Branches"}
+              />
+              <Info 
+                label="Permissions"
+                value={adminData.permissions || ["Full Access"]}
+                type="array"
+              />
+            </InfoGrid>
+          </div>
         </Section>
       </div>
 
       {/* Managed Users */}
       <Section title="Managed Users" icon={Users}>
-        <div className="space-y-3">
+        <div className="space-y-4">
           {adminData.managedUsers?.length > 0 ? (
-            adminData.managedUsers.map((user, index) => (
-              <div key={index} className="border rounded-lg p-4 hover:bg-gray-50">
-                <div className="flex items-center justify-between mb-2">
-                  <div className="flex items-center gap-2">
-                    <User className="h-4 w-4 text-purple-600" />
-                    <span className="font-medium">{user.name}</span>
-                    <Badge className={getStatusColor(user.status)}>
-                      {user.status}
-                    </Badge>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {adminData.managedUsers.map((user, index) => (
+                <div key={index} className="border rounded-lg p-4 hover:bg-gray-50 transition-colors">
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center">
+                        <User className="h-5 w-5 text-purple-600" />
+                      </div>
+                      <div>
+                        <span className="font-medium text-gray-900">{user.name}</span>
+                        <Badge className={`${getStatusColor(user.status)} ml-2`}>
+                          {user.status}
+                        </Badge>
+                      </div>
+                    </div>
+                    <span className="text-sm text-gray-500 font-medium">
+                      {user.role}
+                    </span>
                   </div>
-                  <span className="text-sm text-gray-500">
-                    {user.role}
-                  </span>
+                  <div className="grid grid-cols-1 gap-2 text-sm">
+                    <div className="flex justify-between">
+                      <span className="text-gray-500">Email:</span>
+                      <span className="font-medium text-right">{user.email}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-500">Contact:</span>
+                      <span className="font-medium text-right">{user.contactNo || "N/A"}</span>
+                    </div>
+                  </div>
                 </div>
-                <div className="grid grid-cols-2 gap-4 text-sm">
-                  <div>
-                    <span className="text-gray-500">Email: </span>
-                    <span className="font-medium">{user.email}</span>
-                  </div>
-                  <div>
-                    <span className="text-gray-500">Contact: </span>
-                    <span className="font-medium">{user.contactNo || "N/A"}</span>
-                  </div>
-                </div>
-              </div>
-            ))
+              ))}
+            </div>
           ) : (
-            <div className="text-center py-8 text-gray-500">
-              <Users className="h-12 w-12 mx-auto mb-4 text-gray-300" />
-              <p>No managed users found</p>
+            <div className="text-center py-12 text-gray-500">
+              <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Users className="h-8 w-8 text-gray-400" />
+              </div>
+              <p className="text-lg font-medium">No managed users found</p>
+              <p className="text-sm">This administrator doesn&apos;t manage any users currently.</p>
             </div>
           )}
         </div>
@@ -707,13 +439,15 @@ const AdminDetails = ({ entryId, onDataChange }) => {
       {/* System Permissions */}
       {adminData.systemPermissions && (
         <Section title="System Permissions" icon={Shield}>
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
             {Object.entries(adminData.systemPermissions).map(([permission, level]) => (
-              <div key={permission} className="flex items-center justify-between p-3 border rounded-lg">
-                <span className="text-sm font-medium capitalize">
-                  {permission.replace(/([A-Z])/g, ' $1').trim()}
-                </span>
-                <Badge className={getPermissionColor(level)}>
+              <div key={permission} className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50 transition-colors">
+                <div className="flex-1">
+                  <span className="text-sm font-medium text-gray-900 capitalize block">
+                    {permission.replace(/([A-Z])/g, ' $1').trim()}
+                  </span>
+                </div>
+                <Badge className={`${getPermissionColor(level)} ml-3`}>
                   {level}
                 </Badge>
               </div>
@@ -727,7 +461,6 @@ const AdminDetails = ({ entryId, onDataChange }) => {
 
 AdminDetails.propTypes = {
   entryId: PropTypes.string.isRequired,
-  onDataChange: PropTypes.func,
 };
 
 export default AdminDetails;
