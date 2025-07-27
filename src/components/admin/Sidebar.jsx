@@ -1,8 +1,10 @@
+
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { toast } from "sonner";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import axios from "axios";
+import { useAdminAuth } from "../../hooks/useAdminAuth";
 import NavItem from "./NavItem";
 import LOGO from "../../assets/Velox-Logo.png";
 import {
@@ -15,6 +17,7 @@ import {
   faSignOutAlt,
   faUserCircle,
   faSync,
+  faChartBar,
 } from "@fortawesome/free-solid-svg-icons";
 
 /**
@@ -26,9 +29,12 @@ export default function Sidebar() {
   const navigate = useNavigate();
   const backendURL = import.meta.env.VITE_BACKEND_URL;
   
+  // Use admin auth context
+  const { admin, logout } = useAdminAuth();
+  
   // State management
   const [userData, setUserData] = useState({
-    name: "",
+    name: admin?.name || "",
     avatar: null,
   });
   const [isLoading, setIsLoading] = useState(true);
@@ -69,10 +75,16 @@ export default function Sidebar() {
       icon: faCar,
       path: "/admin/vehicles",
     },
+    {
+      title: "Reports",
+      icon: faChartBar,
+      path: "/admin/reports",
+    },
   ], []);
 
   /**
    * Fetch user profile data from backend with retry mechanism
+   * This fetches additional profile data like avatar that's not in the JWT context
    */
   const fetchUserProfile = useCallback(async (retryCount = 0) => {
     const maxRetries = 3;
@@ -83,12 +95,11 @@ export default function Sidebar() {
         withCredentials: true,
         timeout: 10000,
       });
-
       const { myData } = response.data;
       
       if (myData) {
         setUserData({
-          name: myData.name || "Admin User",
+          name: admin?.name || myData.name || "Admin User",
           avatar: myData.profilePicLink || null,
         });
         setLastFetchTime(Date.now());
@@ -114,15 +125,32 @@ export default function Sidebar() {
         toast.error("Failed to load user profile");
       }
       
-      // Set fallback data
+      // Set fallback data but keep the name from context if available
       setUserData({
-        name: "Admin User",
+        name: admin?.name || "Admin User",
         avatar: null,
       });
     } finally {
       setIsLoading(false);
     }
-  }, [backendURL, navigate]);
+  }, [admin?.name, backendURL, navigate]);
+
+  // Update userData when admin context changes
+  useEffect(() => {
+    if (admin) {
+      setUserData(prev => {
+        const newData = {
+          name: admin.name || "Admin User",
+          avatar: prev.avatar, // Keep existing avatar if we have one
+        };
+        return newData;
+      });
+      setIsLoading(false);
+      
+      // Fetch additional profile data (like avatar) from the profile endpoint
+      fetchUserProfile();
+    }
+  }, [admin, fetchUserProfile]);
 
   // Monitor online/offline status
   useEffect(() => {
@@ -149,11 +177,14 @@ export default function Sidebar() {
   }, [lastFetchTime, fetchUserProfile]);
 
   /**
-   * Initial profile fetch
+   * Initial profile fetch - only run once on component mount
    */
   useEffect(() => {
-    fetchUserProfile();
-  }, [fetchUserProfile]);
+    // Only fetch if admin is available to avoid unnecessary API calls
+    if (admin) {
+      fetchUserProfile();
+    }
+  }, []); // Empty dependency array for initial fetch only
 
   /**
    * Handle user logout with proper error handling and confirmation
@@ -168,17 +199,8 @@ export default function Sidebar() {
     try {
       setIsLoggingOut(true);
       
-      const response = await axios.post(
-        `${backendURL}/api/admin/auth/logout`,
-        {},
-        { 
-          withCredentials: true,
-          timeout: 10000,
-        }
-      );
-
-      // Success handling
-      toast.success(response.data.message || "Logged out successfully");
+      // Use context logout function
+      await logout("Logged out successfully");
       
       // Clear any cached data
       setUserData({ name: "", avatar: null });
@@ -188,25 +210,11 @@ export default function Sidebar() {
       
     } catch (error) {
       console.error("Logout error:", error);
-      
-      // Error handling with specific messages
-      const errorMessage = error.response?.data?.message || "Logout failed";
-      const statusCode = error.response?.status;
-
-      if (statusCode === 401) {
-        toast.warning("Session expired");
-        navigate("/admin/login", { replace: true });
-      } else if (statusCode >= 500) {
-        toast.error("Server error. Please try again.");
-      } else if (error.code === 'ECONNABORTED') {
-        toast.error("Logout request timed out. Please try again.");
-      } else {
-        toast.error(errorMessage);
-      }
+      toast.error("Logout failed. Please try again.");
     } finally {
       setIsLoggingOut(false);
     }
-  }, [backendURL, navigate, isLoggingOut]);
+  }, [logout, navigate, isLoggingOut]);
 
   /**
    * Check if current path is active (memoized for performance)
@@ -221,10 +229,10 @@ export default function Sidebar() {
   /**
    * Handle navigation item click with analytics
    */
-  const handleNavItemClick = useCallback((path) => {
-    // Could add analytics tracking here
-    console.log(`Navigation: ${path}`);
-  }, []);
+  // const handleNavItemClick = useCallback((path) => {
+   
+  //   console.log(`Navigation: ${path}`);
+  // }, []);
 
   /**
    * Refresh user data
@@ -314,6 +322,12 @@ export default function Sidebar() {
               active={isPathActive("/admin/profile")}
               disabled={isLoading || !isOnline}
             />
+            {/* Debug info - remove in production */}
+            {/* {import.meta.env.DEV && (
+              <div className="text-xs text-gray-500 px-4 py-1">
+                Avatar: {userData.avatar ? userData.avatar : 'null'}
+              </div>
+            )} */}
           </Link>
 
           {/* Logout Button */}

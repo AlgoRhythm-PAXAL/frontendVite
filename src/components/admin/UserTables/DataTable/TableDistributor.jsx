@@ -392,6 +392,7 @@ export default function TableDistributor({
             entryId={selectedEntry.itemId}
             onClose={handleCloseModal}
             givenId={selectedEntry.givenId}
+            onDataChange={refetch} // Pass refetch function to refresh table data
           />
         )}
       </Modal>

@@ -1,6 +1,6 @@
 
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FileText, ChevronDown, ChevronUp } from 'lucide-react';
 
@@ -12,20 +12,76 @@ const ViewShipmentsPage = () => {
     const [error, setError] = useState(null);
     const [searchTerm, setSearchTerm] = useState('');
     const [expandedShipmentId, setExpandedShipmentId] = useState(null);
+    
+    // Staff authentication states
+    const [staffInfo, setStaffInfo] = useState(null);
+    const [staffBranchId, setStaffBranchId] = useState(null);
 
-    // Fetch completed shipments
-    const fetchCompletedShipments = async () => {
+    // Function to fetch staff information from API (same as CreatedShipmentsPage)
+    const fetchStaffInfo = useCallback(async () => {
+        try {
+            const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/staff/ui/get-staff-information`, {
+                credentials: 'include'
+            });
+            
+            if (!response.ok) {
+                throw new Error(`Failed to fetch staff info: ${response.status}`);
+            }
+            
+            const data = await response.json();
+            setStaffInfo(data);
+            setStaffBranchId(data.branchId?._id);
+            return data.branchId?._id;
+        } catch (err) {
+            console.error('Error fetching staff info:', err);
+            setError('Failed to fetch staff information');
+            return null;
+        }
+    }, []);
+
+    // Fetch completed shipments using the same method as CreatedShipmentsPage
+    const fetchCompletedShipments = useCallback(async () => {
         try {
             setLoading(true);
             setError(null);
             
-            // Fetch only completed shipments with assigned vehicles for the specific center
-            const response = await fetch('http://localhost:8000/shipments/completed/682e1059ce33c2a891c9b168', {
-                method: 'GET',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
+            // Get staff branch if not already available
+            let branchId = staffBranchId;
+            if (!branchId) {
+                branchId = await fetchStaffInfo();
+            }
+            
+            if (!branchId) {
+                setError('Staff branch information not available');
+                return;
+            }
+
+            const queryParams = new URLSearchParams();
+            queryParams.append('status', 'Completed');
+            queryParams.append('branchId', branchId);
+            
+            // Try fetching completed shipments for the staff's branch using the same API structure
+            let url = `${import.meta.env.VITE_BACKEND_URL}/vehicles/b2b/shipments/branch/${branchId}?${queryParams.toString()}`;
+            let response = await fetch(url, {
+                credentials: 'include'
             });
+            
+            // Fallback to original endpoints if branch-specific endpoint doesn't exist
+            if (response.status === 404) {
+                // Use staff ID from staffInfo if available, otherwise use branch-based approach
+                const staffId = staffInfo?._id || branchId;
+                url = `${import.meta.env.VITE_BACKEND_URL}/vehicles/b2b/shipments/${staffId}?${queryParams.toString()}`;
+                response = await fetch(url, {
+                    credentials: 'include'
+                });
+                
+                if (response.status === 404) {
+                    url = `${import.meta.env.VITE_BACKEND_URL}/shipments/completed/${branchId}`;
+                    response = await fetch(url, {
+                        credentials: 'include'
+                    });
+                }
+            }
 
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
@@ -33,7 +89,7 @@ const ViewShipmentsPage = () => {
 
             const data = await response.json();
             
-            // Handle different response formats
+            // Handle different response formats (same as CreatedShipmentsPage)
             let shipmentsData = [];
             
             if (data.success && data.shipments) {
@@ -46,9 +102,13 @@ const ViewShipmentsPage = () => {
                 shipmentsData = [data];
             }
 
-            // No need to filter since backend already returns only completed shipments
-            setShipments(shipmentsData);
-            setFilteredShipments(shipmentsData);
+            // Filter for completed shipments if not already filtered by backend
+            const completedShipments = shipmentsData.filter(shipment => 
+                shipment.status === 'Completed' || shipment.status === 'completed'
+            );
+
+            setShipments(completedShipments);
+            setFilteredShipments(completedShipments);
             setError(null);
         } catch (err) {
             setError(err.message);
@@ -56,7 +116,7 @@ const ViewShipmentsPage = () => {
         } finally {
             setLoading(false);
         }
-    };
+    }, [staffBranchId, staffInfo, fetchStaffInfo]);
 
     // Search functionality
     const handleSearch = (searchValue) => {
@@ -78,10 +138,14 @@ const ViewShipmentsPage = () => {
         navigate(`/staff/shipment-management/manifest/${shipmentId}`);
     };
 
-    // Calculate total weight from parcels
-    const calculateTotalWeight = (parcels) => {
-        if (!parcels || !Array.isArray(parcels)) return 0;
-        return parcels.reduce((total, parcel) => total + (parcel.weight || 0), 0);
+    // Calculate total weight from shipment data (not from parcels since weight doesn't exist in parcel schema)
+    const getShipmentWeight = (shipment) => {
+        return shipment.totalWeight || 0;
+    };
+
+    // Get parcel count
+    const getParcelCount = (shipment) => {
+        return shipment.parcelCount || shipment.parcels?.length || 0;
     };
 
     // Toggle row expansion for detailed view
@@ -97,7 +161,7 @@ const ViewShipmentsPage = () => {
 
     useEffect(() => {
         fetchCompletedShipments();
-    }, []);
+    }, [fetchCompletedShipments]);
 
     // Loading state
     if (loading) {
@@ -206,10 +270,10 @@ const ViewShipmentsPage = () => {
                                             </span>
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                            {shipment.totalWeight || calculateTotalWeight(shipment.parcels).toFixed(2)}
+                                            {getShipmentWeight(shipment)} kg
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                            {shipment.parcelCount || shipment.parcels?.length || 0}
+                                            {getParcelCount(shipment)}
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap">
                                             <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
@@ -289,11 +353,15 @@ const ViewShipmentsPage = () => {
                                                                     </div>
                                                                     <div className="flex">
                                                                         <span className="text-gray-600 w-36">Parcel Count:</span>
-                                                                        <span className="font-medium text-gray-800">{shipment.parcelCount || shipment.parcels?.length || 0}</span>
+                                                                        <span className="font-medium text-gray-800">{getParcelCount(shipment)}</span>
                                                                     </div>
                                                                     <div className="flex">
                                                                         <span className="text-gray-600 w-36">Vehicle:</span>
-                                                                        <span className="font-medium text-gray-800">{shipment.assignedVehicle?.vehicleNumber || 'N/A'}</span>
+                                                                        <span className="font-medium text-gray-800">{shipment.assignedVehicle?.registrationNo || shipment.assignedVehicle?.vehicleId || 'Not Assigned'}</span>
+                                                                    </div>
+                                                                    <div className="flex">
+                                                                        <span className="text-gray-600 w-36">Driver:</span>
+                                                                        <span className="font-medium text-gray-800">{shipment.assignedDriver?.name || 'Not Assigned'}</span>
                                                                     </div>
                                                                 </div>
                                                             </div>
@@ -307,12 +375,16 @@ const ViewShipmentsPage = () => {
                                                             <div className="grid md:grid-cols-2 gap-4">
                                                                 <div className="space-y-2">
                                                                     <div className="flex">
-                                                                        <span className="text-green-700 w-36">Vehicle Number:</span>
-                                                                        <span className="font-medium text-green-800">{shipment.assignedVehicle.vehicleNumber || 'N/A'}</span>
+                                                                        <span className="text-green-700 w-36">Vehicle ID:</span>
+                                                                        <span className="font-medium text-green-800">{shipment.assignedVehicle.vehicleId || 'N/A'}</span>
+                                                                    </div>
+                                                                    <div className="flex">
+                                                                        <span className="text-green-700 w-36">Registration No:</span>
+                                                                        <span className="font-medium text-green-800">{shipment.assignedVehicle.registrationNo || 'N/A'}</span>
                                                                     </div>
                                                                     <div className="flex">
                                                                         <span className="text-green-700 w-36">Vehicle Type:</span>
-                                                                        <span className="font-medium text-green-800">{shipment.assignedVehicle.type || 'N/A'}</span>
+                                                                        <span className="font-medium text-green-800">{shipment.assignedVehicle.vehicleType || 'N/A'}</span>
                                                                     </div>
                                                                 </div>
                                                                 <div className="space-y-2">
@@ -324,7 +396,7 @@ const ViewShipmentsPage = () => {
                                                                             </div>
                                                                             <div className="flex">
                                                                                 <span className="text-green-700 w-36">Driver Contact:</span>
-                                                                                <span className="font-medium text-green-800">{shipment.assignedDriver.contactNumber || 'N/A'}</span>
+                                                                                <span className="font-medium text-green-800">{shipment.assignedDriver.contactNo || 'N/A'}</span>
                                                                             </div>
                                                                         </>
                                                                     )}
@@ -333,24 +405,30 @@ const ViewShipmentsPage = () => {
                                                         </div>
                                                     )}
 
-                                                    {/* Parcels Information */}
+                                                    {/* Parcels Information - Only show schema fields */}
                                                     {shipment.parcels && shipment.parcels.length > 0 && (
                                                         <div className="bg-blue-50 rounded-lg p-4">
                                                             <h4 className="font-semibold text-blue-800 mb-3">Parcels Information ({shipment.parcels.length} parcels)</h4>
                                                             <div className="space-y-2">
                                                                 {shipment.parcels.map((parcel, index) => (
-                                                                    <div key={parcel._id || index} className="flex justify-between items-center bg-white rounded p-2">
+                                                                    <div key={parcel._id || index} className="flex justify-between items-center bg-white rounded p-3">
                                                                         <div className="flex items-center gap-4">
                                                                             <span className="font-medium text-blue-700">#{parcel.parcelId || index + 1}</span>
-                                                                            <span className="text-sm text-gray-600">Weight: {parcel.weight || 'N/A'} kg</span>
+                                                                            <span className="text-sm text-gray-600">Type: {parcel.itemType || 'N/A'}</span>
+                                                                            <span className="text-sm text-gray-600">Size: {parcel.itemSize || 'N/A'}</span>
+                                                                            <span className="text-sm text-gray-600">Method: {parcel.shippingMethod || 'N/A'}</span>
                                                                             <span className={`px-2 py-1 text-xs rounded-full ${
                                                                                 parcel.status === 'Delivered' ? 'bg-green-100 text-green-800' :
                                                                                 parcel.status === 'InTransit' ? 'bg-blue-100 text-blue-800' :
+                                                                                parcel.status === 'PendingPickup' ? 'bg-yellow-100 text-yellow-800' :
                                                                                 'bg-gray-100 text-gray-800'
                                                                             }`}>
                                                                                 {parcel.status || 'N/A'}
                                                                             </span>
                                                                         </div>
+                                                                        {parcel.trackingNo && (
+                                                                            <span className="text-xs text-gray-500">Tracking: {parcel.trackingNo}</span>
+                                                                        )}
                                                                     </div>
                                                                 ))}
                                                             </div>

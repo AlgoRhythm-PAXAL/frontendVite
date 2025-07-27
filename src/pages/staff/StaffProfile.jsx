@@ -19,6 +19,7 @@ import Modal from "../../components/admin/adminProfile/Modal";
 import ImageUploadingStaff from "../../components/staff/ImageUploadingStaff";
 import PasswordResetCodePopup from "../../components/staff/PasswordResetCodePopup";
 import NavigationBar from "../../components/staff/NavigationBar";
+import toast from "react-hot-toast";
 
 const StaffProfile = () => {
   const [isEditing, setIsEditing] = useState(false);
@@ -126,7 +127,16 @@ const StaffProfile = () => {
       );
 
       setDialogOpen(true);
-    } catch (error) {}
+    } catch (error) {
+      const errorMessage =
+        error.response?.message ||
+        "Failed to update the staff password. Please try again.";
+      console.log(error)
+      toast.error(errorMessage, {
+        duration: 4000,
+        
+      });
+    }
   };
 
   if (isLoading && !profileData) {

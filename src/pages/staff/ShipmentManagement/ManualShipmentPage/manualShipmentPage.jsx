@@ -94,7 +94,9 @@ const B2BShipmentCreationPage = () => {
         setError(null);
 
         try {
-            const response = await fetch('http://localhost:8000/parcels/682e1059ce33c2a891c9b168');
+            const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/parcels/staff/assigned-parcels`, {
+                credentials: 'include' // Include cookies for staff authentication
+            });
             if (!response.ok) {
                 throw new Error(`Error: ${response.status} - ${response.statusText}`);
             }
@@ -114,7 +116,7 @@ const B2BShipmentCreationPage = () => {
     // Fetch all branches for dropdown selections
     const fetchBranches = async () => {
         try {
-            const response = await fetch('http://localhost:8000/api/branches/all-branches');
+            const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/branches/all-branches`);
             if (!response.ok) {
                 throw new Error('Failed to fetch branches');
             }
@@ -614,11 +616,18 @@ const B2BShipmentCreationPage = () => {
                 createdAt: new Date()
             };
 
-            console.log('Shipment data being sent:', shipmentPayload);
+            console.log('=== FRONTEND SHIPMENT CREATION ===');
+            console.log('Shipment payload being sent:', JSON.stringify(shipmentPayload, null, 2));
+            console.log('Delivery Type:', shipmentPayload.deliveryType);
+            console.log('Source Center:', shipmentPayload.sourceCenter);
+            console.log('Parcels count:', shipmentPayload.parcels.length);
 
-            const response = await fetch('http://localhost:8000/shipments/create', {
+            const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/shipments/create`, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: { 
+                    'Content-Type': 'application/json'
+                },
+                credentials: 'include', // Include cookies for staff authentication
                 body: JSON.stringify(shipmentPayload)
             });
 
@@ -1282,8 +1291,8 @@ const B2BShipmentCreationPage = () => {
                                                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 capitalize">
                                                                     <span className={`px-2 py-1 text-xs font-medium rounded-full ${
                                                                         parcel.shippingMethod?.toLowerCase() === 'express' 
-                                                                            ? 'bg-red-100 text-red-800' 
-                                                                            : 'bg-green-100 text-green-800'
+                                                                        ? 'bg-purple-100 text-purple-800' 
+                                                                        : 'bg-blue-100 text-blue-800'
                                                                     }`}>
                                                                         {parcel.shippingMethod || 'N/A'}
                                                                     </span>
@@ -1306,7 +1315,7 @@ const B2BShipmentCreationPage = () => {
                                                                     <td colSpan="9" className="p-0">
                                                                         <div className="rounded-lg shadow-inner bg-white m-2 p-6 border border-gray-200">
                                                                             <div className="flex justify-between items-center mb-4">
-                                                                                <h3 className="text-lg font-semibold text-blue-700">Parcel #{parcel.qrCodeNo}</h3>
+                                                                                <h3 className="text-lg font-semibold text-blue-700">Parcel #{parcel.parcelId}</h3>
                                                                             </div>
                                                                             <div className="grid md:grid-cols-2 gap-6">
                                                                                 <div className="bg-gray-50 rounded-lg p-4">
@@ -1316,7 +1325,17 @@ const B2BShipmentCreationPage = () => {
                                                                                     <div className="space-y-2 ml-7">
                                                                                         <div className="flex">
                                                                                             <span className="text-gray-600 w-36">QR Code:</span>
-                                                                                            <span className="font-medium text-gray-800">{parcel.qrCodeNo}</span>
+                                                                                            <div className="font-medium text-gray-800">
+                                                                                                {parcel.qrCodeNo && parcel.qrCodeNo.startsWith('data:image') ? (
+                                                                                                    <img 
+                                                                                                        src={parcel.qrCodeNo} 
+                                                                                                        alt="QR Code" 
+                                                                                                        className="w-16 h-16 object-contain border border-gray-200 rounded"
+                                                                                                    />
+                                                                                                ) : (
+                                                                                                    <span>No QR Code</span>
+                                                                                                )}
+                                                                                            </div>
                                                                                         </div>
                                                                                         <div className="flex">
                                                                                             <span className="text-gray-600 w-36">Item Size:</span>
@@ -1445,8 +1464,8 @@ const B2BShipmentCreationPage = () => {
                                                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 capitalize">
                                                                 <span className={`px-2 py-1 text-xs font-medium rounded-full ${
                                                                     parcel.shippingMethod?.toLowerCase() === 'express' 
-                                                                        ? 'bg-red-100 text-red-800' 
-                                                                        : 'bg-green-100 text-green-800'
+                                                                    ? 'bg-purple-100 text-purple-800' 
+                                                                    : 'bg-blue-100 text-blue-800'
                                                                 }`}>
                                                                     {parcel.shippingMethod || 'N/A'}
                                                                 </span>
@@ -1469,7 +1488,7 @@ const B2BShipmentCreationPage = () => {
                                                                 <td colSpan="9" className="p-0">
                                                                     <div className="rounded-lg shadow-inner bg-white m-2 p-6 border border-gray-200">
                                                                         <div className="flex justify-between items-center mb-4">
-                                                                            <h3 className="text-lg font-semibold text-blue-700">Parcel #{parcel.qrCodeNo}</h3>
+                                                                            <h3 className="text-lg font-semibold text-blue-700">Parcel #{parcel.parcelId}</h3>
                                                                         </div>
                                                                         <div className="grid md:grid-cols-2 gap-6">
                                                                             <div className="bg-gray-50 rounded-lg p-4">
@@ -1479,7 +1498,17 @@ const B2BShipmentCreationPage = () => {
                                                                                 <div className="space-y-2 ml-7">
                                                                                     <div className="flex">
                                                                                         <span className="text-gray-600 w-36">QR Code:</span>
-                                                                                        <span className="font-medium text-gray-800">{parcel.qrCodeNo}</span>
+                                                                                        <div className="font-medium text-gray-800">
+                                                                                            {parcel.qrCodeNo && parcel.qrCodeNo.startsWith('data:image') ? (
+                                                                                                <img 
+                                                                                                    src={parcel.qrCodeNo} 
+                                                                                                    alt="QR Code" 
+                                                                                                    className="w-16 h-16 object-contain border border-gray-200 rounded"
+                                                                                                />
+                                                                                            ) : (
+                                                                                                <span>No QR Code</span>
+                                                                                            )}
+                                                                                        </div>
                                                                                     </div>
                                                                                     <div className="flex">
                                                                                         <span className="text-gray-600 w-36">Item Size:</span>

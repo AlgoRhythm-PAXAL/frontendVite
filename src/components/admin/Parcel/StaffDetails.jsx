@@ -1,14 +1,25 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import axios from "axios";
 import PropTypes from "prop-types";
 import LoadingAnimation from "../../../utils/LoadingAnimation";
+import { 
+  validateField, 
+  validateAllStaffFields
+} from "../../../utils/staffValidation";
 
-const StaffDetails = ({ entryId }) => {
+const StaffDetails = ({ entryId, onDataChange }) => {
   const backendURL = import.meta.env.VITE_BACKEND_URL;
   const [staffData, setStaffData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [updating, setUpdating] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editForm, setEditForm] = useState({});
+  const [updateLoading, setUpdateLoading] = useState(false);
+  const [updateError, setUpdateError] = useState(null);
+  const [updateSuccess, setUpdateSuccess] = useState(false);
+  const [validationErrors, setValidationErrors] = useState({});
+  const [branches, setBranches] = useState([]);
+  const [branchesLoading, setBranchesLoading] = useState(false);
 
   useEffect(() => {
     const fetchStaffData = async () => {
@@ -26,8 +37,9 @@ const StaffDetails = ({ entryId }) => {
           `${backendURL}/api/admin/users/staff/${entryId}`,
           { withCredentials: true }
         );
+        console.log("Fetched staff data:", response.data);
         
-        setStaffData(response.data.data || response.data);
+        setStaffData( response.data);
       } catch (err) {
         console.error("Error fetching staff data:", err);
         setError(
@@ -42,58 +54,145 @@ const StaffDetails = ({ entryId }) => {
     fetchStaffData();
   }, [entryId, backendURL]);
 
-  const handleStatusChange = async (newStatus) => {
+  // Initialize edit form when staffData is loaded
+  useEffect(() => {
+    if (staffData && isEditing) {
+      setEditForm({
+        name: staffData.name || '',
+        email: staffData.email || '',
+        contactNo: staffData.contactNo || '',
+        nic: staffData.nic || '',
+        status: staffData.status || 'active',
+        branchId: staffData.branchId?._id || ''
+      });
+    }
+  }, [staffData, isEditing]);
+
+  // Fetch branches when entering edit mode
+  useEffect(() => {
+    if (isEditing && branches.length === 0) {
+      fetchBranches();
+    }
+  }, [isEditing, branches.length]);
+
+  const fetchBranches = useCallback(async () => {
     try {
-      setUpdating(true);
-      setError(null);
+      setBranchesLoading(true);
+      const response = await axios.get(
+        `${backendURL}/api/admin/users/branches`,
+        { withCredentials: true }
+      );
+      setBranches(response.data.data.branches || []);
+    } catch (err) {
+      console.error("Error fetching branches:", err);
+      setUpdateError("Failed to fetch branches");
+    } finally {
+      setBranchesLoading(false);
+    }
+  }, [backendURL]);
+
+  const handleEditToggle = () => {
+    setIsEditing(!isEditing);
+    setValidationErrors({});
+    setUpdateError(null);
+    setUpdateSuccess(false);
+  };
+
+  const handleInputChange = (field, value) => {
+    setEditForm(prev => ({
+      ...prev,
+      [field]: value
+    }));
+
+    // Real-time validation
+    const error = validateField(field, value);
+    setValidationErrors(prev => ({
+      ...prev,
+      [field]: error
+    }));
+
+    // Clear update messages
+    setUpdateError(null);
+    setUpdateSuccess(false);
+  };
+
+  const handleSaveChanges = async () => {
+    try {
+      setUpdateLoading(true);
+      setUpdateError(null);
+
+      // Validate all fields
+      const errors = validateAllStaffFields(editForm);
+      setValidationErrors(errors);
+
+      if (Object.keys(errors).length > 0) {
+        setUpdateError("Please fix validation errors before saving");
+        return;
+      }
+
+      // Prepare update data (only include fields that have changed)
+      const updateData = {};
+      Object.keys(editForm).forEach(key => {
+        if (editForm[key] !== (staffData[key] || '')) {
+          updateData[key] = editForm[key];
+        }
+      });
+
+      // Don't send empty update
+      if (Object.keys(updateData).length === 0) {
+        setUpdateError("No changes detected");
+        return;
+      }
 
       const response = await axios.put(
-        `${backendURL}/api/admin/users/staff/${entryId}/status`,
-        { status: newStatus },
+        `${backendURL}/api/admin/users/staff/${entryId}`,
+        updateData,
         { withCredentials: true }
       );
 
-      if (response.data.success) {
-        // Update the staff data with the new status
-        setStaffData(prevData => ({
-          ...prevData,
-          status: newStatus,
-          updatedAt: new Date().toISOString()
-        }));
-
-        // Optional: Show success message
-        alert(`Staff ${newStatus === 'active' ? 'activated' : 'suspended'} successfully!`);
+      if (response.data.status === 'success') {
+        setStaffData(response.data.data.staff);
+        setUpdateSuccess(true);
+        setIsEditing(false);
+        
+        // Notify parent to refresh table data
+        if (onDataChange) {
+          onDataChange();
+        }
+        
+        setTimeout(() => setUpdateSuccess(false), 3000);
       }
     } catch (err) {
-      console.error("Error updating staff status:", err);
-      setError(
+      console.error("Error updating staff:", err);
+      setUpdateError(
         err.response?.data?.message || 
-        "Failed to update staff status. Please try again."
+        "Failed to update staff details. Please try again."
       );
     } finally {
-      setUpdating(false);
+      setUpdateLoading(false);
     }
   };
 
   const formatDate = (dateString) => {
     if (!dateString) return "N/A";
-    return new Date(dateString).toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
     });
   };
 
   const getStatusColor = (status) => {
-    const statusColors = {
-      'active': 'bg-green-100 text-green-800 border-green-200',
-      'inactive': 'bg-red-100 text-red-800 border-red-200',
-      'suspended': 'bg-yellow-100 text-yellow-800 border-yellow-200',
-      'pending': 'bg-blue-100 text-blue-800 border-blue-200',
+    const colors = {
+      'active': 'text-green-600 bg-green-100',
+      'inactive': 'text-red-600 bg-red-100',
+      'suspended': 'text-yellow-600 bg-yellow-100',
+      'pending': 'text-blue-600 bg-blue-100',
     };
-    return statusColors[status?.toLowerCase()] || 'bg-gray-100 text-gray-800 border-gray-200';
+    return colors[status?.toLowerCase()] || 'text-gray-600 bg-gray-100';
   };
 
   const getStatusIcon = (status) => {
@@ -107,17 +206,7 @@ const StaffDetails = ({ entryId }) => {
         <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
           <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
         </svg>
-      ),
-      'suspended': (
-        <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-          <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
-        </svg>
-      ),
-      'pending': (
-        <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-          <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clipRule="evenodd" />
-        </svg>
-      ),
+      )
     };
     return icons[status?.toLowerCase()] || (
       <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
@@ -175,171 +264,285 @@ const StaffDetails = ({ entryId }) => {
   return (
     <div className="min-h-screen bg-gray-50 py-8 px-4">
       {/* Staff Information */}
-      <div className="max-w-4xl mx-auto space-y-6">
+      <div className="max-w-4xl lg:max-w-6xl xl:max-w-7xl mx-auto space-y-6">
         <div className="bg-white rounded-lg shadow-lg overflow-hidden">
+          {/* Header with Edit Button */}
+          <div className="p-6 border-b border-gray-200 flex justify-between items-center">
+            <h2 className="text-xl font-semibold text-gray-900">
+              Staff Details
+            </h2>
+            <div className="flex items-center gap-3">
+              {updateSuccess && (
+                <span className="text-green-600 text-sm font-medium">
+                  ✓ Updated successfully
+                </span>
+              )}
+              <button
+                onClick={handleEditToggle}
+                className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                  isEditing
+                    ? 'bg-gray-500 hover:bg-gray-600 text-white'
+                    : 'bg-blue-600 hover:bg-blue-700 text-white'
+                }`}
+              >
+                {isEditing ? 'Cancel' : 'Edit'}
+              </button>
+              {isEditing && (
+                <button
+                  onClick={handleSaveChanges}
+                  disabled={updateLoading}
+                  className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {updateLoading ? 'Saving...' : 'Save Changes'}
+                </button>
+              )}
+            </div>
+          </div>
+
+          {/* Error Display */}
+          {updateError && (
+            <div className="mx-6 mt-4 p-4 bg-red-50 border border-red-200 rounded-lg">
+              <div className="flex">
+                <svg className="w-5 h-5 text-red-400" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                </svg>
+                <div className="ml-3">
+                  <p className="text-sm text-red-800">{updateError}</p>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Personal Information */}
           <div className="p-6 border-b border-gray-200">
-            <h2 className="text-xl font-semibold text-gray-900 mb-4">
+            <h3 className="text-lg font-medium text-gray-900 mb-4">
               Personal Information
-            </h2>
+            </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Name */}
               <div>
-                <dt className="text-sm font-medium text-gray-500 mb-1">
-                  Name:
-                </dt>
-                <dd className="text-sm text-gray-900">
-                  {staffData.name || "N/A"}
-                </dd>
+                <div className="text-sm font-medium text-gray-500 mb-1">Name:</div>
+                {isEditing ? (
+                  <div>
+                    <input
+                      type="text"
+                      value={editForm.name}
+                      onChange={(e) => handleInputChange('name', e.target.value)}
+                      className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 ${
+                        validationErrors.name 
+                          ? 'border-red-300 focus:ring-red-500' 
+                          : editForm.name && !validationErrors.name
+                          ? 'border-green-300 focus:ring-green-500'
+                          : 'border-gray-300 focus:ring-blue-500'
+                      }`}
+                      placeholder="Enter full name"
+                    />
+                    {validationErrors.name ? (
+                      <p className="text-red-500 text-xs mt-1">{validationErrors.name}</p>
+                    ) : editForm.name && !validationErrors.name ? (
+                      <p className="text-green-600 text-xs mt-1 flex items-center">
+                        <svg className="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                        </svg>
+                        Valid
+                      </p>
+                    ) : null}
+                  </div>
+                ) : (
+                  <div className="text-gray-900">{staffData.name || "N/A"}</div>
+                )}
               </div>
+
+              {/* Staff ID */}
               <div>
-                <dt className="text-sm font-medium text-gray-500 mb-1">
-                  Staff ID:
-                </dt>
-                <dd className="text-sm text-gray-900">
-                  {staffData.staffId || "N/A"}
-                </dd>
+                <div className="text-sm font-medium text-gray-500 mb-1">Staff ID:</div>
+                <div className="text-gray-900">{staffData.staffId || "N/A"}</div>
               </div>
+
+              {/* Email */}
               <div>
-                <dt className="text-sm font-medium text-gray-500 mb-1">
-                  NIC:
-                </dt>
-                <dd className="text-sm text-gray-900">
-                  {staffData.nic || "N/A"}
-                </dd>
+                <div className="text-sm font-medium text-gray-500 mb-1">Email:</div>
+                {isEditing ? (
+                  <div>
+                    <input
+                      type="email"
+                      value={editForm.email}
+                      onChange={(e) => handleInputChange('email', e.target.value)}
+                      className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 ${
+                        validationErrors.email 
+                          ? 'border-red-300 focus:ring-red-500' 
+                          : editForm.email && !validationErrors.email
+                          ? 'border-green-300 focus:ring-green-500'
+                          : 'border-gray-300 focus:ring-blue-500'
+                      }`}
+                      placeholder="Enter email address"
+                    />
+                    {validationErrors.email ? (
+                      <p className="text-red-500 text-xs mt-1">{validationErrors.email}</p>
+                    ) : editForm.email && !validationErrors.email ? (
+                      <p className="text-green-600 text-xs mt-1 flex items-center">
+                        <svg className="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                        </svg>
+                        Valid
+                      </p>
+                    ) : null}
+                  </div>
+                ) : (
+                  <div className="text-gray-900">{staffData.email || "N/A"}</div>
+                )}
+              </div>
+
+              {/* Contact Number */}
+              <div>
+                <div className="text-sm font-medium text-gray-500 mb-1">Contact Number:</div>
+                {isEditing ? (
+                  <div>
+                    <input
+                      type="tel"
+                      value={editForm.contactNo}
+                      onChange={(e) => handleInputChange('contactNo', e.target.value)}
+                      className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 ${
+                        validationErrors.contactNo 
+                          ? 'border-red-300 focus:ring-red-500' 
+                          : editForm.contactNo && !validationErrors.contactNo
+                          ? 'border-green-300 focus:ring-green-500'
+                          : 'border-gray-300 focus:ring-blue-500'
+                      }`}
+                      placeholder="Enter contact number"
+                    />
+                    {validationErrors.contactNo ? (
+                      <p className="text-red-500 text-xs mt-1">{validationErrors.contactNo}</p>
+                    ) : editForm.contactNo && !validationErrors.contactNo ? (
+                      <p className="text-green-600 text-xs mt-1 flex items-center">
+                        <svg className="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                        </svg>
+                        Valid
+                      </p>
+                    ) : null}
+                  </div>
+                ) : (
+                  <div className="text-gray-900">{staffData.contactNo || "N/A"}</div>
+                )}
+              </div>
+
+              {/* NIC */}
+              <div>
+                <div className="text-sm font-medium text-gray-500 mb-1">NIC:</div>
+                {isEditing ? (
+                  <div>
+                    <input
+                      type="text"
+                      value={editForm.nic}
+                      onChange={(e) => handleInputChange('nic', e.target.value)}
+                      className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 ${
+                        validationErrors.nic 
+                          ? 'border-red-300 focus:ring-red-500' 
+                          : editForm.nic && !validationErrors.nic
+                          ? 'border-green-300 focus:ring-green-500'
+                          : 'border-gray-300 focus:ring-blue-500'
+                      }`}
+                      placeholder="Enter NIC number"
+                    />
+                    {validationErrors.nic ? (
+                      <p className="text-red-500 text-xs mt-1">{validationErrors.nic}</p>
+                    ) : editForm.nic && !validationErrors.nic ? (
+                      <p className="text-green-600 text-xs mt-1 flex items-center">
+                        <svg className="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                        </svg>
+                        Valid
+                      </p>
+                    ) : null}
+                  </div>
+                ) : (
+                  <div className="text-gray-900">{staffData.nic || "N/A"}</div>
+                )}
+              </div>
+
+              {/* Status */}
+              <div>
+                <div className="text-sm font-medium text-gray-500 mb-1">Status:</div>
+                {isEditing ? (
+                  <select
+                    value={editForm.status}
+                    onChange={(e) => handleInputChange('status', e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  >
+                    <option value="active">Active</option>
+                    <option value="inactive">Inactive</option>
+                  </select>
+                ) : (
+                  <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(staffData.status)}`}>
+                    {getStatusIcon(staffData.status)}
+                    <span className="ml-1">{formatStatusText(staffData.status)}</span>
+                  </span>
+                )}
               </div>
             </div>
           </div>
 
-          {/* Contact Information */}
+          {/* Work Information */}
           <div className="p-6 border-b border-gray-200">
-            <h2 className="text-xl font-semibold text-gray-900 mb-4">
-              Contact Information
-            </h2>
+            <h3 className="text-lg font-medium text-gray-900 mb-4">
+              Work Information
+            </h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Branch */}
+              <div>
+                <div className="text-sm font-medium text-gray-500 mb-1">Branch:</div>
+                {isEditing ? (
+                  <div>
+                    {branchesLoading ? (
+                      <div className="text-gray-500">Loading branches...</div>
+                    ) : (
+                      <select
+                        value={editForm.branchId}
+                        onChange={(e) => handleInputChange('branchId', e.target.value)}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      >
+                        <option value="">Select Branch</option>
+                        {branches.map(branch => (
+                          <option key={branch.value} value={branch.value}>
+                            {branch.label}
+                          </option>
+                        ))}
+                      </select>
+                    )}
+                  </div>
+                ) : (
+                  <div className="text-gray-900">
+                    {staffData.branchId?.location || "N/A"}
+                  </div>
+                )}
+              </div>
+
+              {/* Admin */}
+              <div>
+                <div className="text-sm font-medium text-gray-500 mb-1">Admin:</div>
+                <div className="text-gray-900">
+                  {staffData.adminId?.name || "N/A"}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* System Information */}
+          <div className="p-6">
+            <h3 className="text-lg font-medium text-gray-900 mb-4">
+              System Information
+            </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
-                <dt className="text-sm font-medium text-gray-500 mb-1">
-                  Email:
-                </dt>
-                <dd className="text-sm text-gray-900">
-                  <a href={`mailto:${staffData.email}`} className="text-blue-600 hover:text-blue-800">
-                    {staffData.email || "N/A"}
-                  </a>
-                </dd>
+                <div className="text-sm font-medium text-gray-500 mb-1">Created At:</div>
+                <div className="text-gray-900">{formatDate(staffData.createdAt)}</div>
               </div>
               <div>
-                <dt className="text-sm font-medium text-gray-500 mb-1">
-                  Phone:
-                </dt>
-                <dd className="text-sm text-gray-900">
-                  <a href={`tel:${staffData.contactNo}`} className="text-blue-600 hover:text-blue-800">
-                    {staffData.contactNo || "N/A"}
-                  </a>
-                </dd>
-              </div>
-              <div>
-                <dt className="text-sm font-medium text-gray-500 mb-1">
-                  Branch:
-                </dt>
-                <dd className="text-sm text-gray-900">
-                  {staffData.branchId?.location || "N/A"}
-                </dd>
+                <div className="text-sm font-medium text-gray-500 mb-1">Last Updated:</div>
+                <div className="text-gray-900">{formatDate(staffData.updatedAt)}</div>
               </div>
             </div>
-          </div>
-        </div>
-
-        {/* Employment Status */}
-        <div className="bg-white rounded-lg shadow-lg p-6">
-          <h2 className="text-xl font-semibold text-gray-900 mb-4">
-            Employment Status
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div>
-              <dt className="text-sm font-medium text-gray-500 mb-2">
-                Current Status
-                <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${getStatusColor(staffData.status)} ml-2`}>
-                  {getStatusIcon(staffData.status)}
-                  {formatStatusText(staffData.status)}
-                </span>
-              </dt>
-            </div>
-            <div>
-              <dt className="text-sm font-medium text-gray-500 mb-1">
-                Joined Date
-                <dd className="text-sm text-gray-900">{formatDate(staffData.createdAt)}</dd>
-              </dt>
-            </div>
-            <div>
-              <dt className="text-sm font-medium text-gray-500 mb-1">
-                Last Updated
-                <dd className="text-sm text-gray-900">{formatDate(staffData.updatedAt)}</dd>
-              </dt>
-            </div>
-          </div>
-        </div>
-
-        {/* Administrative Information */}
-        <div className="bg-white rounded-lg shadow-lg p-6">
-          <h2 className="text-xl font-semibold text-gray-900 mb-4">
-            Administrative Information
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <dt className="text-sm font-medium text-gray-500 mb-1">
-                Registered Admin
-                <dd className="text-sm text-gray-900">{staffData.adminId?.name || "N/A"}</dd>
-              </dt>
-            </div>
-            <div>
-              <dt className="text-sm font-medium text-gray-500 mb-1">
-                Registered Branch
-                <dd className="text-sm text-gray-900">{staffData.branchId?.location || "N/A"}</dd>
-              </dt>
-            </div>
-          </div>
-        </div>
-
-        {/* Quick Actions */}
-        <div className="bg-white rounded-lg shadow-lg p-6">
-          <h2 className="text-xl font-semibold text-gray-900 mb-4">
-            Quick Actions
-          </h2>
-          <div className="flex flex-wrap gap-3">
-            <button className="inline-flex items-center px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
-              <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-              </svg>
-              Edit Staff
-            </button>
-            <button className="inline-flex items-center px-4 py-2 bg-gray-600 text-white text-sm font-medium rounded-md hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2">
-              <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-              </svg>
-              View Activity Log
-            </button>
-            {staffData.status === 'active' ? (
-              <button 
-                onClick={() => handleStatusChange('inactive')}
-                disabled={updating}
-                className="inline-flex items-center px-4 py-2 bg-red-600 text-white text-sm font-medium rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728L5.636 5.636m12.728 12.728L18.364 5.636M5.636 18.364l12.728-12.728" />
-                </svg>
-                {updating ? 'Suspending...' : 'Suspend Staff'}
-              </button>
-            ) : (
-              <button 
-                onClick={() => handleStatusChange('active')}
-                disabled={updating}
-                className="inline-flex items-center px-4 py-2 bg-green-600 text-white text-sm font-medium rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-                {updating ? 'Activating...' : 'Activate Staff'}
-              </button>
-            )}
           </div>
         </div>
       </div>
@@ -349,6 +552,7 @@ const StaffDetails = ({ entryId }) => {
 
 StaffDetails.propTypes = {
   entryId: PropTypes.string.isRequired,
+  onDataChange: PropTypes.func,
 };
 
 export default StaffDetails;

@@ -161,7 +161,7 @@ const Vehicle = () => {
   return (
     <div className="flex flex-col mx-5 space-y-6">
       {/* Header Section */}
-      <div className="bg-gradient-to-r from-gray-50 to-gray-100 p-6 rounded-lg shadow-sm border border-gray-200">
+      <div className="">
         <SectionTitle title="Vehicle Management" />
         
       </div>
@@ -247,8 +247,12 @@ const Vehicle = () => {
               sorting={false}
             />
           </div>
-          
-          <div className="bg-white rounded-lg border border-gray-200">
+        </div>
+      )}
+
+      {!loading && !error && (
+        <div className="">
+        <div className="bg-white rounded-lg border border-gray-200">
             <div className="px-6 py-4 bg-gray-50 border-b border-gray-200">
               <h2 className="text-lg font-semibold text-gray-900">Add New Vehicle</h2>
               <p className="text-sm text-gray-600 mt-1">Register a new vehicle to your fleet</p>

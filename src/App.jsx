@@ -1,5 +1,5 @@
 import './App.css';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { Routes, Route } from 'react-router-dom';
 import Dashboard from './pages/admin/Dashboard';
 import UserAccounts from './pages/admin/UserAccounts';
 import AdminLayout from './pages/admin/AdminLayout';
@@ -46,6 +46,8 @@ import Branches from "./pages/admin/Branches";
 import AdminProfile from "./pages/admin/AdminProfile";
 import { Toaster as SonnerToaster } from "sonner";
 import Vehicle from "./pages/admin/Vehicle";
+import ComprehensiveReports from "./pages/admin/ComprehensiveReports";
+// import Reports from "./pages/admin/Reports"; 
 
 {/* Staff login */}
 
@@ -81,15 +83,15 @@ import CreatedShipmentsPage from "./pages/staff/ShipmentManagement/CreatedShipme
 import ViewShipmentsPage from "./pages/staff/ShipmentManagement/ViewShipmentsPage/viewShipmentsPage";
 import ManifestPage from "./pages/staff/ShipmentManagement/ManifestPage/manifestPage";
 import DashboardPage from "./pages/staff/CollectionManagement/Dashboard/dashboardPage";
+import ParcelListPage from "./pages/staff/CollectionManagement/Dashboard/ParcelListPage";
 import TrackingPageStaff from "./pages/staff/CollectionManagement/Tracking/trackingPage";
-import LeftBar from "./components/staff/LeftBar";
 import Scanner from "./pages/staff/Scanner";
 import StaffProfile from "./pages/staff/StaffProfile";
  // You'll need to create this
 
 const App = () => {
   return (
-    <Router>
+    <>
       <SonnerToaster
         position="bottom-right"
         richColors
@@ -138,6 +140,9 @@ const App = () => {
             <Route path="branches" element={<Branches />} />
             <Route path="profile" element={<AdminProfile />} />
             <Route path="vehicles" element={<Vehicle />} />
+            <Route path="reports" element={<ComprehensiveReports />} />
+            {/* <Route path="reports-before" element={<Reports />} /> */}
+            
           </Route>
         </Route>
 
@@ -178,6 +183,7 @@ const App = () => {
           <Route path="shipment-management/manual-shipment-page" element={<ManualShipmentPage />} />
                     {/* Collection Management routes */}
           <Route path="collection-management/dashboard" element={<DashboardPage />} />
+          <Route path="collection-management/dashboard/parcels/:type/:date" element={<ParcelListPage />} />
           <Route path="collection-management/tracking" element={<TrackingPageStaff />} />
                  <Route path="shipment-management/created-shipments-page" element={<CreatedShipmentsPage />}/>
           <Route path="shipment-management/view-shipments" element={<ViewShipmentsPage />} />
@@ -188,7 +194,7 @@ const App = () => {
         </Route>
         </Route>
       </Routes>
-    </Router>
+    </>
   );
 };
 

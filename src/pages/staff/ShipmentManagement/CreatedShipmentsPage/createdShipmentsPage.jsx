@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Check, X, Truck, AlertCircle, CheckCircle, XCircle, ChevronDown, ChevronUp, Car, Package, Loader, Info, ArrowLeftRight, MapPin, Plus, Edit, Zap, Search } from 'lucide-react';
+import { Check, X, Truck, AlertCircle, CheckCircle, XCircle, ChevronDown, ChevronUp, Car, Package, Loader, Info, ArrowLeftRight, MapPin, Plus, Edit, Zap, Search, Send } from 'lucide-react';
 
 const ShipmentManagement = () => {
     // Core state management
@@ -7,6 +7,16 @@ const ShipmentManagement = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [popup, setPopup] = useState(null);
+    
+    // Confirmation modal state
+    const [confirmationModal, setConfirmationModal] = useState({ 
+        isOpen: false, 
+        type: '', 
+        title: '', 
+        message: '', 
+        action: null,
+        processing: false
+    });
     
     // UI state
     const [selectedShipments, setSelectedShipments] = useState(new Set());
@@ -16,7 +26,7 @@ const ShipmentManagement = () => {
     
     // Filters and search
     const [deliveryTypeFilter, setDeliveryTypeFilter] = useState('all');
-    const [statusFilter, setStatusFilter] = useState('Pending');
+    const [statusFilter, setStatusFilter] = useState('All');
     const [searchTerm, setSearchTerm] = useState('');
     
     // Vehicle assignment state
@@ -30,17 +40,11 @@ const ShipmentManagement = () => {
     const [searchingVehicle, setSearchingVehicle] = useState(false);
     const [findingVehicle, setFindingVehicle] = useState(false);
     const [assigningVehicle, setAssigningVehicle] = useState(false);
+    const [assignVehicleOnlyMode, setAssignVehicleOnlyMode] = useState(false);
     
     // Parcel management state
     const [selectedParcelGroups, setSelectedParcelGroups] = useState({});
     const [showParcelSelection, setShowParcelSelection] = useState(false);
-    const [additionalParcelsModal, setAdditionalParcelsModal] = useState({ isOpen: false, shipmentId: null });
-    const [availableParcels, setAvailableParcels] = useState({});
-    const [selectedAdditionalParcels, setSelectedAdditionalParcels] = useState({});
-    const [selectedAdditionalGroups, setSelectedAdditionalGroups] = useState({});
-    const [loadingAdditionalParcels, setLoadingAdditionalParcels] = useState(false);
-    const [addingParcels, setAddingParcels] = useState(false);
-    const [currentCapacity, setCurrentCapacity] = useState({ weight: 0, volume: 0, maxWeight: 0, maxVolume: 0 });
     
     // Standard shipment add more parcels state
     const [standardParcelsModal, setStandardParcelsModal] = useState({ isOpen: false, shipmentId: null });
@@ -63,20 +67,162 @@ const ShipmentManagement = () => {
     const [selectedParcelsForReverse, setSelectedParcelsForReverse] = useState([]);
     const [creatingReverseShipment, setCreatingReverseShipment] = useState(false);
 
-    // Function to fetch shipments from API
+    // Staff information state
+    const [staffInfo, setStaffInfo] = useState(null);
+    const [staffBranchId, setStaffBranchId] = useState(null);
+    
+    // Branch cache state for dynamic branch name resolution
+    const [branchCache, setBranchCache] = useState({});
+    const [fetchingBranches, setFetchingBranches] = useState(false);
+
+    // Function to fetch branch details from database
+    const fetchBranchDetails = useCallback(async (branchIds) => {
+        if (!branchIds || branchIds.length === 0) return {};
+        
+        // Filter out IDs that are already in cache
+        const uncachedIds = branchIds.filter(id => !branchCache[id]);
+        if (uncachedIds.length === 0) return branchCache;
+        
+        try {
+            setFetchingBranches(true);
+            const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/branches/details`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ branchIds: uncachedIds })
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to fetch branch details');
+            }
+
+            const data = await response.json();
+            const newBranchData = {};
+            
+            if (data.success && data.branches) {
+                data.branches.forEach(branch => {
+                    newBranchData[branch._id] = branch.location;
+                });
+            }
+
+            // Update cache
+            setBranchCache(prev => ({ ...prev, ...newBranchData }));
+            return { ...branchCache, ...newBranchData };
+            
+        } catch (error) {
+            console.error('Error fetching branch details:', error);
+            return branchCache;
+        } finally {
+            setFetchingBranches(false);
+        }
+    }, [branchCache]);
+
+    // Synchronous version for immediate use (returns cached value or ID)
+    const getCenterNameSync = (centerData) => {
+        if (!centerData) return 'N/A';
+        
+        // If already a populated object with location
+        if (typeof centerData === 'object' && centerData.location) {
+            return centerData.location;
+        }
+        
+        // If already a populated object with branchId as location name
+        if (typeof centerData === 'object' && centerData.branchId) {
+            return centerData.branchId;
+        }
+        
+        // If it's an object but location is inside another property
+        if (typeof centerData === 'object' && centerData.center?.location) {
+            return centerData.center.location;
+        }
+        
+        // If it's just a string (object ID), return cached value or ID
+        if (typeof centerData === 'string') {
+            return branchCache[centerData] || centerData;
+        }
+        
+        return 'Unknown Center';
+    };
+
+    // Synchronous version for immediate use
+    const getGroupDestinationNameSync = (group) => {
+        // First try the destination field (which should be the location name)
+        if (group.destination && typeof group.destination === 'string' && !group.destination.match(/^[0-9a-fA-F]{24}$/)) {
+            return group.destination;
+        }
+        
+        // If destination is an ObjectId, return cached value or ID
+        if (group.destinationId) {
+            return branchCache[group.destinationId] || group.destinationId;
+        }
+        
+        // Fallback to the destination field
+        return group.destination || 'Unknown Destination';
+    };
+
+    // Function to fetch staff information and get branch
+    const fetchStaffInfo = useCallback(async () => {
+        try {
+            const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/staff/ui/get-staff-information`, {
+                credentials: 'include'
+            });
+            
+            if (!response.ok) {
+                throw new Error(`Failed to fetch staff info: ${response.status}`);
+            }
+            
+            const data = await response.json();
+            setStaffInfo(data);
+            setStaffBranchId(data.branchId?._id);
+            return data.branchId?._id;
+        } catch (err) {
+            console.error('Error fetching staff info:', err);
+            setError('Failed to fetch staff information');
+            return null;
+        }
+    }, []);
+
+    // Function to fetch shipments from API using staff's branch
     const fetchShipments = useCallback(async () => {
         try {
             setLoading(true);
-            const staffId = '682e1059ce33c2a891c9b168';
-            const queryParams = new URLSearchParams();
-            queryParams.append('status', statusFilter);
             
-            let url = `http://localhost:8000/vehicles/b2b/shipments/${staffId}?${queryParams.toString()}`;
+            // Get staff branch if not already available
+            let branchId = staffBranchId;
+            if (!branchId) {
+                branchId = await fetchStaffInfo();
+            }
+            
+            if (!branchId) {
+                throw new Error('Staff branch information not available');
+            }
+
+            const queryParams = new URLSearchParams();
+            // Send 'all' parameter when All is selected, otherwise send the specific status
+            if (statusFilter === 'All') {
+                queryParams.append('all', 'true');
+            } else {
+                queryParams.append('status', statusFilter);
+            }
+            queryParams.append('branchId', branchId);
+            
+            // Try fetching shipments for the staff's branch
+            let url = `${import.meta.env.VITE_BACKEND_URL}/vehicles/b2b/shipments/branch/${branchId}?${queryParams.toString()}`;
+           // console.log('Fetching shipments from:', import.meta.env.VITE_BACKEND_URL);
             let response = await fetch(url);
             
+            // Fallback to original endpoints if branch-specific endpoint doesn't exist
             if (response.status === 404) {
-                url = 'http://localhost:8000/shipments/active/682e1059ce33c2a891c9b168';
+                // Use staff ID from staffInfo if available, otherwise use branch-based approach
+                const staffId = staffInfo?._id || branchId;
+                url = `${import.meta.env.VITE_BACKEND_URL}/vehicles/b2b/shipments/${staffId}?${queryParams.toString()}`;
                 response = await fetch(url);
+                
+                if (response.status === 404) {
+                    url = `${import.meta.env.VITE_BACKEND_URL}/shipments/active/${staffId}`;
+                    response = await fetch(url);
+                }
             }
 
             if (!response.ok) {
@@ -97,6 +243,45 @@ const ShipmentManagement = () => {
             }
 
             setShipments(shipmentsData);
+            
+            // Extract all branch IDs from shipments data for pre-fetching
+            const branchIds = new Set();
+            shipmentsData.forEach(shipment => {
+                // Extract from route
+                if (shipment.route && Array.isArray(shipment.route)) {
+                    shipment.route.forEach(routeItem => {
+                        if (typeof routeItem === 'string') {
+                            branchIds.add(routeItem);
+                        } else if (routeItem && routeItem._id) {
+                            branchIds.add(routeItem._id);
+                        }
+                    });
+                }
+                
+                // Extract from sourceCenter
+                if (typeof shipment.sourceCenter === 'string') {
+                    branchIds.add(shipment.sourceCenter);
+                } else if (shipment.sourceCenter && shipment.sourceCenter._id) {
+                    branchIds.add(shipment.sourceCenter._id);
+                }
+                
+                // Extract from arrivalTimes
+                if (shipment.arrivalTimes && Array.isArray(shipment.arrivalTimes)) {
+                    shipment.arrivalTimes.forEach(arrival => {
+                        if (typeof arrival.center === 'string') {
+                            branchIds.add(arrival.center);
+                        } else if (arrival.center && arrival.center._id) {
+                            branchIds.add(arrival.center._id);
+                        }
+                    });
+                }
+            });
+            
+            // Pre-fetch branch details for all found IDs
+            if (branchIds.size > 0) {
+                await fetchBranchDetails(Array.from(branchIds));
+            }
+            
             setError(null);
         } catch (err) {
             setError(err.message);
@@ -104,7 +289,7 @@ const ShipmentManagement = () => {
         } finally {
             setLoading(false);
         }
-    }, [statusFilter]);
+    }, [statusFilter, staffBranchId, staffInfo, fetchStaffInfo, fetchBranchDetails]);
 
     // Fetch shipments data on component mount and when status filter changes
     useEffect(() => {
@@ -114,6 +299,42 @@ const ShipmentManagement = () => {
     const showPopup = (type, message, duration = 3000) => {
         setPopup({ type, message });
         setTimeout(() => setPopup(null), duration);
+    };
+
+    // Enhanced confirmation modal function
+    const showConfirmation = (type, title, message, action) => {
+        setConfirmationModal({
+            isOpen: true,
+            type,
+            title,
+            message,
+            action,
+            processing: false
+        });
+    };
+
+    const closeConfirmation = () => {
+        setConfirmationModal({
+            isOpen: false,
+            type: '',
+            title: '',
+            message: '',
+            action: null,
+            processing: false
+        });
+    };
+
+    const executeConfirmedAction = async () => {
+        if (confirmationModal.action) {
+            setConfirmationModal(prev => ({ ...prev, processing: true }));
+            try {
+                await confirmationModal.action();
+                closeConfirmation();
+            } catch (error) {
+                setConfirmationModal(prev => ({ ...prev, processing: false }));
+                showPopup('error', `Action failed: ${error.message}`);
+            }
+        }
     };
 
     const handleSelectShipment = (shipmentId) => {
@@ -140,9 +361,22 @@ const ShipmentManagement = () => {
 
     // Function to verify shipment - updates status and confirmed flag
     const handleVerifyShipment = async (shipmentId) => {
+        const shipment = shipments.find(s => (s._id || s.id) === shipmentId);
+        
+        // Show beautiful confirmation modal for individual verification
+        showConfirmation(
+            'verify',
+            'Verify Shipment',
+            `Are you sure you want to verify shipment "${shipment?.trackingNumber || shipmentId}"? This will confirm the shipment and update its status to "Verified".`,
+            async () => await performSingleVerify(shipmentId)
+        );
+    };
+
+    // Separated single verify logic
+    const performSingleVerify = async (shipmentId) => {
         setProcessingShipment(shipmentId);
         try {
-            const response = await fetch(`http://localhost:8000/shipments/${shipmentId}/verify`, {
+            const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/shipments/${shipmentId}/verify`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
@@ -165,7 +399,7 @@ const ShipmentManagement = () => {
                 )
             );
 
-            showPopup('success', 'Shipment verified and confirmed successfully!');
+            showPopup('success', 'Shipment verified and confirmed successfully! Ready for processing.');
         } catch (err) {
             showPopup('error', `Error verifying shipment: ${err.message}`);
         } finally {
@@ -173,18 +407,120 @@ const ShipmentManagement = () => {
         }
     };
 
-    const handleDeleteShipment = async (shipmentId) => {
-        const confirmed = window.confirm(
-            'Are you sure you want to delete this shipment? This will also reset the associated parcels to PendingPickup status.'
-        );
-
-        if (!confirmed) {
-            return;
+    // Helper function to determine branch position in shipment route
+    const getBranchPosition = (shipment, staffBranchId) => {
+        if (!shipment.route || !Array.isArray(shipment.route) || !staffBranchId) {
+            return null;
         }
 
+        const route = shipment.route;
+        const branchIndex = route.findIndex(branch => {
+            const branchId = typeof branch === 'object' ? branch._id || branch.id : branch;
+            return branchId === staffBranchId;
+        });
+
+        if (branchIndex === -1) return null; // Branch not in route
+
+        if (branchIndex === 0) return 'first';
+        if (branchIndex === route.length - 1) return 'last';
+        return 'intermediate';
+    };
+
+    // Function to handle "Inform Dispatch" action
+    const handleInformDispatch = async (shipmentId) => {
+        try {
+            setProcessingShipment(shipmentId);
+            
+            const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/shipments/${shipmentId}/dispatch`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ status: 'Dispatched' })
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.error || 'Failed to dispatch shipment');
+            }
+
+            // Update the shipment in local state
+            setShipments(prevShipments =>
+                prevShipments.map(shipment =>
+                    shipment._id === shipmentId || shipment.id === shipmentId
+                        ? { ...shipment, status: 'Dispatched' }
+                        : shipment
+                )
+            );
+
+            showPopup('success', 'Shipment dispatched successfully! Parcels have been updated to InTransit status.');
+            await fetchShipments(); // Refresh the list
+        } catch (err) {
+            showPopup('error', `Error dispatching shipment: ${err.message}`);
+        } finally {
+            setProcessingShipment(null);
+        }
+    };
+
+    // Function to handle "Finish Delivery" action
+    const handleFinishDelivery = async (shipmentId) => {
+        try {
+            setProcessingShipment(shipmentId);
+            
+            const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/shipments/${shipmentId}/complete`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ status: 'Completed' })
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.error || 'Failed to complete shipment');
+            }
+
+            // Update the shipment in local state
+            setShipments(prevShipments =>
+                prevShipments.map(shipment =>
+                    shipment._id === shipmentId || shipment.id === shipmentId
+                        ? { ...shipment, status: 'Completed' }
+                        : shipment
+                )
+            );
+
+            showPopup('success', 'Shipment delivered successfully! Parcels have been updated to ArrivedAtCollectionCenter status.');
+            await fetchShipments(); // Refresh the list
+        } catch (err) {
+            showPopup('error', `Error completing shipment: ${err.message}`);
+        } finally {
+            setProcessingShipment(null);
+        }
+    };
+
+    const handleDeleteShipment = async (shipmentId) => {
+        const shipment = shipments.find(s => (s._id || s.id) === shipmentId);
+        
+        // Prevent deletion of shipments in certain stages
+        if (shipment && ['In Transit', 'Dispatched', 'Completed'].includes(shipment.status)) {
+            showPopup('warning', `Cannot delete shipment in "${shipment.status}" status. Only Pending and Verified shipments can be deleted.`);
+            return;
+        }
+        
+        // Show beautiful confirmation modal for individual deletion
+        showConfirmation(
+            'delete',
+            'Delete Shipment',
+            `Are you sure you want to delete shipment "${shipment?.trackingNumber || shipmentId}"? This action cannot be undone and will reset the associated parcels to ArrivedAtCollectionCenter status.`,
+            async () => await performSingleDelete(shipmentId)
+        );
+    };
+
+    // Separated single delete logic
+    const performSingleDelete = async (shipmentId) => {
         setProcessingShipment(shipmentId);
         try {
-            const response = await fetch(`http://localhost:8000/shipments/${shipmentId}`, {
+            const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/shipments/${shipmentId}`, {
                 method: 'DELETE',
                 headers: {
                     'Content-Type': 'application/json',
@@ -206,7 +542,7 @@ const ShipmentManagement = () => {
             newSelected.delete(shipmentId);
             setSelectedShipments(newSelected);
 
-            showPopup('success', `Shipment deleted successfully! ${data.updatedParcelsCount} parcels have been updated.`);
+            showPopup('success', `Shipment deleted successfully! ${data.updatedParcelsCount} parcels have been reset to ArrivedAtCollectionCenter status.`);
         } catch (err) {
             showPopup('error', `Error deleting shipment: ${err.message}`);
         } finally {
@@ -248,7 +584,7 @@ const ShipmentManagement = () => {
         setSearchingVehicle(true);
 
         try {
-            const response = await fetch(`http://localhost:8000/vehicles/b2b/shipments/${shipmentId}/assign-vehicle/manual`, {
+            const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/vehicles/b2b/shipments/${shipmentId}/assign-vehicle/manual`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -273,7 +609,7 @@ const ShipmentManagement = () => {
 
             if (data.success) {
                 // Vehicle assigned successfully
-                showPopup('success', '✅ Vehicle assigned successfully!');
+                showPopup('success', 'Vehicle assigned successfully! Shipment is now In Transit and parcels updated to ShipmentAssigned status.');
                 setVehicleSelectionModal(null);
                 
                 // Update local state with complete vehicle and driver information including current location
@@ -300,7 +636,7 @@ const ShipmentManagement = () => {
 
         } catch (error) {
             console.error('Error in manual vehicle assignment:', error);
-            showPopup('error', `❌ Failed to assign vehicle: ${error.message}`);
+            showPopup('error', `Failed to assign vehicle: ${error.message}`);
         } finally {
             setSearchingVehicle(false);
         }
@@ -314,7 +650,7 @@ const ShipmentManagement = () => {
         setSearchingVehicle(true);
         
         try {
-            const response = await fetch(`http://localhost:8000/vehicles/b2b/shipments/${shipmentId}/${vehicleSelectionModal.deliveryType}/enhanced-find-vehicle`, {
+            const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/vehicles/b2b/shipments/${shipmentId}/${vehicleSelectionModal.deliveryType}/enhanced-find-vehicle`, {
                 method: 'GET',
                 headers: {
                     'Content-Type': 'application/json',
@@ -325,7 +661,7 @@ const ShipmentManagement = () => {
 
             if (!response.ok) {
                 if (response.status === 404) {
-                    showPopup('error', '❌ ' + (data.message || 'No suitable vehicle available'), 5000);
+                    showPopup('error', (data.message || 'No suitable vehicle available'), 5000);
                 } else {
                     throw new Error(data.message || 'Failed to search for vehicles');
                 }
@@ -344,7 +680,7 @@ const ShipmentManagement = () => {
                         step: 'confirm_direct_assignment',
                         enhancedResult: data
                     }));
-                    showPopup('success', '🎯 Vehicle found at source location! Ready for assignment.');
+                    showPopup('success', 'Vehicle found at source location! Ready for assignment.');
                 } else if (data.step === 'vehicle_from_other_center') {
                     // Vehicle found from another center - show parcel options
                     setVehicleSelectionModal(prev => ({ 
@@ -352,12 +688,12 @@ const ShipmentManagement = () => {
                         step: 'parcel_selection_options',
                         enhancedResult: data
                     }));
-                    showPopup('success', '🚚 Vehicle found from another center! Choose assignment option.');
+                    showPopup('success', 'Vehicle found from another center! Choose assignment option.');
                 }
             }
 
         } catch (error) {
-            console.error('❌ Error in enhanced vehicle search:', error);
+            console.error('Error in enhanced vehicle search:', error);
             showPopup('error', `Failed to search for vehicle: ${error.message}`);
             setVehicleSelectionModal(null);
         } finally {
@@ -369,17 +705,20 @@ const ShipmentManagement = () => {
     const handleAssignVehicleOnly = async () => {
         if (!vehicleSelectionModal?.enhancedResult) return;
         
+        // Set the mode to indicate user chose "Assign Vehicle Only"
+        setAssignVehicleOnlyMode(true);
         setConfirmingAssignment(true);
         
         try {
             const { shipmentId } = vehicleSelectionModal;
             const { vehicle } = vehicleSelectionModal.enhancedResult;
             
-            const response = await fetch(`http://localhost:8000/vehicles/b2b/shipments/${shipmentId}/assign-vehicle/confirm`, {
+            const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/vehicles/b2b/shipments/${shipmentId}/assign-vehicle/confirm`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
+                credentials: 'include',
                 body: JSON.stringify({
                     vehicleId: vehicle.vehicleId,
                     checkParcels: false
@@ -393,9 +732,10 @@ const ShipmentManagement = () => {
             }
 
             if (data.success) {
-                showPopup('success', 'Vehicle assigned successfully!');
+                showPopup('success', 'Vehicle assigned successfully! Shipment is now In Transit and parcels updated to ShipmentAssigned status.');
                 setVehicleSelectionModal(null);
                 setSmartSearchResult(null);
+                setAssignVehicleOnlyMode(false);
                 
                 // Update local state
                 updateShipmentInState(shipmentId, data.shipment);
@@ -407,6 +747,7 @@ const ShipmentManagement = () => {
             showPopup('error', `Failed to assign vehicle: ${error.message}`);
         } finally {
             setConfirmingAssignment(false);
+            setAssignVehicleOnlyMode(false);
         }
     };
 
@@ -521,7 +862,7 @@ const ShipmentManagement = () => {
                 throw new Error('No parcels selected for addition to shipment');
             }
             
-            const response = await fetch(`http://localhost:8000/vehicles/b2b/shipments/${shipmentId}/add-parcels-to-current`, {
+            const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/vehicles/b2b/shipments/${shipmentId}/add-parcels-to-current`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -593,6 +934,11 @@ const ShipmentManagement = () => {
     const confirmSmartAssignment = async (checkParcels = false) => {
         if (!vehicleSelectionModal || !smartSearchResult) return;
 
+        // Set the mode when user chooses "Assign Only"
+        if (!checkParcels) {
+            setAssignVehicleOnlyMode(true);
+        }
+
         if (checkParcels && !showParcelSelection) {
             // First time clicking "Check for Parcels" - show parcel selection UI
             setShowParcelSelection(true);
@@ -616,11 +962,12 @@ const ShipmentManagement = () => {
                 });
             }
 
-            const response = await fetch(`http://localhost:8000/vehicles/b2b/shipments/${shipmentId}/assign-vehicle/confirm`, {
+            const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/vehicles/b2b/shipments/${shipmentId}/assign-vehicle/confirm`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
+                credentials: 'include',
                 body: JSON.stringify({
                     vehicleId: vehicle.vehicleId || vehicle._id,
                     selectedParcelIds: selectedParcelIds,
@@ -635,7 +982,7 @@ const ShipmentManagement = () => {
             }
 
             if (data.success) {
-                showPopup('success', '✅ Vehicle assigned successfully!');
+                showPopup('success', 'Vehicle assigned successfully! Shipment is now In Transit and parcels updated to ShipmentAssigned status.');
                 setVehicleSelectionModal(null);
                 
                 // Update local state with complete vehicle and driver information including current location
@@ -667,9 +1014,10 @@ const ShipmentManagement = () => {
 
         } catch (error) {
             console.error('Error confirming vehicle assignment:', error);
-            showPopup('error', `❌ Failed to confirm assignment: ${error.message}`);
+            showPopup('error', `Failed to confirm assignment: ${error.message}`);
         } finally {
             setConfirmingAssignment(false);
+            setAssignVehicleOnlyMode(false);
         }
     };
 
@@ -682,222 +1030,7 @@ const ShipmentManagement = () => {
         setConfirmingAssignment(false);
         setSelectedParcelGroups([]);
         setShowParcelSelection(false);
-    };
-
-    // PHASE 4 - Additional Parcels Functions
-    // Fetch available additional parcels for a shipment
-    const fetchAvailableParcels = async (shipmentId) => {
-        setLoadingAdditionalParcels(true);
-        try {
-            const response = await fetch(`http://localhost:8000/vehicles/b2b/shipments/${shipmentId}/available-parcels`);
-            const data = await response.json();
-
-            if (!response.ok) {
-                if (response.status === 400 && data.message.includes('full capacity')) {
-                    showPopup('info', 'Vehicle is at full capacity - no additional parcels can be added');
-                    return null;
-                } else {
-                    throw new Error(data.message || 'Failed to fetch available parcels');
-                }
-            }
-
-            return data.data;
-        } catch (error) {
-            console.error('Error fetching available parcels:', error);
-            showPopup('error', `Failed to fetch available parcels: ${error.message}`);
-            return null;
-        } finally {
-            setLoadingAdditionalParcels(false);
-        }
-    };
-
-    // Show additional parcels modal
-    const showAdditionalParcelsModal = async (shipmentId) => {
-        const shipment = shipments.find(s => (s._id || s.id) === shipmentId);
-        if (!shipment || !shipment.assignedVehicle) {
-            showPopup('error', 'Vehicle must be assigned before adding additional parcels');
-            return;
-        }
-
-        const parcelsData = await fetchAvailableParcels(shipmentId);
-        if (!parcelsData) return;
-
-        // Set capacity information from vehicle data
-        const vehicle = shipment.assignedVehicle;
-        const currentParcels = shipment.parcels || [];
-        const currentWeight = currentParcels.reduce((sum, p) => sum + (p.weight || 0), 0);
-        const currentVolume = currentParcels.reduce((sum, p) => sum + (p.volume || 0), 0);
-        
-        setCurrentCapacity({
-            weight: currentWeight,
-            volume: currentVolume,
-            maxWeight: vehicle.maxWeight || 1000,
-            maxVolume: vehicle.maxVolume || 50
-        });
-
-        setAvailableParcels(parcelsData);
-        setSelectedAdditionalParcels({});
-        setSelectedAdditionalGroups({});
-        setAdditionalParcelsModal({
-            isOpen: true,
-            shipmentId
-        });
-    };
-
-    // Handle parcel selection/deselection
-    const handleParcelSelection = (parcelId, destinationId) => {
-        setSelectedAdditionalParcels(prev => {
-            if (prev.includes(parcelId)) {
-                return prev.filter(id => id !== parcelId);
-            } else {
-                // Check if adding this parcel would exceed capacity
-                if (availableParcels) {
-                    const selectedParcelsData = [];
-                    
-                    // Get currently selected parcels
-                    Object.values(availableParcels.groupedByDestination).forEach(group => {
-                        group.parcels.forEach(parcel => {
-                            if (prev.includes(parcel.parcelId)) {
-                                selectedParcelsData.push(parcel);
-                            }
-                        });
-                    });
-
-                    // Add the new parcel
-                    const newParcel = Object.values(availableParcels.groupedByDestination)
-                        .find(group => group.destinationId === destinationId)
-                        ?.parcels.find(p => p.parcelId === parcelId);
-
-                    if (newParcel) {
-                        selectedParcelsData.push(newParcel);
-                    }
-
-                    // Check capacity
-                    const totalWeight = selectedParcelsData.reduce((sum, p) => sum + (p.weight || 0), 0);
-                    const totalVolume = selectedParcelsData.reduce((sum, p) => sum + (p.volume || 0), 0);
-
-                    if (totalWeight > availableParcels.constraints.remainingWeight) {
-                        showPopup('warning', 'Adding this parcel would exceed vehicle weight capacity');
-                        return prev;
-                    }
-
-                    if (totalVolume > availableParcels.constraints.remainingVolume) {
-                        showPopup('warning', 'Adding this parcel would exceed vehicle volume capacity');
-                        return prev;
-                    }
-                }
-
-                return [...prev, parcelId];
-            }
-        });
-    };
-
-    // Handle destination group selection (select/deselect all parcels in a group)
-    const handleGroupSelection = (destinationId, selectAll) => {
-        if (!availableParcels) return;
-
-        const group = availableParcels.groupedByDestination[destinationId];
-        if (!group) return;
-
-        const groupParcelIds = group.parcels.map(p => p.parcelId);
-
-        if (selectAll) {
-            // Try to add all parcels from this group
-            const currentlySelected = [];
-            Object.values(availableParcels.groupedByDestination).forEach(g => {
-                g.parcels.forEach(parcel => {
-                    if (selectedAdditionalParcels.includes(parcel.parcelId) && g.destinationId !== destinationId) {
-                        currentlySelected.push(parcel);
-                    }
-                });
-            });
-
-            const totalWeight = currentlySelected.reduce((sum, p) => sum + (p.weight || 0), 0) + group.totalWeight;
-            const totalVolume = currentlySelected.reduce((sum, p) => sum + (p.volume || 0), 0) + group.totalVolume;
-
-            if (totalWeight > availableParcels.constraints.remainingWeight || 
-                totalVolume > availableParcels.constraints.remainingVolume) {
-                showPopup('warning', 'Adding all parcels from this destination would exceed vehicle capacity');
-                return;
-            }
-
-            setSelectedAdditionalParcels(prev => {
-                const filtered = prev.filter(id => !groupParcelIds.includes(id));
-                return [...filtered, ...groupParcelIds];
-            });
-        } else {
-            // Remove all parcels from this group
-            setSelectedAdditionalParcels(prev => prev.filter(id => !groupParcelIds.includes(id)));
-        }
-    };
-
-    // Add selected parcels to shipment
-    const addSelectedParcels = async () => {
-        const selectedParcelIds = Object.keys(selectedAdditionalParcels).filter(id => selectedAdditionalParcels[id]);
-        
-        if (!additionalParcelsModal.shipmentId || selectedParcelIds.length === 0) {
-            showPopup('warning', 'Please select at least one parcel to add');
-            return;
-        }
-
-        setAddingParcels(true);
-        
-        try {
-            const response = await fetch(`http://localhost:8000/vehicles/b2b/shipments/${additionalParcelsModal.shipmentId}/add-parcels`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    selectedParcelIds: selectedParcelIds
-                })
-            });
-
-            const data = await response.json();
-
-            if (!response.ok) {
-                throw new Error(data.message || 'Failed to add parcels');
-            }
-
-            if (data.success) {
-                showPopup('success', `✅ Successfully added ${data.data.addedParcels} parcels to shipment!`);
-                
-                // Update local shipment state
-                setShipments(prevShipments =>
-                    prevShipments.map(s =>
-                        (s._id || s.id) === additionalParcelsModal.shipmentId
-                            ? {
-                                ...s,
-                                totalWeight: data.data.updatedTotals.totalWeight,
-                                totalVolume: data.data.updatedTotals.totalVolume,
-                                parcelCount: data.data.updatedTotals.parcelCount
-                            }
-                            : s
-                    )
-                );
-
-                // Close modal and refresh data
-                closeAdditionalParcelsModal();
-                fetchShipments();
-            }
-
-        } catch (error) {
-            console.error('Error adding parcels:', error);
-            showPopup('error', `Failed to add parcels: ${error.message}`);
-        } finally {
-            setAddingParcels(false);
-        }
-    };
-
-    // Close additional parcels modal
-    const closeAdditionalParcelsModal = () => {
-        setAdditionalParcelsModal({ isOpen: false, shipmentId: null });
-        setAvailableParcels({});
-        setSelectedAdditionalParcels({});
-        setSelectedAdditionalGroups({});
-        setCurrentCapacity({ weight: 0, volume: 0, maxWeight: 0, maxVolume: 0 });
-        setLoadingAdditionalParcels(false);
-        setAddingParcels(false);
+        setAssignVehicleOnlyMode(false); // Reset the "Assign Vehicle Only" mode
     };
 
     // === STANDARD SHIPMENT FUNCTIONS ===
@@ -941,7 +1074,7 @@ const ShipmentManagement = () => {
         setAddingStandardParcels(true);
         
         try {
-            const response = await fetch(`http://localhost:8000/shipments/b2b/standard-shipments/${shipmentId}/add-more`, {
+            const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/shipments/b2b/standard-shipments/${shipmentId}/add-more`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -955,7 +1088,7 @@ const ShipmentManagement = () => {
             }
 
             if (data.success) {
-                showPopup('success', `✅ ${data.message}`);
+                showPopup('success', `${data.message}`);
                 
                 // Update local shipment state with new totals
                 setShipments(prevShipments =>
@@ -1005,7 +1138,7 @@ const ShipmentManagement = () => {
         setValidatingParcel(true);
         
         try {
-            const response = await fetch(`http://localhost:8000/parcels/validate-for-shipment`, {
+            const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/parcels/validate-for-shipment`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -1038,7 +1171,7 @@ const ShipmentManagement = () => {
     // Add manual parcel to shipment
     const addManualParcelToShipment = async (parcelId) => {
         try {
-            const response = await fetch(`http://localhost:8000/shipments/b2b/standard-shipments/${addMoreParcelsModal.shipmentId}/add-manual-parcel`, {
+            const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/shipments/b2b/standard-shipments/${addMoreParcelsModal.shipmentId}/add-manual-parcel`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -1055,7 +1188,7 @@ const ShipmentManagement = () => {
             }
 
             if (data.success) {
-                showPopup('success', `✅ Parcel added successfully!`);
+                showPopup('success', `Parcel added successfully!`);
                 
                 // Update local shipment state
                 setShipments(prevShipments =>
@@ -1087,11 +1220,15 @@ const ShipmentManagement = () => {
         setProcessingSmart(true);
         
         try {
-            const response = await fetch(`http://localhost:8000/shipments/b2b/standard-shipments/${addMoreParcelsModal.shipmentId}/add-more`, {
+            const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/shipments/b2b/standard-shipments/${addMoreParcelsModal.shipmentId}/add-more`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                }
+                },
+                credentials: 'include',
+                body: JSON.stringify({
+                    searchOnly: true // Only search for parcels, don't update shipment IDs yet
+                })
             });
 
             const data = await response.json();
@@ -1116,7 +1253,26 @@ const ShipmentManagement = () => {
     // Confirm smart parcels addition
     const confirmSmartParcelsAddition = async () => {
         try {
-            showPopup('success', `✅ Successfully added ${smartParcelsResults.addedParcels.length} parcels!`);
+            // Make the actual API call to update shipment IDs
+            const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/shipments/b2b/standard-shipments/${addMoreParcelsModal.shipmentId}/add-more`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                credentials: 'include',
+                body: JSON.stringify({
+                    searchOnly: false, // Actually update shipment IDs
+                    parcelIds: smartParcelsResults.addedParcels?.map(p => p._id) || []
+                })
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(data.error || 'Failed to add parcels');
+            }
+
+            showPopup('success', `Successfully added ${smartParcelsResults.addedParcels.length} parcels!`);
             
             // Update local shipment state
             setShipments(prevShipments =>
@@ -1169,7 +1325,7 @@ const ShipmentManagement = () => {
         showPopup('info', 'Searching for available vehicles...', 5000);
 
         try {
-            const response = await fetch(`http://localhost:8000/vehicles/findVehicleForShipment/${shipmentId}/${deliveryType}`, {
+            const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/vehicles/findVehicleForShipment/${shipmentId}/${deliveryType}`, {
                 method: 'GET',
                 headers: {
                     'Content-Type': 'application/json',
@@ -1195,7 +1351,7 @@ const ShipmentManagement = () => {
 
         } catch (err) {
             console.error('Error finding vehicle:', err);
-            showPopup('error', `❌ Failed to find vehicle: ${err.message}`, 6000);
+            showPopup('error', `Failed to find vehicle: ${err.message}`, 6000);
             setVehicleAssignmentModal(null);
         } finally {
             setFindingVehicle(false);
@@ -1241,7 +1397,7 @@ const ShipmentManagement = () => {
                 note: 'Looking for parcels that need to go in same direction as vehicle movement'
             });
 
-            const response = await fetch(`http://localhost:8000/vehicles/findParcelsForReverseShipment?fromCenterId=${fromCenterId}&toCenterId=${toCenterId}&shipmentType=${deliveryType}&vehicleId=${vehicleId}`);
+            const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/vehicles/findParcelsForReverseShipment?fromCenterId=${fromCenterId}&toCenterId=${toCenterId}&shipmentType=${deliveryType}&vehicleId=${vehicleId}`);
             
             const data = await response.json();
             console.log('Parcel finding response:', data);
@@ -1304,7 +1460,7 @@ const ShipmentManagement = () => {
             const { deliveryType, shipmentId } = vehicleAssignmentModal;
             const { vehicle } = foundVehicle;
 
-            const response = await fetch('http://localhost:8000/vehicles/createReverseShipmentWithParcels', {
+            const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/vehicles/createReverseShipmentWithParcels`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -1351,7 +1507,7 @@ const ShipmentManagement = () => {
         try {
             showPopup('info', 'Assigning vehicle to shipment...', 5000);
 
-            const response = await fetch(`http://localhost:8000/vehicles/assignVehicleToShipment/${shipmentId}/${deliveryType}`, {
+            const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/vehicles/assignVehicleToShipment/${shipmentId}/${deliveryType}`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -1389,7 +1545,7 @@ const ShipmentManagement = () => {
             );
 
             // Show success message
-            showPopup('success', '✅ Vehicle assigned successfully!', 7000);
+            showPopup('success', 'Vehicle assigned successfully! Shipment is now In Transit and parcels updated to ShipmentAssigned status.', 7000);
 
             // Refresh shipments to get latest data
             setTimeout(() => {
@@ -1398,7 +1554,7 @@ const ShipmentManagement = () => {
 
         } catch (err) {
             console.error('Error assigning vehicle:', err);
-            showPopup('error', `❌ Failed to assign vehicle: ${err.message}`, 6000);
+            showPopup('error', `Failed to assign vehicle: ${err.message}`, 6000);
             setVehicleAssignmentModal(null);
         } finally {
             setAssigningVehicle(false);
@@ -1426,9 +1582,20 @@ const ShipmentManagement = () => {
             return;
         }
 
+        // Show beautiful confirmation modal
+        showConfirmation(
+            'verify',
+            'Bulk Verify Shipments',
+            `Are you sure you want to verify ${pendingShipments.length} pending shipment${pendingShipments.length > 1 ? 's' : ''}? This action will confirm these shipments and update their status to "Verified".`,
+            async () => await performBulkVerify(pendingShipments)
+        );
+    };
+
+    // Separated bulk verify logic
+    const performBulkVerify = async (pendingShipments) => {
         try {
             const promises = pendingShipments.map(shipment =>
-                fetch(`http://localhost:8000/shipments/${shipment._id || shipment.id}/verify`, {
+                fetch(`${import.meta.env.VITE_BACKEND_URL}/shipments/${shipment._id || shipment.id}/verify`, {
                     method: 'PUT',
                     headers: { 'Content-Type': 'application/json' }
                 })
@@ -1449,15 +1616,18 @@ const ShipmentManagement = () => {
                 );
 
                 if (failedCount === 0) {
-                    showPopup('success', `${successCount} shipments verified and confirmed successfully!`);
+                    showPopup('success', `🎉 Successfully verified ${successCount} shipment${successCount > 1 ? 's' : ''}! All shipments are now confirmed and ready for processing.`);
                 } else {
-                    showPopup('warning', `${successCount} shipments verified successfully, ${failedCount} failed`);
+                    showPopup('warning', `✅ ${successCount} shipment${successCount > 1 ? 's' : ''} verified successfully, ❌ ${failedCount} failed to verify.`);
                 }
+                
+                // Clear selections after successful operation
+                setSelectedShipments(new Set());
             } else {
-                showPopup('error', 'All shipments failed to verify');
+                showPopup('error', '❌ All shipments failed to verify. Please check your connection and try again.');
             }
         } catch (err) {
-            showPopup('error', `Error in bulk verification: ${err.message}`);
+            showPopup('error', `❌ Error in bulk verification: ${err.message}`);
         }
     };
 
@@ -1470,18 +1640,32 @@ const ShipmentManagement = () => {
             return;
         }
 
-        // Show confirmation dialog
-        const confirmed = window.confirm(
-            `Are you sure you want to delete ${selectedShipmentIds.length} shipment(s)? This will also reset the associated parcels.`
+        // Check if any selected shipments are in protected stages
+        const protectedShipments = shipments.filter(s => 
+            selectedShipments.has(s._id || s.id) && 
+            ['In Transit', 'Dispatched', 'Completed'].includes(s.status)
         );
 
-        if (!confirmed) {
+        if (protectedShipments.length > 0) {
+            const protectedStatuses = [...new Set(protectedShipments.map(s => s.status))].join(', ');
+            showPopup('warning', `⚠️ Cannot delete ${protectedShipments.length} shipment(s) in "${protectedStatuses}" status. Only Pending and Verified shipments can be deleted.`);
             return;
         }
 
+        // Show beautiful confirmation modal
+        showConfirmation(
+            'delete',
+            'Delete Shipments',
+            `Are you sure you want to delete ${selectedShipmentIds.length} shipment${selectedShipmentIds.length > 1 ? 's' : ''}? This action cannot be undone and will reset the associated parcels to ArrivedAtCollectionCenter status.`,
+            async () => await performBulkDelete(selectedShipmentIds)
+        );
+    };
+
+    // Separated bulk delete logic
+    const performBulkDelete = async (selectedShipmentIds) => {
         try {
             const promises = selectedShipmentIds.map(shipmentId =>
-                fetch(`http://localhost:8000/shipments/${shipmentId}`, {
+                fetch(`${import.meta.env.VITE_BACKEND_URL}/shipments/${shipmentId}`, {
                     method: 'DELETE',
                     headers: { 'Content-Type': 'application/json' }
                 })
@@ -1499,12 +1683,12 @@ const ShipmentManagement = () => {
                 setSelectedShipments(new Set());
 
                 if (failedCount === 0) {
-                    showPopup('success', `${successCount} shipments deleted successfully!`);
+                    showPopup('success', `Successfully deleted ${successCount} shipment${successCount > 1 ? 's' : ''}! Associated parcels have been reset.`);
                 } else {
-                    showPopup('warning', `${successCount} shipments deleted successfully, ${failedCount} failed`);
+                    showPopup('warning', `${successCount} shipment${successCount > 1 ? 's' : ''} deleted successfully, ❌ ${failedCount} failed to delete.`);
                 }
             } else {
-                showPopup('error', 'All shipments failed to delete');
+                showPopup('error', 'All shipments failed to delete. Please check your connection and try again.');
             }
         } catch (err) {
             showPopup('error', `Error in bulk deletion: ${err.message}`);
@@ -1515,7 +1699,7 @@ const ShipmentManagement = () => {
     const getFilteredShipments = () => {
         return shipments.filter(shipment => {
             const matchesDeliveryType = deliveryTypeFilter === 'all' || shipment.deliveryType === deliveryTypeFilter;
-            const matchesStatus = shipment.status === statusFilter; // Direct match since we removed 'all' option
+            const matchesStatus = statusFilter === 'All' || shipment.status === statusFilter;
             const matchesSearch = searchTerm === '' ||
                 (shipment.shipmentId && shipment.shipmentId.toLowerCase().includes(searchTerm.toLowerCase())) ||
                 (shipment.status && shipment.status.toLowerCase().includes(searchTerm.toLowerCase())) ||
@@ -1532,19 +1716,21 @@ const ShipmentManagement = () => {
             case 'Pending': return 'bg-yellow-100 text-yellow-800';
             case 'Verified': return 'bg-green-100 text-green-800';
             case 'In Transit': return 'bg-blue-100 text-blue-800';
-            case 'Completed': return 'bg-gray-100 text-gray-800';
+            case 'Dispatched': return 'bg-orange-100 text-orange-800';
+            case 'Completed': return 'bg-green-100 text-green-800';
             default: return 'bg-gray-100 text-gray-800';
         }
     };
 
-    // Get action buttons based on shipment status and confirmed state
+    // Get action buttons based on shipment status, branch position, and delivery type
     const getActionButtons = (shipment) => {
         const shipmentId = shipment._id || shipment.id;
         const isProcessing = processingShipment === shipmentId;
+        const branchPosition = getBranchPosition(shipment, staffBranchId);
+        const deliveryType = shipment.deliveryType?.toLowerCase() || 'express';
 
-        // For pending shipments: show verify, assign vehicle, and delete buttons
+        // For pending shipments: show verify and delete buttons (existing behavior)
         if (shipment.status === 'Pending') {
-            // Check if vehicle is already assigned
             if (shipment.assignedVehicle) {
                 return (
                     <div className="flex items-center justify-center gap-2">
@@ -1583,21 +1769,6 @@ const ShipmentManagement = () => {
                             <span className="text-sm font-medium">Verify</span>
                         </button>
                         <button
-                            onClick={() => handleAssignVehicle(shipmentId)}
-                            disabled={isProcessing}
-                            className="px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 flex items-center gap-2 transition-colors"
-                            title="Assign Vehicle & Driver"
-                        >
-                            {isProcessing ? (
-                                <Loader className="w-4 h-4 animate-spin" />
-                            ) : (
-                                <Truck className="w-4 h-4" />
-                            )}
-                            <span className="text-sm font-medium">
-                                {isProcessing ? 'Processing...' : 'Assign Vehicle'}
-                            </span>
-                        </button>
-                        <button
                             onClick={() => handleDeleteShipment(shipmentId)}
                             disabled={isProcessing}
                             className="px-3 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50 flex items-center gap-1 transition-colors"
@@ -1613,7 +1784,6 @@ const ShipmentManagement = () => {
         // For verified shipments: check if confirmed before showing assign vehicle button
         else if (shipment.status === 'Verified') {
             if (shipment.confirmed) {
-                // Check if vehicle is already assigned
                 if (shipment.assignedVehicle) {
                     return (
                         <div className="flex items-center justify-center gap-2">
@@ -1670,52 +1840,115 @@ const ShipmentManagement = () => {
                 );
             }
         }
-        // For In Transit or other statuses: show status text with vehicle/driver info
-        else {
-            return (
-                <div className="text-center text-gray-500 text-sm">
-                    <div className="flex items-center justify-center gap-2 mb-2">
-                        {shipment.status === 'In Transit' && <CheckCircle className="w-4 h-4 text-blue-600" />}
-                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                            shipment.status === 'In Transit' ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-800'
-                        }`}>
-                            {shipment.status}
+        // Route-based actions for In Transit, Dispatched, and Completed statuses
+        else if (['In Transit', 'Dispatched', 'Completed'].includes(shipment.status)) {
+            
+            // Check if this branch is part of the shipment route
+            if (!branchPosition) {
+                return (
+                    <div className="text-center text-gray-500 text-sm">
+                        <span className="px-2 py-1 bg-gray-100 text-gray-700 rounded-full text-xs">
+                            Not in Route
                         </span>
                     </div>
-                    
-                    {/* PHASE 4 & 5 - Add Parcels Buttons for In Transit shipments */}
-                    {shipment.status === 'In Transit' && shipment.assignedVehicle && (
-                        <div className="mb-2">
-                            {shipment.deliveryType?.toLowerCase() === 'standard' ? (
-                                // Phase 5 - Standard shipments: Find More Parcels button
+                );
+            }
+
+            // Status display section
+            const statusDisplay = (
+                <div className="flex items-center justify-center gap-2 mb-2">
+                    {shipment.status === 'In Transit' && <CheckCircle className="w-4 h-4 text-blue-600" />}
+                    {shipment.status === 'Dispatched' && <CheckCircle className="w-4 h-4 text-orange-600" />}
+                    {shipment.status === 'Completed' && <CheckCircle className="w-4 h-4 text-green-600" />}
+                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(shipment.status)}`}>
+                        {shipment.status}
+                    </span>
+                </div>
+            );
+
+            // FIRST BRANCH ACTIONS
+            if (branchPosition === 'first') {
+                if (shipment.status === 'In Transit') {
+                    // Express: Only "Inform Dispatch"
+                    // Standard: "Find More Parcels" + "Inform Dispatch"
+                    return (
+                        <div className="text-center text-gray-500 text-sm">
+                            {statusDisplay}
+                            <div className="flex flex-col gap-2">
+                                {deliveryType === 'standard' && (
+                                    <button
+                                        onClick={() => showStandardParcelsModal(shipmentId)}
+                                        disabled={isProcessing || addingStandardParcels}
+                                        className="px-3 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 flex items-center gap-1 transition-colors text-xs"
+                                        title="Find More Parcels for Standard Shipment"
+                                    >
+                                        {addingStandardParcels ? (
+                                            <Loader className="w-3 h-3 animate-spin" />
+                                        ) : (
+                                            <Plus className="w-3 h-3" />
+                                        )}
+                                        <span>{addingStandardParcels ? 'Finding...' : 'Find More Parcels'}</span>
+                                    </button>
+                                )}
                                 <button
-                                    onClick={() => showStandardParcelsModal(shipmentId)}
-                                    disabled={isProcessing || addingStandardParcels}
-                                    className="px-2 py-1 bg-green-600 text-white rounded text-xs hover:bg-green-700 disabled:opacity-50 flex items-center gap-1 mx-auto transition-colors"
-                                    title="Find More Parcels for Standard Shipment"
+                                    onClick={() => handleInformDispatch(shipmentId)}
+                                    disabled={isProcessing}
+                                    className="px-3 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 disabled:opacity-50 flex items-center gap-1 transition-colors text-xs"
+                                    title="Inform Dispatch"
                                 >
-                                    {addingStandardParcels ? (
+                                    {isProcessing ? (
                                         <Loader className="w-3 h-3 animate-spin" />
                                     ) : (
-                                        <Plus className="w-3 h-3" />
+                                        <Send className="w-3 h-3" />
                                     )}
-                                    <span>{addingStandardParcels ? 'Finding...' : 'Find More Parcels'}</span>
+                                    <span>Inform Dispatch</span>
                                 </button>
-                            ) : (
-                                // Phase 4 - Express shipments: Add Parcels button (existing functionality)
-                                <button
-                                    onClick={() => showAdditionalParcelsModal(shipmentId)}
-                                    disabled={isProcessing}
-                                    className="px-2 py-1 bg-purple-600 text-white rounded text-xs hover:bg-purple-700 disabled:opacity-50 flex items-center gap-1 mx-auto transition-colors"
-                                    title="Add Additional Parcels"
-                                >
-                                    <Package className="w-3 h-3" />
-                                    <span>Add Parcels</span>
-                                </button>
-                            )}
+                            </div>
                         </div>
-                    )}
+                    );
+                }
+            }
+            
+            // INTERMEDIATE BRANCH ACTIONS
+            else if (branchPosition === 'intermediate') {
+                return (
+                    <div className="text-center text-gray-500 text-sm">
+                        {statusDisplay}
+                        <div className="px-3 py-2 bg-blue-100 text-blue-800 rounded-lg text-xs">
+                            Shipment Ongoing
+                        </div>
+                    </div>
+                );
+            }
+            
+            // LAST BRANCH ACTIONS  
+            else if (branchPosition === 'last') {
+                if (['In Transit', 'Dispatched'].includes(shipment.status)) {
+                    return (
+                        <div className="text-center text-gray-500 text-sm">
+                            {statusDisplay}
+                            <button
+                                onClick={() => handleFinishDelivery(shipmentId)}
+                                disabled={isProcessing}
+                                className="px-3 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 flex items-center gap-1 transition-colors text-xs"
+                                title="Finish Delivery"
+                            >
+                                {isProcessing ? (
+                                    <Loader className="w-3 h-3 animate-spin" />
+                                ) : (
+                                    <CheckCircle className="w-3 h-3" />
+                                )}
+                                <span>Finish Delivery</span>
+                            </button>
+                        </div>
+                    );
+                }
+            }
 
+            // Default status display with vehicle info
+            return (
+                <div className="text-center text-gray-500 text-sm">
+                    {statusDisplay}
                     {shipment.assignedVehicle && (
                         <div className="text-xs text-gray-600 mt-1 space-y-1">
                             {(shipment.assignedVehicle.vehicleId || shipment.assignedVehicle.registrationNo) && (
@@ -1731,6 +1964,17 @@ const ShipmentManagement = () => {
                             )}
                         </div>
                     )}
+                </div>
+            );
+        }
+        
+        // Default fallback
+        else {
+            return (
+                <div className="text-center text-gray-500 text-sm">
+                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(shipment.status)}`}>
+                        {shipment.status}
+                    </span>
                 </div>
             );
         }
@@ -1792,7 +2036,7 @@ const ShipmentManagement = () => {
             {/* PHASE 2 - Vehicle Selection Modal (Manual vs Smart) */}
             {vehicleSelectionModal && (
                 <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-                    <div className="bg-white rounded-xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+                    <div className="bg-white rounded-xl shadow-2xl max-w-6xl w-full max-h-[90vh] overflow-y-auto">
                         {/* Modal Header */}
                         <div className="px-6 py-4 border-b border-gray-200 bg-gradient-to-r from-blue-50 to-cyan-50">
                             <div className="flex items-center justify-between">
@@ -2314,45 +2558,112 @@ const ShipmentManagement = () => {
                             {vehicleSelectionModal.step === 'parcel_selection_options' && vehicleSelectionModal.enhancedResult && (
                                 <>
                                     <div className="mb-6">
-                                        <div className="bg-gradient-to-r from-blue-50 to-cyan-50 rounded-lg p-5 mb-4">
-                                            <h4 className="font-semibold text-gray-800 mb-3 flex items-center gap-2">
-                                                🚚 Vehicle Found from Another Center
+                                        <div className="bg-gradient-to-r from-blue-50 to-cyan-50 rounded-lg p-6 mb-4 border border-blue-200">
+                                            <h4 className="font-semibold text-gray-800 mb-6 flex items-center gap-2">
+                                                <Truck className="w-5 h-5 text-blue-600" />
+                                                Vehicle Found from Another Center
                                             </h4>
-                                            <div className="grid md:grid-cols-2 gap-4">
-                                                <div>
-                                                    <p className="text-sm text-gray-600 mb-2">Vehicle Details:</p>
-                                                    <p className="font-medium">{vehicleSelectionModal.enhancedResult.vehicle.vehicleId}</p>
-                                                    <p className="text-sm text-gray-600">
-                                                        Currently at: <span className="font-medium text-blue-600">{vehicleSelectionModal.enhancedResult.vehicle.currentLocation}</span>
-                                                    </p>
-                                                    <p className="text-sm text-gray-600">
-                                                        Needs to go to: <span className="font-medium text-green-600">{vehicleSelectionModal.enhancedResult.vehicle.sourceLocation}</span>
-                                                    </p>
+                                            <div className="grid lg:grid-cols-3 md:grid-cols-2 gap-8">
+                                                <div className="space-y-4">
+                                                    <h5 className="font-medium text-blue-800 border-b border-blue-200 pb-2">Vehicle Details</h5>
+                                                    <div className="space-y-3 text-sm">
+                                                        <div className="flex justify-between">
+                                                            <span className="text-blue-700">Vehicle ID:</span>
+                                                            <span className="font-semibold text-blue-900">{vehicleSelectionModal.enhancedResult.vehicle.vehicleId}</span>
+                                                        </div>
+                                                        <div className="flex justify-between">
+                                                            <span className="text-blue-700">Currently at:</span>
+                                                            <span className="font-semibold text-orange-600">{vehicleSelectionModal.enhancedResult.vehicle.currentLocation}</span>
+                                                        </div>
+                                                        <div className="flex justify-between">
+                                                            <span className="text-blue-700">Needs to go to:</span>
+                                                            <span className="font-semibold text-green-600">{vehicleSelectionModal.enhancedResult.vehicle.sourceLocation}</span>
+                                                        </div>
+                                                    </div>
                                                 </div>
-                                                <div>
-                                                    <p className="text-sm text-gray-600 mb-2">Vehicle Capacity:</p>
-                                                    <p className="text-sm">Weight: {vehicleSelectionModal.enhancedResult.vehicle.capableWeight}kg</p>
-                                                    <p className="text-sm">Volume: {vehicleSelectionModal.enhancedResult.vehicle.capableVolume}m³</p>
+                                                <div className="space-y-4">
+                                                    <h5 className="font-medium text-blue-800 border-b border-blue-200 pb-2">Vehicle Capacity</h5>
+                                                    <div className="space-y-3 text-sm">
+                                                        <div className="flex justify-between">
+                                                            <span className="text-blue-700">Weight:</span>
+                                                            <span className="font-semibold text-blue-900">{vehicleSelectionModal.enhancedResult.vehicle.capableWeight}kg</span>
+                                                        </div>
+                                                        <div className="flex justify-between">
+                                                            <span className="text-blue-700">Volume:</span>
+                                                            <span className="font-semibold text-blue-900">{vehicleSelectionModal.enhancedResult.vehicle.capableVolume}m³</span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div className="space-y-4">
+                                                    <h5 className="font-medium text-blue-800 border-b border-blue-200 pb-2">Transport Status</h5>
+                                                    <div className="space-y-3 text-sm">
+                                                        <div className="flex items-center gap-2">
+                                                            <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
+                                                            <span className="text-blue-700">Requires repositioning</span>
+                                                        </div>
+                                                        <div className="flex items-center gap-2">
+                                                            <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                                                            <span className="text-blue-700">Available for assignment</span>
+                                                        </div>
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>
 
                                         {vehicleSelectionModal.enhancedResult.availableParcelGroups && vehicleSelectionModal.enhancedResult.availableParcelGroups.totalParcels > 0 && (
-                                            <div className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg p-5">
-                                                <h4 className="font-semibold text-gray-800 mb-3 flex items-center gap-2">
-                                                    📦 Available Parcels Found
+                                            <div className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg p-6 border border-green-200">
+                                                <h4 className="font-semibold text-gray-800 mb-5 flex items-center gap-2">
+                                                    <Package className="w-5 h-5 text-green-600" />
+                                                    Available Parcels Found
                                                 </h4>
-                                                <p className="text-sm text-gray-600 mb-3">
+                                                <p className="text-sm text-gray-600 mb-6">
                                                     Found {vehicleSelectionModal.enhancedResult.availableParcelGroups.totalParcels} parcels that can be carried along the route.
                                                 </p>
-                                                <div className="grid md:grid-cols-3 gap-3">
-                                                    {Object.entries(vehicleSelectionModal.enhancedResult.availableParcelGroups.parcelGroups).map(([groupId, group]) => (
-                                                        <div key={groupId} className="bg-white rounded-lg p-3 border border-emerald-200">
-                                                            <p className="font-medium text-sm">{group.destination}</p>
-                                                            <p className="text-xs text-gray-600">{group.parcelCount} parcels</p>
-                                                            <p className="text-xs text-gray-600">{group.totalWeight}kg, {group.totalVolume}m³</p>
-                                                        </div>
-                                                    ))}
+                                                
+                                                {/* Enhanced Parcel Groups Table with Better Spacing */}
+                                                <div className="bg-white rounded-lg border border-green-200 overflow-hidden shadow-sm">
+                                                    <div className="overflow-x-auto">
+                                                        <table className="min-w-full">
+                                                            <thead className="bg-green-50">
+                                                                <tr>
+                                                                    <th className="px-6 py-4 text-left text-xs font-medium text-green-700 uppercase tracking-wider">Destination</th>
+                                                                    <th className="px-6 py-4 text-left text-xs font-medium text-green-700 uppercase tracking-wider">Parcels</th>
+                                                                    <th className="px-6 py-4 text-left text-xs font-medium text-green-700 uppercase tracking-wider">Weight</th>
+                                                                    <th className="px-6 py-4 text-left text-xs font-medium text-green-700 uppercase tracking-wider">Volume</th>
+                                                                    <th className="px-6 py-4 text-left text-xs font-medium text-green-700 uppercase tracking-wider">Status</th>
+                                                                    <th className="px-6 py-4 text-left text-xs font-medium text-green-700 uppercase tracking-wider">Capacity Usage</th>
+                                                                </tr>
+                                                            </thead>
+                                                            <tbody className="bg-white divide-y divide-green-100">
+                                                                {Object.entries(vehicleSelectionModal.enhancedResult.availableParcelGroups.parcelGroups).map(([groupId, group]) => (
+                                                                    <tr key={groupId} className="hover:bg-green-25 transition-colors">
+                                                                        <td className="px-6 py-4 text-sm font-medium text-gray-900">{getGroupDestinationNameSync(group)}</td>
+                                                                        <td className="px-6 py-4 text-sm text-gray-700 font-medium">{group.parcelCount}</td>
+                                                                        <td className="px-6 py-4 text-sm text-gray-700">{group.totalWeight}kg</td>
+                                                                        <td className="px-6 py-4 text-sm text-gray-700">{group.totalVolume}m³</td>
+                                                                        <td className="px-6 py-4">
+                                                                            <span className="inline-flex px-3 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">
+                                                                                Available
+                                                                            </span>
+                                                                        </td>
+                                                                        <td className="px-6 py-4">
+                                                                            <div className="flex items-center gap-2">
+                                                                                <div className="w-16 bg-gray-200 rounded-full h-2">
+                                                                                    <div 
+                                                                                        className="bg-green-500 h-2 rounded-full" 
+                                                                                        style={{width: `${Math.min((group.totalWeight / vehicleSelectionModal.enhancedResult.vehicle.capableWeight) * 100, 100)}%`}}
+                                                                                    ></div>
+                                                                                </div>
+                                                                                <span className="text-xs text-gray-500">
+                                                                                    {Math.round((group.totalWeight / vehicleSelectionModal.enhancedResult.vehicle.capableWeight) * 100)}%
+                                                                                </span>
+                                                                            </div>
+                                                                        </td>
+                                                                    </tr>
+                                                                ))}
+                                                            </tbody>
+                                                        </table>
+                                                    </div>
                                                 </div>
                                             </div>
                                         )}
@@ -2378,8 +2689,8 @@ const ShipmentManagement = () => {
                                             )}
                                             Assign Vehicle Only
                                         </button>
-                                        {/* Check for Parcels Button */}
-                                        {vehicleSelectionModal.enhancedResult.availableParcelGroups && vehicleSelectionModal.enhancedResult.availableParcelGroups.totalParcelsFound > 0 && (
+                                        {/* Check for Parcels Button - Only show if not in "Assign Vehicle Only" mode */}
+                                        {!assignVehicleOnlyMode && vehicleSelectionModal.enhancedResult.availableParcelGroups && vehicleSelectionModal.enhancedResult.availableParcelGroups.totalParcelsFound > 0 && (
                                             <button
                                                 onClick={handleCheckForParcels}
                                                 disabled={confirmingAssignment}
@@ -2397,22 +2708,37 @@ const ShipmentManagement = () => {
                             {vehicleSelectionModal.step === 'confirm_direct_assignment' && vehicleSelectionModal.enhancedResult && (
                                 <>
                                     <div className="mb-6">
-                                        <div className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg p-5">
-                                            <h4 className="font-semibold text-gray-800 mb-3 flex items-center gap-2">
-                                                🎯 Vehicle Ready at Source Location
+                                        <div className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg p-6 border border-green-200">
+                                            <h4 className="font-semibold text-gray-800 mb-6 flex items-center gap-2">
+                                                <CheckCircle className="w-5 h-5 text-green-600" />
+                                                Vehicle Ready at Source Location
                                             </h4>
-                                            <div className="grid md:grid-cols-2 gap-4">
-                                                <div>
-                                                    <p className="text-sm text-gray-600 mb-2">Vehicle Details:</p>
-                                                    <p className="font-medium">{vehicleSelectionModal.enhancedResult.vehicle.vehicleId}</p>
-                                                    <p className="text-sm text-green-600">
-                                                        ✅ Located at source: <span className="font-medium">{vehicleSelectionModal.enhancedResult.vehicle.currentLocation}</span>
-                                                    </p>
+                                            <div className="grid lg:grid-cols-3 md:grid-cols-2 gap-8">
+                                                <div className="space-y-4">
+                                                    <h5 className="font-medium text-green-800 border-b border-green-200 pb-2">Vehicle Details</h5>
+                                                    <div className="space-y-3 text-sm">
+                                                        <div className="flex justify-between">
+                                                            <span className="text-green-700">Vehicle ID:</span>
+                                                            <span className="font-semibold text-green-900">{vehicleSelectionModal.enhancedResult.vehicle.vehicleId}</span>
+                                                        </div>
+                                                        <div className="flex justify-between">
+                                                            <span className="text-green-700">Located at source:</span>
+                                                            <span className="font-semibold text-green-900">{vehicleSelectionModal.enhancedResult.vehicle.currentLocation}</span>
+                                                        </div>
+                                                    </div>
                                                 </div>
-                                                <div>
-                                                    <p className="text-sm text-gray-600 mb-2">Perfect Match:</p>
-                                                    <p className="text-sm text-green-600">✅ No transport required</p>
-                                                    <p className="text-sm text-green-600">✅ Ready for immediate assignment</p>
+                                                <div className="space-y-4">
+                                                    <h5 className="font-medium text-green-800 border-b border-green-200 pb-2">Perfect Match</h5>
+                                                    <div className="space-y-3 text-sm">
+                                                        <div className="flex items-center gap-2">
+                                                            <CheckCircle className="w-4 h-4 text-green-600" />
+                                                            <span className="text-green-700">No transport required</span>
+                                                        </div>
+                                                        <div className="flex items-center gap-2">
+                                                            <CheckCircle className="w-4 h-4 text-green-600" />
+                                                            <span className="text-green-700">Ready for immediate assignment</span>
+                                                        </div>
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>
@@ -2451,12 +2777,13 @@ const ShipmentManagement = () => {
                             {vehicleSelectionModal.step === 'parcel_group_selection' && vehicleSelectionModal.enhancedResult && (
                                 <>
                                     <div className="mb-6">
-                                        <div className="bg-gradient-to-r from-purple-50 to-indigo-50 rounded-lg p-5 mb-4">
-                                            <h4 className="font-semibold text-gray-800 mb-3">
+                                        <div className="bg-gradient-to-r from-purple-50 to-indigo-50 rounded-lg p-6 mb-6 border border-purple-200">
+                                            <h4 className="font-semibold text-gray-800 mb-4 text-lg flex items-center gap-2">
+                                                <Package className="w-5 h-5 text-purple-600" />
                                                 Select Parcel Groups to Include
                                             </h4>
-                                            <p className="text-sm text-gray-600 mb-4">
-                                                Choose which parcel groups to include in the shipment.
+                                            <p className="text-sm text-gray-600">
+                                                Choose which parcel groups to include in the shipment. Each group represents parcels going to the same destination.
                                             </p>
                                         </div>
 
@@ -2479,43 +2806,86 @@ const ShipmentManagement = () => {
                                             }
                                             
                                             return parcelGroups && Object.keys(parcelGroups).length > 0 ? (
-                                                <div className="space-y-4">                                                    
+                                                <div className="space-y-6">                                                    
                                                     {Object.entries(parcelGroups).map(([groupId, group]) => (
-                                                        <div key={groupId} className={selectedParcelGroups[groupId] ? 'border rounded-lg p-4 transition-colors border-blue-500 bg-blue-50' : 'border rounded-lg p-4 transition-colors border-gray-300 bg-white'}>
-                                                            <div className="flex items-start justify-between mb-3">
-                                                                <div className="flex items-center gap-3">
+                                                        <div key={groupId} className={selectedParcelGroups[groupId] ? 'border-2 rounded-xl p-6 transition-all duration-200 border-blue-500 bg-gradient-to-r from-blue-50 to-indigo-50 shadow-lg' : 'border-2 rounded-xl p-6 transition-all duration-200 border-gray-200 bg-white hover:border-gray-300 hover:shadow-md'}>
+                                                            <div className="flex items-start justify-between mb-4">
+                                                                <div className="flex items-start gap-4">
                                                                     <input
                                                                         type="checkbox"
                                                                         checked={selectedParcelGroups[groupId] || false}
                                                                         onChange={(e) => handleParcelGroupSelection(groupId, e.target.checked)}
-                                                                        className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                                                                        className="w-5 h-5 mt-1 text-blue-600 border-gray-300 rounded focus:ring-blue-500 focus:ring-2"
                                                                     />
-                                                                    <div>
-                                                                        <h5 className="font-medium text-gray-800">{group.destination || groupId}</h5>
-                                                                        <p className="text-sm text-gray-600">
-                                                                            {group.parcelCount || group.parcels?.length || 'Unknown'} parcels • 
-                                                                            {group.totalWeight || 'Unknown'}kg • 
-                                                                            {group.totalVolume || 'Unknown'}m³
-                                                                        </p>
+                                                                    <div className="flex-1">
+                                                                        <div className="flex items-center gap-4 mb-2">
+                                                                            <h5 className="font-semibold text-gray-800 text-lg">{getGroupDestinationNameSync(group)}</h5>
+                                                                            <span className="px-3 py-1 text-xs font-medium rounded-full bg-green-100 text-green-800 border border-green-200">
+                                                                                Available
+                                                                            </span>
+                                                                        </div>
+                                                                        <div className="grid grid-cols-3 gap-6 text-sm">
+                                                                            <div className="flex items-center gap-2">
+                                                                                <Package className="w-4 h-4 text-blue-600" />
+                                                                                <span className="text-gray-600">Parcels:</span>
+                                                                                <span className="font-semibold text-gray-800">{group.parcelCount || group.parcels?.length || 'Unknown'}</span>
+                                                                            </div>
+                                                                            <div className="flex items-center gap-2">
+                                                                                <div className="w-4 h-4 bg-orange-500 rounded-full flex items-center justify-center">
+                                                                                    <span className="text-white text-xs font-bold">W</span>
+                                                                                </div>
+                                                                                <span className="text-gray-600">Weight:</span>
+                                                                                <span className="font-semibold text-gray-800">{group.totalWeight || 'Unknown'}kg</span>
+                                                                            </div>
+                                                                            <div className="flex items-center gap-2">
+                                                                                <div className="w-4 h-4 bg-purple-500 rounded-full flex items-center justify-center">
+                                                                                    <span className="text-white text-xs font-bold">V</span>
+                                                                                </div>
+                                                                                <span className="text-gray-600">Volume:</span>
+                                                                                <span className="font-semibold text-gray-800">{group.totalVolume || 'Unknown'}m³</span>
+                                                                            </div>
+                                                                        </div>
                                                                     </div>
-                                                                </div>
-                                                                <div className="text-right">
-                                                                    <span className="px-2 py-1 text-xs rounded-full bg-blue-100 text-blue-800">
-                                                                        Available
-                                                                    </span>
                                                                 </div>
                                                             </div>
                                                             
                                                             {selectedParcelGroups[groupId] && group.parcels && (
-                                                                <div className="mt-3 pt-3 border-t border-blue-200">
-                                                                    <h6 className="font-medium text-sm text-gray-800 mb-2">Parcels in this group:</h6>
-                                                                    <div className="grid md:grid-cols-2 gap-2 text-xs text-gray-600">
-                                                                        {group.parcels.map((parcel) => (
-                                                                            <div key={parcel._id || parcel.parcelId} className="bg-white rounded p-2 border">
-                                                                                <p className="font-medium">{parcel.parcelId}</p>
-                                                                                <p>{parcel.itemType || 'Item'} • {parcel.weight}kg</p>
-                                                                            </div>
-                                                                        ))}
+                                                                <div className="mt-5 pt-5 border-t border-blue-200">
+                                                                    <h6 className="font-semibold text-sm text-gray-800 mb-4 flex items-center gap-2">
+                                                                        <Info className="w-4 h-4 text-blue-600" />
+                                                                        Parcels in this group:
+                                                                    </h6>
+                                                                    <div className="bg-white rounded-lg border border-blue-200 overflow-hidden shadow-sm">
+                                                                        <div className="overflow-x-auto">
+                                                                            <table className="min-w-full">
+                                                                                <thead className="bg-blue-50">
+                                                                                    <tr>
+                                                                                        <th className="px-6 py-4 text-left text-xs font-medium text-blue-700 uppercase tracking-wider">Parcel ID</th>
+                                                                                        <th className="px-6 py-4 text-left text-xs font-medium text-blue-700 uppercase tracking-wider">Type</th>
+                                                                                        <th className="px-6 py-4 text-left text-xs font-medium text-blue-700 uppercase tracking-wider">Size</th>
+                                                                                        <th className="px-6 py-4 text-left text-xs font-medium text-blue-700 uppercase tracking-wider">Weight</th>
+                                                                                        <th className="px-6 py-4 text-left text-xs font-medium text-blue-700 uppercase tracking-wider">From</th>
+                                                                                        <th className="px-6 py-4 text-left text-xs font-medium text-blue-700 uppercase tracking-wider">To</th>
+                                                                                    </tr>
+                                                                                </thead>
+                                                                                <tbody className="bg-white divide-y divide-blue-100">
+                                                                                    {group.parcels.map((parcel) => (
+                                                                                        <tr key={parcel._id || parcel.parcelId} className="hover:bg-blue-25 transition-colors">
+                                                                                            <td className="px-6 py-4 text-sm font-medium text-gray-900">{parcel.parcelId}</td>
+                                                                                            <td className="px-6 py-4 text-sm text-gray-700">{parcel.itemType || 'Item'}</td>
+                                                                                            <td className="px-6 py-4 text-sm text-gray-700">
+                                                                                                <span className="px-2 py-1 text-xs rounded-full bg-gray-100 text-gray-800">
+                                                                                                    {parcel.itemSize || 'N/A'}
+                                                                                                </span>
+                                                                                            </td>
+                                                                                            <td className="px-6 py-4 text-sm font-medium text-gray-700">{parcel.weight}kg</td>
+                                                                                            <td className="px-6 py-4 text-sm text-gray-700">{getCenterNameSync(parcel.from)}</td>
+                                                                                            <td className="px-6 py-4 text-sm text-gray-700">{getCenterNameSync(parcel.to)}</td>
+                                                                                        </tr>
+                                                                                    ))}
+                                                                                </tbody>
+                                                                            </table>
+                                                                        </div>
                                                                     </div>
                                                                 </div>
                                                             )}
@@ -2558,7 +2928,7 @@ const ShipmentManagement = () => {
                                 </>
                             )}
 
-                            {/* ENHANCED WORKFLOW - Direct Assignment Modal - Clean Version */}
+                            {/* ENHANCED WORKFLOW - Direct Assignment Modal - Clean Version
                             {vehicleSelectionModal.step === 'confirm_direct_assignment' && vehicleSelectionModal.enhancedResult && (
                                 <div>
                                     <div className="bg-green-50 rounded-lg p-4 mb-4">
@@ -2586,7 +2956,7 @@ const ShipmentManagement = () => {
                                         </button>
                                     </div>
                                 </div>
-                            )}
+                            )} */}
 
                             {/* LEGACY - Keep existing confirm step for compatibility */}
                             {vehicleSelectionModal.step === 'confirm' && smartSearchResult && (
@@ -2612,18 +2982,20 @@ const ShipmentManagement = () => {
                                                 )}
                                                 Assign Only
                                             </button>
-                                            <button
-                                                onClick={() => confirmSmartAssignment(true)}
-                                                disabled={confirmingAssignment}
-                                                className="px-6 py-2 bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-lg hover:from-green-700 hover:to-emerald-700 disabled:opacity-50 flex items-center gap-2 transition-all"
-                                            >
-                                                {confirmingAssignment ? (
-                                                    <Loader className="w-4 h-4 animate-spin" />
-                                                ) : (
-                                                    <Package className="w-4 h-4" />
-                                                )}
-                                                Check for Parcels
-                                            </button>
+                                            {!assignVehicleOnlyMode && (
+                                                <button
+                                                    onClick={() => confirmSmartAssignment(true)}
+                                                    disabled={confirmingAssignment}
+                                                    className="px-6 py-2 bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-lg hover:from-green-700 hover:to-emerald-700 disabled:opacity-50 flex items-center gap-2 transition-all"
+                                                >
+                                                    {confirmingAssignment ? (
+                                                        <Loader className="w-4 h-4 animate-spin" />
+                                                    ) : (
+                                                        <Package className="w-4 h-4" />
+                                                    )}
+                                                    Check for Parcels
+                                                </button>
+                                            )}
                                         </>
                                     ) : (
                                         <button
@@ -2654,7 +3026,7 @@ const ShipmentManagement = () => {
             {/* Vehicle Assignment Confirmation Modal */}
             {vehicleAssignmentModal && (
                 <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-                    <div className="bg-white rounded-xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+                    <div className="bg-white rounded-xl shadow-2xl max-w-6xl w-full max-h-[90vh] overflow-y-auto">
                         {/* Modal Header */}
                         <div className="px-6 py-4 border-b border-gray-200 bg-gradient-to-r from-blue-50 to-cyan-50">
                             <div className="flex items-center justify-between">
@@ -2905,27 +3277,39 @@ const ShipmentManagement = () => {
                                                     </div>
                                                 </div>
 
-                                                <div className="max-h-48 overflow-y-auto bg-white rounded-lg border border-amber-200">
-                                                    <table className="min-w-full text-sm">
-                                                        <thead className="bg-amber-50 sticky top-0">
-                                                            <tr>
-                                                                <th className="px-3 py-2 text-left text-amber-700 font-medium">Parcel ID</th>
-                                                                <th className="px-3 py-2 text-left text-amber-700 font-medium">Weight</th>
-                                                                <th className="px-3 py-2 text-left text-amber-700 font-medium">Volume</th>
-                                                                <th className="px-3 py-2 text-left text-amber-700 font-medium">Type</th>
-                                                            </tr>
-                                                        </thead>
-                                                        <tbody className="divide-y divide-amber-100">
-                                                            {foundParcels.parcels.map((parcel, index) => (
-                                                                <tr key={parcel._id || index} className="hover:bg-amber-25">
-                                                                    <td className="px-3 py-2 text-amber-800 font-medium">{parcel.parcelId}</td>
-                                                                    <td className="px-3 py-2 text-amber-700">{parcel.weight} kg</td>
-                                                                    <td className="px-3 py-2 text-amber-700">{parcel.volume} m³</td>
-                                                                    <td className="px-3 py-2 text-amber-700">{parcel.deliveryType}</td>
+                                                <div className="bg-white rounded-lg border border-amber-200 overflow-hidden">
+                                                    <div className="overflow-x-auto">
+                                                        <table className="min-w-full text-sm">
+                                                            <thead className="bg-amber-50 sticky top-0">
+                                                                <tr>
+                                                                    <th className="px-4 py-3 text-left text-xs font-medium text-amber-700 uppercase tracking-wider">Parcel ID</th>
+                                                                    <th className="px-4 py-3 text-left text-xs font-medium text-amber-700 uppercase tracking-wider">Item Type</th>
+                                                                    <th className="px-4 py-3 text-left text-xs font-medium text-amber-700 uppercase tracking-wider">Size</th>
+                                                                    <th className="px-4 py-3 text-left text-xs font-medium text-amber-700 uppercase tracking-wider">Weight</th>
+                                                                    <th className="px-4 py-3 text-left text-xs font-medium text-amber-700 uppercase tracking-wider">Volume</th>
+                                                                    <th className="px-4 py-3 text-left text-xs font-medium text-amber-700 uppercase tracking-wider">Delivery Type</th>
+                                                                    <th className="px-4 py-3 text-left text-xs font-medium text-amber-700 uppercase tracking-wider">Status</th>
                                                                 </tr>
-                                                            ))}
-                                                        </tbody>
-                                                    </table>
+                                                            </thead>
+                                                            <tbody className="bg-white divide-y divide-amber-100">
+                                                                {foundParcels.parcels.map((parcel, index) => (
+                                                                    <tr key={parcel._id || index} className="hover:bg-amber-25">
+                                                                        <td className="px-4 py-3 text-amber-800 font-medium">{parcel.parcelId}</td>
+                                                                        <td className="px-4 py-3 text-amber-700">{parcel.itemType || 'N/A'}</td>
+                                                                        <td className="px-4 py-3 text-amber-700">{parcel.itemSize || 'N/A'}</td>
+                                                                        <td className="px-4 py-3 text-amber-700">{parcel.weight} kg</td>
+                                                                        <td className="px-4 py-3 text-amber-700">{parcel.volume} m³</td>
+                                                                        <td className="px-4 py-3 text-amber-700">{parcel.deliveryType}</td>
+                                                                        <td className="px-4 py-3">
+                                                                            <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-amber-100 text-amber-800">
+                                                                                {parcel.status}
+                                                                            </span>
+                                                                        </td>
+                                                                    </tr>
+                                                                ))}
+                                                            </tbody>
+                                                        </table>
+                                                    </div>
                                                 </div>
                                             </div>
                                         )}
@@ -3142,195 +3526,10 @@ const ShipmentManagement = () => {
                 </div>
             )}
 
-            {/* Additional Parcels Modal */}
-            {additionalParcelsModal.isOpen && (
-                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-                    <div className="bg-white rounded-2xl p-8 max-w-6xl w-full max-h-[90vh] overflow-y-auto shadow-2xl border border-gray-200">
-                        <div className="flex items-center justify-between mb-6">
-                            <h2 className="text-2xl font-bold text-gray-800 flex items-center gap-3">
-                                <Package className="w-6 h-6 text-blue-600" />
-                                Add Parcels from Other Centers
-                            </h2>
-                            <button
-                                onClick={() => setAdditionalParcelsModal({ isOpen: false, shipmentId: null })}
-                                className="p-2 hover:bg-gray-100 rounded-full transition-colors"
-                            >
-                                <X className="w-6 h-6 text-gray-500" />
-                            </button>
-                        </div>
-
-                        {loadingAdditionalParcels ? (
-                            <div className="flex items-center justify-center py-12">
-                                <Loader className="w-8 h-8 animate-spin text-blue-600" />
-                                <span className="ml-3 text-gray-600">Loading available parcels...</span>
-                            </div>
-                        ) : (
-                            <>
-                                {/* Capacity Information */}
-                                <div className="mb-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
-                                    <div className="flex items-center gap-3 mb-2">
-                                        <Truck className="w-5 h-5 text-blue-600" />
-                                        <h3 className="font-semibold text-gray-800">Vehicle Capacity</h3>
-                                    </div>
-                                    <div className="grid grid-cols-2 gap-4 text-sm">
-                                        <div>
-                                            <span className="text-gray-600">Weight: </span>
-                                            <span className="font-medium">{currentCapacity.weight.toFixed(2)} / {currentCapacity.maxWeight.toFixed(2)} kg</span>
-                                            <div className="w-full bg-gray-200 rounded-full h-2 mt-1">
-                                                <div 
-                                                    className="bg-blue-600 h-2 rounded-full transition-all" 
-                                                    style={{ width: `${Math.min((currentCapacity.weight / currentCapacity.maxWeight) * 100, 100)}%` }}
-                                                ></div>
-                                            </div>
-                                        </div>
-                                        <div>
-                                            <span className="text-gray-600">Volume: </span>
-                                            <span className="font-medium">{currentCapacity.volume.toFixed(2)} / {currentCapacity.maxVolume.toFixed(2)} m³</span>
-                                            <div className="w-full bg-gray-200 rounded-full h-2 mt-1">
-                                                <div 
-                                                    className="bg-green-600 h-2 rounded-full transition-all" 
-                                                    style={{ width: `${Math.min((currentCapacity.volume / currentCapacity.maxVolume) * 100, 100)}%` }}
-                                                ></div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                {/* Grouped Parcels */}
-                                {Object.keys(availableParcels).length === 0 ? (
-                                    <div className="text-center py-12">
-                                        <Package className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                                        <p className="text-gray-500 text-lg">No additional parcels available for this route</p>
-                                    </div>
-                                ) : (
-                                    <div className="space-y-6">
-                                        {Object.entries(availableParcels).map(([destination, group]) => (
-                                            <div key={destination} className="border border-gray-200 rounded-lg overflow-hidden">
-                                                {/* Group Header */}
-                                                <div className="bg-gray-50 p-4 border-b border-gray-200">
-                                                    <div className="flex items-center justify-between">
-                                                        <div className="flex items-center gap-3">
-                                                            <MapPin className="w-5 h-5 text-blue-600" />
-                                                            <div>
-                                                                <h4 className="font-semibold text-gray-800">{destination}</h4>
-                                                                <p className="text-sm text-gray-600">
-                                                                    {group.parcels?.length || 0} parcels • 
-                                                                    Total: {(group.totalWeight || 0).toFixed(2)} kg, {(group.totalVolume || 0).toFixed(2)} m³
-                                                                </p>
-                                                            </div>
-                                                        </div>
-                                                        <div className="flex items-center gap-3">
-                                                            <span className={`px-3 py-1 rounded-full text-xs font-medium ${
-                                                                group.canFit ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-                                                            }`}>
-                                                                {group.canFit ? 'Can Fit' : 'Exceeds Capacity'}
-                                                            </span>
-                                                            <button
-                                                                onClick={() => handleGroupSelection(destination, !selectedAdditionalGroups[destination])}
-                                                                disabled={!group.canFit}
-                                                                className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                                                                    selectedAdditionalGroups[destination]
-                                                                        ? 'bg-blue-600 text-white hover:bg-blue-700'
-                                                                        : group.canFit
-                                                                        ? 'bg-blue-100 text-blue-700 hover:bg-blue-200'
-                                                                        : 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                                                                }`}
-                                                            >
-                                                                {selectedAdditionalGroups[destination] ? 'Selected' : 'Select All'}
-                                                            </button>
-                                                        </div>
-                                                    </div>
-                                                </div>
-
-                                                {/* Parcels List */}
-                                                <div className="divide-y divide-gray-100">
-                                                    {(group.parcels || []).map((parcel) => (
-                                                        <div key={parcel._id} className="p-4 hover:bg-gray-50 transition-colors">
-                                                            <div className="flex items-center justify-between">
-                                                                <div className="flex items-center gap-4">
-                                                                    <input
-                                                                        type="checkbox"
-                                                                        checked={selectedAdditionalParcels[parcel._id] || false}
-                                                                        onChange={(e) => handleParcelSelection(parcel._id, e.target.checked)}
-                                                                        disabled={!group.canFit && !selectedAdditionalParcels[parcel._id]}
-                                                                        className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 disabled:opacity-50"
-                                                                    />
-                                                                    <div className="flex-1">
-                                                                        <div className="flex items-center gap-3 mb-1">
-                                                                            <span className="font-medium text-gray-800">{parcel.trackingNumber}</span>
-                                                                            <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                                                                                parcel.priorityLevel === 'High' ? 'bg-red-100 text-red-800' :
-                                                                                parcel.priorityLevel === 'Medium' ? 'bg-yellow-100 text-yellow-800' :
-                                                                                'bg-green-100 text-green-800'
-                                                                            }`}>
-                                                                                {parcel.priorityLevel} Priority
-                                                                            </span>
-                                                                        </div>
-                                                                        <div className="text-sm text-gray-600">
-                                                                            <p><span className="font-medium">From:</span> {parcel.senderCenter}</p>
-                                                                            <p><span className="font-medium">To:</span> {parcel.receiverAddress}</p>
-                                                                        </div>
-                                                                    </div>
-                                                                </div>
-                                                                <div className="text-right text-sm">
-                                                                    <div className="font-medium text-gray-800">{(parcel.weight || 0).toFixed(2)} kg</div>
-                                                                    <div className="text-gray-600">{(parcel.volume || 0).toFixed(2)} m³</div>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                    ))}
-                                                </div>
-                                            </div>
-                                        ))}
-                                    </div>
-                                )}
-
-                                {/* Summary and Actions */}
-                                {Object.keys(selectedAdditionalParcels).filter(id => selectedAdditionalParcels[id]).length > 0 && (
-                                    <div className="mt-6 p-4 bg-green-50 rounded-lg border border-green-200">
-                                        <h4 className="font-semibold text-green-800 mb-2">Selection Summary</h4>
-                                        <p className="text-sm text-green-700">
-                                            {Object.keys(selectedAdditionalParcels).filter(id => selectedAdditionalParcels[id]).length} parcels selected
-                                        </p>
-                                    </div>
-                                )}
-
-                                {/* Action Buttons */}
-                                <div className="flex justify-end gap-3 mt-8 pt-6 border-t border-gray-200">
-                                    <button
-                                        onClick={() => setAdditionalParcelsModal({ isOpen: false, shipmentId: null })}
-                                        className="px-6 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
-                                    >
-                                        Cancel
-                                    </button>
-                                    <button
-                                        onClick={addSelectedParcels}
-                                        disabled={Object.keys(selectedAdditionalParcels).filter(id => selectedAdditionalParcels[id]).length === 0 || addingParcels}
-                                        className="px-6 py-2 bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-lg hover:from-green-700 hover:to-emerald-700 disabled:opacity-50 flex items-center gap-2 transition-all"
-                                    >
-                                        {addingParcels ? (
-                                            <>
-                                                <Loader className="w-4 h-4 animate-spin" />
-                                                Adding Parcels...
-                                            </>
-                                        ) : (
-                                            <>
-                                                <Plus className="w-4 h-4" />
-                                                Add Selected Parcels
-                                            </>
-                                        )}
-                                    </button>
-                                </div>
-                            </>
-                        )}
-                    </div>
-                </div>
-            )}
-
             {/* Standard Shipment Find More Parcels Modal */}
             {standardParcelsModal.isOpen && (
                 <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-                    <div className="bg-white rounded-2xl p-8 max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl border border-gray-200">
+                    <div className="bg-white rounded-2xl p-8 max-w-5xl w-full max-h-[90vh] overflow-y-auto shadow-2xl border border-gray-200">
                         <div className="flex items-center justify-between mb-6">
                             <h2 className="text-2xl font-bold text-gray-800 flex items-center gap-3">
                                 <Plus className="w-6 h-6 text-green-600" />
@@ -3403,7 +3602,7 @@ const ShipmentManagement = () => {
             {/* Enhanced Add More Parcels Modal */}
             {addMoreParcelsModal.isOpen && (
                 <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-                    <div className="bg-white rounded-2xl p-8 max-w-4xl w-full max-h-[95vh] overflow-y-auto shadow-2xl border border-gray-200">
+                    <div className="bg-white rounded-2xl p-8 max-w-6xl w-full max-h-[95vh] overflow-y-auto shadow-2xl border border-gray-200">
                         
                         {/* Step 1: Selection */}
                         {addMoreParcelsModal.step === 'selection' && (
@@ -3501,8 +3700,8 @@ const ShipmentManagement = () => {
                                         <ul className="text-blue-700 text-xs list-disc list-inside space-y-1">
                                             <li>Parcel exists in the system</li>
                                             <li>Parcel is not already assigned to another shipment</li>
-                                            <li>Parcel delivery type is "Standard" (case-insensitive)</li>
-                                            <li>Adding the parcel won't exceed capacity limits (2500kg / 10m³)</li>
+                                            <li>Parcel delivery type is Standard (case-insensitive)</li>
+                                            <li>Adding the parcel will not exceed capacity limits (2500kg / 10m³)</li>
                                         </ul>
                                     </div>
 
@@ -3805,9 +4004,12 @@ const ShipmentManagement = () => {
                         onChange={(e) => setStatusFilter(e.target.value)}
                         className="px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-opacity-50 focus:ring-cyan-600"
                     >
+                        <option value="All">All Stages</option>
                         <option value="Pending">Pending</option>
                         <option value="Verified">Verified</option>
                         <option value="In Transit">In Transit</option>
+                        <option value="Dispatched">Dispatched</option>
+                        <option value="Completed">Delivered</option>
                     </select>
 
                     {/* Refresh Button */}
@@ -3973,11 +4175,17 @@ const ShipmentManagement = () => {
                                                                     </div>
                                                                     <div className="flex">
                                                                         <span className="text-gray-600 w-36">Created By Center:</span>
-                                                                        <span className="font-medium text-gray-800">{shipment.createdByCenter?.location || 'N/A'}</span>
+                                                                        <span className="font-medium text-gray-800">
+                                                                            {shipment.createdByCenter?.location || 
+                                                                             getCenterNameSync(shipment.createdByCenter) || 
+                                                                             'N/A'}
+                                                                        </span>
                                                                     </div>
                                                                     <div className="flex">
                                                                         <span className="text-gray-600 w-36">Created By Staff:</span>
-                                                                        <span className="font-medium text-gray-800">{shipment.createdByStaff?.name || 'N/A'}</span>
+                                                                        <span className="font-medium text-gray-800">
+                                                                            {shipment.createdByStaff?.name || 'N/A'}
+                                                                        </span>
                                                                     </div>
                                                                     <div className="flex">
                                                                         <span className="text-gray-600 w-36">Parcel Count:</span>
@@ -4090,90 +4298,134 @@ const ShipmentManagement = () => {
                                                             
                                                             {/* Basic parcel summary always visible */}
                                                             <div className="text-sm text-gray-600 mb-2">
-                                                                <span className="font-medium">Parcel IDs:</span> {shipment.parcels.map(p => p.parcelId).join(', ')}
+                                                                <span className="font-medium">Parcel IDs:</span> {
+                                                                    shipment.parcels && shipment.parcels.length > 0 
+                                                                        ? shipment.parcels.map((p, index) => 
+                                                                            p.parcelId || p._id || p.id || `Parcel-${index + 1}`
+                                                                          ).join(', ')
+                                                                        : 'No parcels'
+                                                                }
                                                             </div>
                                                             
                                                             {/* Detailed parcel information - collapsible */}
                                                             {expandedParcelId === (shipment._id || shipment.id) && (
                                                                 <div className="space-y-4 mt-4">
-                                                                    {shipment.parcels.map((parcel, index) => (
-                                                                        <div key={parcel._id || index} className="bg-white rounded-lg p-4 border border-gray-200">
-                                                                            <h5 className="font-semibold text-blue-700 mb-3">Parcel #{parcel.parcelId || index + 1}</h5>
+                                                                    {shipment.parcels && shipment.parcels.length > 0 ? (
+                                                                        shipment.parcels.map((parcel, index) => {
+                                                                            // Check if parcel is fully populated with actual parcel data
+                                                                            // A populated parcel should have fields like parcelId, trackingNo, etc.
+                                                                            // An unpopulated parcel will only have _id field
+                                                                            const isFullyPopulated = typeof parcel === 'object' && parcel !== null && 
+                                                                                (parcel.parcelId || parcel.trackingNo || parcel.itemType || Object.keys(parcel).length > 1);
                                                                             
-                                                                            <div className="grid md:grid-cols-3 gap-4">
-                                                                                {/* Basic Parcel Information */}
-                                                                                <div className="space-y-2">
-                                                                                    <h6 className="font-medium text-gray-800 border-b pb-1">Basic Information</h6>
-                                                                                    <div className="text-sm space-y-1">
-                                                                                        <div><span className="text-gray-600">Parcel ID:</span> <span className="font-medium">{parcel.parcelId || 'N/A'}</span></div>
-                                                                                        <div><span className="text-gray-600">Tracking No:</span> <span className="font-medium">{parcel.trackingNo || 'N/A'}</span></div>
-                                                                                        <div><span className="text-gray-600">QR Code:</span> <span className="font-medium">{parcel.qrCodeNo || 'N/A'}</span></div>
-                                                                                        <div><span className="text-gray-600">Item Type:</span> <span className="font-medium">{parcel.itemType || 'N/A'}</span></div>
-                                                                                        <div><span className="text-gray-600">Item Size:</span> <span className="font-medium">{parcel.itemSize || 'N/A'}</span></div>
-                                                                                        <div><span className="text-gray-600">Shipping Method:</span> <span className="font-medium">{parcel.shippingMethod || 'N/A'}</span></div>
-                                                                                        <div><span className="text-gray-600">Status:</span> 
-                                                                                            <span className={`ml-2 px-2 py-1 text-xs rounded-full ${
-                                                                                                parcel.status === 'Delivered' ? 'bg-green-100 text-green-800' :
-                                                                                                parcel.status === 'InTransit' ? 'bg-blue-100 text-blue-800' :
-                                                                                                parcel.status === 'PendingPickup' ? 'bg-yellow-100 text-yellow-800' :
-                                                                                                'bg-gray-100 text-gray-800'
-                                                                                            }`}>
-                                                                                                {parcel.status || 'N/A'}
-                                                                                            </span>
+                                                                            if (!isFullyPopulated) {
+                                                                                // If not populated, show a message about unpopulated data
+                                                                                return (
+                                                                                    <div key={parcel._id || parcel || index} className="bg-yellow-50 rounded-lg p-4 border border-yellow-200">
+                                                                                        <h5 className="font-semibold text-yellow-700 mb-2">
+                                                                                            Parcel #{index + 1}
+                                                                                        </h5>
+                                                                                        <div className="text-sm text-yellow-600">
+                                                                                            <p><strong>Parcel Reference:</strong> {typeof parcel === 'string' ? parcel : (parcel?._id || parcel?.id || 'Unknown')}</p>
+                                                                                            <p className="mt-2 italic bg-yellow-100 p-2 rounded">
+                                                                                                 <strong>API Issue:</strong> Parcel details are not populated. The backend API needs to use .populate(&apos;parcels&apos;) to show detailed parcel information.
+                                                                                            </p>
                                                                                         </div>
                                                                                     </div>
-                                                                                </div>
+                                                                                );
+                                                                            }
+                                                                            
+                                                                            // If populated, show full parcel details based on parcel schema
+                                                                            return (
+                                                                                <div key={parcel._id || parcel.id || index} className="bg-white rounded-lg p-4 border border-gray-200">
+                                                                                    <h5 className="font-semibold text-blue-700 mb-3">
+                                                                                        Parcel #{index + 1} {parcel.parcelId && `(${parcel.parcelId})`}
+                                                                                    </h5>
+                                                                            
+                                                                                    <div className="grid md:grid-cols-2 gap-4">
+                                                                                        {/* Basic Parcel Information */}
+                                                                                        <div className="space-y-2">
+                                                                                            <h6 className="font-medium text-gray-800 border-b pb-1">Basic Information</h6>
+                                                                                            <div className="text-sm space-y-1">
+                                                                                                <div><span className="text-gray-600">Parcel ID:</span> <span className="font-medium">{parcel.parcelId || 'N/A'}</span></div>
+                                                                                                <div><span className="text-gray-600">Tracking No:</span> <span className="font-medium">{parcel.trackingNo || 'N/A'}</span></div>
+                                                                                                <div><span className="text-gray-600">QR Code:</span> 
+                                                                                                    {parcel.qrCodeNo ? (
+                                                                                                        parcel.qrCodeNo.startsWith('data:image/') ? (
+                                                                                                            <div className="mt-2">
+                                                                                                                <img 
+                                                                                                                    src={parcel.qrCodeNo} 
+                                                                                                                    alt="QR Code" 
+                                                                                                                    className="w-16 h-16 border border-gray-300 rounded"
+                                                                                                                />
+                                                                                                            </div>
+                                                                                                        ) : (
+                                                                                                            <span className="font-medium ml-2">{parcel.qrCodeNo}</span>
+                                                                                                        )
+                                                                                                    ) : (
+                                                                                                        <span className="font-medium ml-2">N/A</span>
+                                                                                                    )}
+                                                                                                </div>
+                                                                                                <div><span className="text-gray-600">Item Type:</span> <span className="font-medium">{parcel.itemType || 'N/A'}</span></div>
+                                                                                                <div><span className="text-gray-600">Item Size:</span> <span className="font-medium">{parcel.itemSize || 'N/A'}</span></div>
+                                                                                                <div><span className="text-gray-600">Shipping Method:</span> <span className="font-medium">{parcel.shippingMethod || 'N/A'}</span></div>
+                                                                                                <div><span className="text-gray-600">Status:</span> 
+                                                                                                    <span className={`ml-2 px-2 py-1 text-xs rounded-full ${
+                                                                                                        parcel.status === 'ArrivedAtCollectionCenter' ? 'bg-green-100 text-green-800' :
+                                                                                                        'bg-gray-100 text-gray-800'
+                                                                                                    }`}>
+                                                                                                        {parcel.status || 'N/A'}
+                                                                                                    </span>
+                                                                                                </div>
+                                                                                            </div>
+                                                                                        </div>
 
-                                                                                {/* Sender & Receiver Information */}
-                                                                                <div className="space-y-2">
-                                                                                    <h6 className="font-medium text-gray-800 border-b pb-1">Sender & Receiver</h6>
-                                                                                    <div className="text-sm space-y-1">
-                                                                                        <div><span className="text-gray-600">Sender Name:</span> <span className="font-medium">{parcel.senderId?.name || 'N/A'}</span></div>
-                                                                                        <div><span className="text-gray-600">Sender Email:</span> <span className="font-medium">{parcel.senderId?.email || 'N/A'}</span></div>
-                                                                                        <div><span className="text-gray-600">Sender Phone:</span> <span className="font-medium">{parcel.senderId?.phone || 'N/A'}</span></div>
-                                                                                        <div><span className="text-gray-600">Receiver Name:</span> <span className="font-medium">{parcel.receiverId?.name || 'N/A'}</span></div>
-                                                                                        <div><span className="text-gray-600">Receiver Email:</span> <span className="font-medium">{parcel.receiverId?.email || 'N/A'}</span></div>
-                                                                                        <div><span className="text-gray-600">Receiver Phone:</span> <span className="font-medium">{parcel.receiverId?.phone || 'N/A'}</span></div>
-                                                                                        <div><span className="text-gray-600">Payment Amount:</span> <span className="font-medium">{parcel.paymentId?.amount || 'N/A'}</span></div>
+                                                                                        {/* Delivery Information */}
+                                                                                        <div className="space-y-2">
+                                                                                            <h6 className="font-medium text-gray-800 border-b pb-1">Delivery Details</h6>
+                                                                                            <div className="text-sm space-y-1">
+                                                                                                <div><span className="text-gray-600">Submitting Type:</span> <span className="font-medium">{parcel.submittingType || 'N/A'}</span></div>
+                                                                                                <div><span className="text-gray-600">Receiving Type:</span> <span className="font-medium">{parcel.receivingType || 'N/A'}</span></div>
+                                                                                                <div><span className="text-gray-600">Special Instructions:</span> <span className="font-medium">{parcel.specialInstructions || 'None'}</span></div>
+                                                                                                <div><span className="text-gray-600">Pickup Date:</span> <span className="font-medium">{parcel.pickupInformation?.pickupDate ? new Date(parcel.pickupInformation.pickupDate).toLocaleDateString() : 'N/A'}</span></div>
+                                                                                                <div><span className="text-gray-600">Pickup Time:</span> <span className="font-medium">{parcel.pickupInformation?.pickupTime || 'N/A'}</span></div>
+                                                                                            </div>
+                                                                                        </div>
                                                                                     </div>
-                                                                                </div>
 
-                                                                                {/* Location & Delivery Information */}
-                                                                                <div className="space-y-2">
-                                                                                    <h6 className="font-medium text-gray-800 border-b pb-1">Location & Delivery</h6>
-                                                                                    <div className="text-sm space-y-1">
-                                                                                        <div><span className="text-gray-600">From Branch:</span> <span className="font-medium">{parcel.from?.location || 'N/A'}</span></div>
-                                                                                        <div><span className="text-gray-600">To Branch:</span> <span className="font-medium">{parcel.to?.location || 'N/A'}</span></div>
-                                                                                        <div><span className="text-gray-600">Submitting Type:</span> <span className="font-medium">{parcel.submittingType || 'N/A'}</span></div>
-                                                                                        <div><span className="text-gray-600">Receiving Type:</span> <span className="font-medium">{parcel.receivingType || 'N/A'}</span></div>
-                                                                                        <div><span className="text-gray-600">Pickup Date:</span> <span className="font-medium">{parcel.pickupInformation?.pickupDate ? new Date(parcel.pickupInformation.pickupDate).toLocaleDateString() : 'N/A'}</span></div>
-                                                                                        <div><span className="text-gray-600">Pickup Time:</span> <span className="font-medium">{parcel.pickupInformation?.pickupTime || 'N/A'}</span></div>
-                                                                                        <div><span className="text-gray-600">Special Instructions:</span> <span className="font-medium">{parcel.specialInstructions || 'None'}</span></div>
-                                                                                    </div>
+                                                                                    {/* Address Information - Only show if data exists */}
+                                                                                    {(parcel.pickupInformation?.address || parcel.deliveryInformation?.deliveryAddress) && (
+                                                                                        <div className="mt-4 grid md:grid-cols-2 gap-4">
+                                                                                            {parcel.pickupInformation?.address && (
+                                                                                                <div className="bg-blue-50 rounded p-3">
+                                                                                                    <h6 className="font-medium text-blue-800 mb-2">Pickup Address</h6>
+                                                                                                    <div className="text-sm text-blue-700">
+                                                                                                        <div>{parcel.pickupInformation.address}</div>
+                                                                                                        <div>{parcel.pickupInformation.city}, {parcel.pickupInformation.district}</div>
+                                                                                                        <div>{parcel.pickupInformation.province}</div>
+                                                                                                    </div>
+                                                                                                </div>
+                                                                                            )}
+                                                                                            {parcel.deliveryInformation?.deliveryAddress && (
+                                                                                                <div className="bg-green-50 rounded p-3">
+                                                                                                    <h6 className="font-medium text-green-800 mb-2">Delivery Address</h6>
+                                                                                                    <div className="text-sm text-green-700">
+                                                                                                        <div>{parcel.deliveryInformation.deliveryAddress}</div>
+                                                                                                        <div>{parcel.deliveryInformation.deliveryCity}, {parcel.deliveryInformation.deliveryDistrict}</div>
+                                                                                                        <div>{parcel.deliveryInformation.deliveryProvince} - {parcel.deliveryInformation.postalCode}</div>
+                                                                                                    </div>
+                                                                                                </div>
+                                                                                            )}
+                                                                                        </div>
+                                                                                    )}
                                                                                 </div>
-                                                                            </div>
-
-                                                                            {/* Address Information */}
-                                                                            <div className="mt-4 grid md:grid-cols-2 gap-4">
-                                                                                <div className="bg-blue-50 rounded p-3">
-                                                                                    <h6 className="font-medium text-blue-800 mb-2">Pickup Address</h6>
-                                                                                    <div className="text-sm text-blue-700">
-                                                                                        <div>{parcel.pickupInformation?.address || 'N/A'}</div>
-                                                                                        <div>{parcel.pickupInformation?.city}, {parcel.pickupInformation?.district}</div>
-                                                                                        <div>{parcel.pickupInformation?.province}</div>
-                                                                                    </div>
-                                                                                </div>
-                                                                                <div className="bg-green-50 rounded p-3">
-                                                                                    <h6 className="font-medium text-green-800 mb-2">Delivery Address</h6>
-                                                                                    <div className="text-sm text-green-700">
-                                                                                        <div>{parcel.deliveryInformation?.deliveryAddress || 'N/A'}</div>
-                                                                                        <div>{parcel.deliveryInformation?.deliveryCity}, {parcel.deliveryInformation?.deliveryDistrict}</div>
-                                                                                        <div>{parcel.deliveryInformation?.deliveryProvince} - {parcel.deliveryInformation?.postalCode}</div>
-                                                                                    </div>
-                                                                                </div>
-                                                                            </div>
+                                                                            );
+                                                                        })
+                                                                    ) : (
+                                                                        <div className="text-center py-4 text-gray-500">
+                                                                            No parcel details available
                                                                         </div>
-                                                                    ))}
+                                                                    )}
                                                                 </div>
                                                             )}
                                                         </div>
@@ -4186,7 +4438,9 @@ const ShipmentManagement = () => {
                                                             <div className="space-y-1">
                                                                 {shipment.arrivalTimes.map((arrival, index) => (
                                                                     <div key={index} className="flex justify-between text-sm">
-                                                                        <span className="text-gray-600">{arrival.center?.location || arrival.center?.branchId || arrival.center}</span>
+                                                                        <span className="text-gray-600">
+                                                                            {getCenterNameSync(arrival.center || arrival.branchId || arrival)}
+                                                                        </span>
                                                                         <span className="font-medium text-gray-800">{arrival.time} hours</span>
                                                                     </div>
                                                                 ))}
@@ -4217,18 +4471,95 @@ const ShipmentManagement = () => {
                         {selectedShipments.size} shipment(s) selected
                     </div>
                     <div className="mt-2 flex gap-2">
-                        <button
-                            onClick={handleBulkVerify}
-                            className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
-                        >
-                            Bulk Verify
-                        </button>
-                        <button
-                            onClick={handleBulkDelete}
-                            className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
-                        >
-                            Bulk Delete
-                        </button>
+                        {/* Only show Bulk Verify for Pending status or All status with pending shipments selected */}
+                        {(statusFilter === 'Pending' || (statusFilter === 'All' && 
+                          shipments.some(s => selectedShipments.has(s._id || s.id) && s.status === 'Pending'))) && (
+                            <button
+                                onClick={handleBulkVerify}
+                                className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 flex items-center gap-2"
+                            >
+                                <CheckCircle className="w-4 h-4" />
+                                Bulk Verify
+                            </button>
+                        )}
+                        {/* Only show Bulk Delete if there are deletable shipments (Pending or Verified) */}
+                        {shipments.some(s => 
+                            selectedShipments.has(s._id || s.id) && 
+                            ['Pending', 'Verified'].includes(s.status)
+                        ) && (
+                            <button
+                                onClick={handleBulkDelete}
+                                className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 flex items-center gap-2"
+                            >
+                                <X className="w-4 h-4" />
+                                Bulk Delete
+                            </button>
+                        )}
+                    </div>
+                </div>
+            )}
+
+            {/* Beautiful Confirmation Modal */}
+            {confirmationModal.isOpen && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                    <div className="bg-white rounded-2xl p-6 max-w-md w-full mx-4 shadow-2xl transform transition-all">
+                        <div className="text-center">
+                            {/* Icon based on confirmation type */}
+                            <div className="mx-auto flex items-center justify-center h-16 w-16 rounded-full mb-4">
+                                {confirmationModal.type === 'verify' && (
+                                    <div className="bg-green-100 rounded-full p-3">
+                                        <CheckCircle className="w-10 h-10 text-green-600" />
+                                    </div>
+                                )}
+                                {confirmationModal.type === 'delete' && (
+                                    <div className="bg-red-100 rounded-full p-3">
+                                        <XCircle className="w-10 h-10 text-red-600" />
+                                    </div>
+                                )}
+                                {confirmationModal.type === 'warning' && (
+                                    <div className="bg-yellow-100 rounded-full p-3">
+                                        <AlertCircle className="w-10 h-10 text-yellow-600" />
+                                    </div>
+                                )}
+                            </div>
+
+                            {/* Title */}
+                            <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                                {confirmationModal.title}
+                            </h3>
+
+                            {/* Message */}
+                            <p className="text-gray-600 mb-6 leading-relaxed">
+                                {confirmationModal.message}
+                            </p>
+
+                            {/* Action Buttons */}
+                            <div className="flex gap-3 justify-center">
+                                <button
+                                    onClick={closeConfirmation}
+                                    disabled={confirmationModal.processing}
+                                    className="px-6 py-2.5 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-200 transition-colors disabled:opacity-50"
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    onClick={executeConfirmedAction}
+                                    disabled={confirmationModal.processing}
+                                    className={`px-6 py-2.5 text-white rounded-lg focus:outline-none focus:ring-2 transition-all disabled:opacity-50 flex items-center gap-2 ${
+                                        confirmationModal.type === 'verify' 
+                                            ? 'bg-green-600 hover:bg-green-700 focus:ring-green-200' 
+                                            : confirmationModal.type === 'delete' 
+                                            ? 'bg-red-600 hover:bg-red-700 focus:ring-red-200'
+                                            : 'bg-blue-600 hover:bg-blue-700 focus:ring-blue-200'
+                                    }`}
+                                >
+                                    {confirmationModal.processing && (
+                                        <Loader className="w-4 h-4 animate-spin" />
+                                    )}
+                                    {confirmationModal.processing ? 'Processing...' : 'Confirm'}
+                                </button>
+                            </div>
+                        </div>
                     </div>
                 </div>
             )}

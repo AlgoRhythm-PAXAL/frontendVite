@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Search, Package, MapPin, Clock, Truck, User } from 'lucide-react';
+import { Search, Package, MapPin, Clock, Truck, CheckCircle } from 'lucide-react';
 
 const TrackingPage = () => {
     const [trackingNumber, setTrackingNumber] = useState('');
@@ -8,6 +8,41 @@ const TrackingPage = () => {
     const [error, setError] = useState('');
     const [successMessage, setSuccessMessage] = useState('');
     const [showNotification, setShowNotification] = useState(false);
+
+    // Parcel status sequence from schema
+    const statusSequence = [
+        "OrderPlaced",
+        "PendingPickup", 
+        "PickedUp",
+        "ArrivedAtDistributionCenter",
+        "ShipmentAssigned",
+        "InTransit",
+        "ArrivedAtCollectionCenter",
+        "DeliveryDispatched",
+        "Delivered",
+        "NotAccepted",
+        "WrongAddress", 
+        "Return"
+    ];
+
+    // Get status display name
+    const getStatusDisplayName = (status) => {
+        switch (status) {
+            case "OrderPlaced": return "Order Placed";
+            case "PendingPickup": return "Pending Pickup";
+            case "PickedUp": return "Picked Up";
+            case "ArrivedAtDistributionCenter": return "Arrived at Distribution Center";
+            case "ShipmentAssigned": return "Shipment Assigned";
+            case "InTransit": return "In Transit";
+            case "ArrivedAtCollectionCenter": return "Arrived at Collection Center";
+            case "DeliveryDispatched": return "Delivery Dispatched";
+            case "Delivered": return "Delivered";
+            case "NotAccepted": return "Not Accepted";
+            case "WrongAddress": return "Wrong Address";
+            case "Return": return "Return";
+            default: return status;
+        }
+    };
 
     // Show notification function
     const showNotificationMessage = (message, type = 'success') => {
@@ -50,7 +85,8 @@ const TrackingPage = () => {
 
             if (response.ok) {
                 const data = await response.json();
-                setTrackingResult(data.parcel);
+                setTrackingResult(data);
+                console.log('Tracking result:', data);
                 showNotificationMessage('Parcel found successfully!', 'success');
             } else {
                 const errorData = await response.json();
@@ -194,19 +230,33 @@ const TrackingPage = () => {
                                     <div className="space-y-3">
                                         <div className="flex justify-between">
                                             <span className="text-gray-600">Tracking Number:</span>
-                                            <span className="font-medium text-[#1F818C]">{trackingResult.trackingNo}</span>
+                                            <span className="font-medium text-[#1F818C]">{trackingResult.trackingNo || 'N/A'}</span>
                                         </div>
                                         <div className="flex justify-between">
                                             <span className="text-gray-600">Parcel ID:</span>
                                             <span className="font-medium">{trackingResult.parcelId}</span>
                                         </div>
                                         <div className="flex justify-between">
-                                            <span className="text-gray-600">Weight:</span>
-                                            <span className="font-medium">{trackingResult.weight} kg</span>
+                                            <span className="text-gray-600">QR Code:</span>
+                                            <div className="font-medium">
+                                                {trackingResult.qrCodeNo && trackingResult.qrCodeNo.startsWith('data:image') ? (
+                                                    <img 
+                                                        src={trackingResult.qrCodeNo} 
+                                                        alt="QR Code" 
+                                                        className="w-16 h-16 object-contain border border-gray-200 rounded"
+                                                    />
+                                                ) : (
+                                                    <span>No QR Code</span>
+                                                )}
+                                            </div>
                                         </div>
                                         <div className="flex justify-between">
                                             <span className="text-gray-600">Item Type:</span>
                                             <span className="font-medium">{trackingResult.itemType || 'N/A'}</span>
+                                        </div>
+                                        <div className="flex justify-between">
+                                            <span className="text-gray-600">Item Size:</span>
+                                            <span className="font-medium capitalize">{trackingResult.itemSize || 'N/A'}</span>
                                         </div>
                                     </div>
                                     
@@ -214,8 +264,20 @@ const TrackingPage = () => {
                                         <div className="flex justify-between">
                                             <span className="text-gray-600">Status:</span>
                                             <span className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(trackingResult.status)}`}>
-                                                {trackingResult.status}
+                                                {getStatusDisplayName(trackingResult.status)}
                                             </span>
+                                        </div>
+                                        <div className="flex justify-between">
+                                            <span className="text-gray-600">Shipping Method:</span>
+                                            <span className="font-medium capitalize">{trackingResult.shippingMethod || 'N/A'}</span>
+                                        </div>
+                                        <div className="flex justify-between">
+                                            <span className="text-gray-600">Submitting Type:</span>
+                                            <span className="font-medium capitalize">{trackingResult.submittingType || 'N/A'}</span>
+                                        </div>
+                                        <div className="flex justify-between">
+                                            <span className="text-gray-600">Receiving Type:</span>
+                                            <span className="font-medium capitalize">{trackingResult.receivingType || 'N/A'}</span>
                                         </div>
                                         <div className="flex justify-between">
                                             <span className="text-gray-600">Created:</span>
@@ -225,12 +287,18 @@ const TrackingPage = () => {
                                             <span className="text-gray-600">Updated:</span>
                                             <span className="font-medium">{formatDate(trackingResult.updatedAt)}</span>
                                         </div>
-                                        <div className="flex justify-between">
-                                            <span className="text-gray-600">Description:</span>
-                                            <span className="font-medium">{trackingResult.description || 'N/A'}</span>
-                                        </div>
                                     </div>
                                 </div>
+                                
+                                {/* Special Instructions if available */}
+                                {trackingResult.specialInstructions && (
+                                    <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-md">
+                                        <div className="flex justify-between">
+                                            <span className="text-yellow-700 font-medium">Special Instructions:</span>
+                                            <span className="text-yellow-800">{trackingResult.specialInstructions}</span>
+                                        </div>
+                                    </div>
+                                )}
                             </div>
 
                             {/* Location Information */}
@@ -280,57 +348,80 @@ const TrackingPage = () => {
                                 </div>
                             </div>
 
-                            {/* Sender & Receiver Information */}
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                {/* Sender Information */}
-                                <div className="bg-purple-50 rounded-lg p-6">
-                                    <h3 className="text-lg font-semibold text-purple-800 mb-4 flex items-center gap-2">
-                                        <User className="w-5 h-5" />
-                                        Sender Information
-                                    </h3>
-                                    <div className="space-y-2">
-                                        <div className="flex justify-between">
-                                            <span className="text-purple-600">Name:</span>
-                                            <span className="font-medium">{trackingResult.senderName || 'N/A'}</span>
-                                        </div>
-                                        <div className="flex justify-between">
-                                            <span className="text-purple-600">Phone:</span>
-                                            <span className="font-medium">{trackingResult.senderPhone || 'N/A'}</span>
-                                        </div>
-                                        <div className="flex justify-between">
-                                            <span className="text-purple-600">Email:</span>
-                                            <span className="font-medium">{trackingResult.senderEmail || 'N/A'}</span>
-                                        </div>
-                                        <div className="flex justify-between">
-                                            <span className="text-purple-600">Address:</span>
-                                            <span className="font-medium text-right">{trackingResult.senderAddress || 'N/A'}</span>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                {/* Receiver Information */}
-                                <div className="bg-orange-50 rounded-lg p-6">
-                                    <h3 className="text-lg font-semibold text-orange-800 mb-4 flex items-center gap-2">
-                                        <User className="w-5 h-5" />
-                                        Receiver Information
-                                    </h3>
-                                    <div className="space-y-2">
-                                        <div className="flex justify-between">
-                                            <span className="text-orange-600">Name:</span>
-                                            <span className="font-medium">{trackingResult.receiverName || 'N/A'}</span>
-                                        </div>
-                                        <div className="flex justify-between">
-                                            <span className="text-orange-600">Phone:</span>
-                                            <span className="font-medium">{trackingResult.receiverPhone || 'N/A'}</span>
-                                        </div>
-                                        <div className="flex justify-between">
-                                            <span className="text-orange-600">Email:</span>
-                                            <span className="font-medium">{trackingResult.receiverEmail || 'N/A'}</span>
-                                        </div>
-                                        <div className="flex justify-between">
-                                            <span className="text-orange-600">Address:</span>
-                                            <span className="font-medium text-right">{trackingResult.receiverAddress || 'N/A'}</span>
-                                        </div>
+                            {/* Status Progress Tracking */}
+                            <div className="bg-gray-50 rounded-lg p-6">
+                                <h3 className="text-lg font-semibold text-gray-800 mb-6 flex items-center gap-2">
+                                    <Clock className="w-5 h-5 text-[#1F818C]" />
+                                    Parcel Journey
+                                </h3>
+                                
+                                <div className="relative">
+                                    {/* Progress Line */}
+                                    <div className="absolute left-4 top-0 bottom-0 w-0.5 bg-gray-300"></div>
+                                    
+                                    <div className="space-y-6">
+                                        {statusSequence.slice(0, 9).map((status, index) => {
+                                            const isCurrentStatus = trackingResult.status === status;
+                                            const isPastStatus = statusSequence.indexOf(trackingResult.status) > index;
+                                            const isActive = isCurrentStatus || isPastStatus;
+                                            
+                                            // Get timestamp for specific statuses from schema
+                                            let timestamp = null;
+                                            if (status === 'InTransit' && trackingResult.intransitedDate) {
+                                                timestamp = trackingResult.intransitedDate;
+                                            } else if (status === 'ArrivedAtCollectionCenter' && trackingResult.arrivedToCollectionCenterTime) {
+                                                timestamp = trackingResult.arrivedToCollectionCenterTime;
+                                            } else if (status === 'DeliveryDispatched' && trackingResult.parcelDispatchedDate) {
+                                                timestamp = trackingResult.parcelDispatchedDate;
+                                            } else if (status === 'Delivered' && trackingResult.parcelDeliveredDate) {
+                                                timestamp = trackingResult.parcelDeliveredDate;
+                                            } else if (isCurrentStatus) {
+                                                timestamp = trackingResult.updatedAt;
+                                            }
+                                            
+                                            return (
+                                                <div key={status} className="relative flex items-center">
+                                                    {/* Status Point */}
+                                                    <div className={`relative z-10 w-8 h-8 rounded-full border-2 flex items-center justify-center ${
+                                                        isCurrentStatus 
+                                                            ? 'bg-red-500 border-red-500' 
+                                                            : isPastStatus 
+                                                                ? 'bg-green-500 border-green-500' 
+                                                                : 'bg-white border-gray-300'
+                                                    }`}>
+                                                        {isPastStatus ? (
+                                                            <CheckCircle className="w-4 h-4 text-white" />
+                                                        ) : isCurrentStatus ? (
+                                                            <div className="w-3 h-3 bg-white rounded-full"></div>
+                                                        ) : (
+                                                            <div className="w-3 h-3 bg-gray-300 rounded-full"></div>
+                                                        )}
+                                                    </div>
+                                                    
+                                                    {/* Status Information */}
+                                                    <div className="ml-4 flex-1">
+                                                        <div className={`font-medium ${
+                                                            isActive ? 'text-gray-900' : 'text-gray-500'
+                                                        }`}>
+                                                            {getStatusDisplayName(status)}
+                                                        </div>
+                                                        {isCurrentStatus && (
+                                                            <div className="text-sm text-red-600 font-medium">Current Status</div>
+                                                        )}
+                                                        {isPastStatus && (
+                                                            <div className="text-sm text-green-600">Completed</div>
+                                                        )}
+                                                    </div>
+                                                    
+                                                    {/* Timestamp */}
+                                                    {timestamp && (
+                                                        <div className="text-sm text-gray-500">
+                                                            {formatDate(timestamp)}
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            );
+                                        })}
                                     </div>
                                 </div>
                             </div>
@@ -342,51 +433,11 @@ const TrackingPage = () => {
                                         <Truck className="w-5 h-5 text-[#1F818C]" />
                                         Shipment Information
                                     </h3>
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                        <div className="space-y-2">
-                                            <div className="flex justify-between">
-                                                <span className="text-gray-600">Shipment ID:</span>
-                                                <span className="font-medium">{trackingResult.shipmentId}</span>
-                                            </div>
-                                            <div className="flex justify-between">
-                                                <span className="text-gray-600">Driver:</span>
-                                                <span className="font-medium">{trackingResult.driverName || 'N/A'}</span>
-                                            </div>
+                                    <div className="space-y-2">
+                                        <div className="flex justify-between">
+                                            <span className="text-gray-600">Shipment ID:</span>
+                                            <span className="font-medium">{trackingResult.shipmentId}</span>
                                         </div>
-                                        <div className="space-y-2">
-                                            <div className="flex justify-between">
-                                                <span className="text-gray-600">Vehicle:</span>
-                                                <span className="font-medium">{trackingResult.vehicleNumber || 'N/A'}</span>
-                                            </div>
-                                            <div className="flex justify-between">
-                                                <span className="text-gray-600">Contact:</span>
-                                                <span className="font-medium">{trackingResult.driverContact || 'N/A'}</span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            )}
-
-                            {/* Tracking History */}
-                            {trackingResult.trackingHistory && trackingResult.trackingHistory.length > 0 && (
-                                <div className="bg-gray-50 rounded-lg p-6">
-                                    <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
-                                        <Clock className="w-5 h-5 text-[#1F818C]" />
-                                        Tracking History
-                                    </h3>
-                                    <div className="space-y-3">
-                                        {trackingResult.trackingHistory.map((event, index) => (
-                                            <div key={index} className="flex items-center gap-4 p-3 bg-white rounded-lg">
-                                                <div className="flex-shrink-0 w-3 h-3 bg-[#1F818C] rounded-full"></div>
-                                                <div className="flex-1">
-                                                    <div className="font-medium text-gray-800">{event.status}</div>
-                                                    <div className="text-sm text-gray-600">{event.location}</div>
-                                                </div>
-                                                <div className="text-sm text-gray-500">
-                                                    {formatDate(event.timestamp)}
-                                                </div>
-                                            </div>
-                                        ))}
                                     </div>
                                 </div>
                             )}

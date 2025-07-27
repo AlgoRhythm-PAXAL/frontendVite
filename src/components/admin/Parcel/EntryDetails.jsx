@@ -72,8 +72,8 @@ const ParcelDetails = lazy(() => import("./ParcelDetails"));
 const UserDetails = lazy(() => import("./UserDetails"));
 const StaffDetails = lazy(() => import("./StaffDetails"));
 const DriverDetails = lazy(() => import("./DriverDetails"));
-const ShipmentDetails = lazy(() => import("./ShipmentDetail"));
 const AdminDetails = lazy(() => import("./AdminDetails"));
+const ShipmentDetails = lazy(() => import("./ShipmentDetail"));
 const VehicleDetails = lazy(() => import("./VehicleDetail"));
 const BranchDetails = lazy(() => import("./BranchDetails"));
 
@@ -121,7 +121,7 @@ class DetailsErrorBoundary extends React.Component {
 }
 
 export const EntryDetails = React.memo(
-  ({ collectionName, entryId, onClose, givenId }) => {
+  ({ collectionName, entryId, onClose, givenId, onDataChange }) => {
     // Input validation
     if (!collectionName || !entryId || !givenId) {
       console.error("EntryDetails: Missing required props", {
@@ -171,7 +171,7 @@ export const EntryDetails = React.memo(
     return (
       <DetailsErrorBoundary>
         <div
-          className={`bg-white rounded-xl px-6 w-fit flex flex-col max-h-[95vh] overflow-auto shadow-lg border m-auto`}
+          className={`bg-white rounded-xl px-6 max-w-6xl flex flex-col max-h-[95vh] overflow-auto shadow-lg border m-auto`}
         >
           {/* Header Section */}
           <div className="flex justify-between items-center py-6 border-b border-gray-200 sticky top-0 bg-white z-10">
@@ -192,7 +192,7 @@ export const EntryDetails = React.memo(
           {/* Content Section */}
           <div className="flex-1 py-6">
             <Suspense fallback={<LoadingAnimation />}>
-              <DetailComponent entryId={entryId} />
+              <DetailComponent entryId={entryId} onDataChange={onDataChange} />
             </Suspense>
           </div>
         </div>
