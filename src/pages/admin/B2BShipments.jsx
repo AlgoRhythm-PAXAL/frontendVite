@@ -40,6 +40,8 @@ import { Calendar as CalendarComponent } from '../../components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '../../components/ui/popover';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../../components/ui/tabs';
 import { Alert, AlertDescription } from '../../components/ui/alert';
+import SectionTitle from '../../components/admin/SectionTitle';
+import LoadingAnimation from '../../utils/LoadingAnimation';
 
 const B2BShipments = () => {
   // State Management
@@ -245,20 +247,18 @@ const B2BShipments = () => {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <Loader className="h-8 w-8 animate-spin text-blue-600" />
-        <span className="ml-2 text-gray-600">Loading B2B shipments...</span>
-      </div>
+      <LoadingAnimation message="Loading B2B shipments..." />
     );
   }
 
   return (
-    <div className="space-y-6 p-6 bg-gray-50 min-h-screen">
+    <div className="space-y-6 p-6 pt-0 bg-gray-50 min-h-screen">
       {/* Header */}
-      <div className="bg-white rounded-lg shadow-sm border p-6">
+      <div className=" ">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900">B2B Shipment Management</h1>
+          <div className="mb-8">
+            {/* <h1 className="text-3xl font-bold text-gray-900">B2B Shipment Management</h1> */}
+            <SectionTitle title="B2B Shipment Management" />
             <p className="text-gray-600 mt-1">Comprehensive shipment tracking and management</p>
           </div>
           <div className="flex items-center gap-3">
@@ -296,7 +296,7 @@ const B2BShipments = () => {
 
       {/* Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <Card className="bg-gradient-to-br from-blue-50 to-blue-100 border-blue-200">
+        <Card className=" border-blue-200">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium text-blue-800">Total Shipments</CardTitle>
             <Package className="h-4 w-4 text-blue-600" />
@@ -309,7 +309,7 @@ const B2BShipments = () => {
           </CardContent>
         </Card>
 
-        <Card className="bg-gradient-to-br from-green-50 to-green-100 border-green-200">
+        <Card className=" border-green-200">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium text-green-800">Total Parcels</CardTitle>
             <FileText className="h-4 w-4 text-green-600" />
@@ -320,7 +320,7 @@ const B2BShipments = () => {
           </CardContent>
         </Card>
 
-        <Card className="bg-gradient-to-br from-purple-50 to-purple-100 border-purple-200">
+        <Card className=" border-purple-200">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium text-purple-800">Total Weight</CardTitle>
             <Weight className="h-4 w-4 text-purple-600" />
@@ -333,7 +333,7 @@ const B2BShipments = () => {
           </CardContent>
         </Card>
 
-        <Card className="bg-gradient-to-br from-orange-50 to-orange-100 border-orange-200">
+        <Card className=" border-orange-200">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium text-orange-800">With Vehicles</CardTitle>
             <Truck className="h-4 w-4 text-orange-600" />

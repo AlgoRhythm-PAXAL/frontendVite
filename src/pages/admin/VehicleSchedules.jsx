@@ -709,7 +709,8 @@ const VehicleSchedules = () => {
       if (branch && branch._id) {
         branchesMap.set(String(branch._id), {
           id: String(branch._id),
-          name:branch.location || branch.branchName || `Branch ${branch.branchId}`,
+          name:
+            branch.location || branch.branchName || `Branch ${branch.branchId}`,
           branchId: branch.branchId, // Keep custom ID for display
         });
       }
@@ -794,7 +795,7 @@ const VehicleSchedules = () => {
   return (
     <div className="mx-8 space-y-6">
       <SectionTitle title="Vehicle Schedules" />
-
+      <SummaryStats data={pickupData} />
       {/* Professional Filters Card */}
       <Card className="shadow-sm border-gray-200">
         <CardHeader className="pb-4 border-b border-gray-100">
@@ -955,7 +956,7 @@ const VehicleSchedules = () => {
                         Active
                       </div>
                     </SelectItem>
-                   
+
                     <SelectItem value="today">
                       <div className="flex items-center">
                         <CalendarIcon className="w-4 h-4 mr-2 text-green-500" />
@@ -968,7 +969,6 @@ const VehicleSchedules = () => {
                         Completed
                       </div>
                     </SelectItem>
-                   
                   </SelectContent>
                 </Select>
               </div>
@@ -1034,7 +1034,7 @@ const VehicleSchedules = () => {
                     className="bg-blue-100 text-blue-800"
                   >
                     <MapPin className="w-3 h-3 mr-1" />
-                    {availableBranches.find(b => b.id === selectedBranch)
+                    {availableBranches.find((b) => b.id === selectedBranch)
                       ?.name || 'Selected Branch'}
                   </Badge>
                 )}
@@ -1078,7 +1078,6 @@ const VehicleSchedules = () => {
         </TabsList>
 
         <TabsContent value="pickup" className="space-y-6">
-          <SummaryStats data={pickupData} />
           <div className="space-y-4">
             {pickupData?.schedules?.length > 0 ? (
               pickupData.schedules.map((schedule, index) => (
