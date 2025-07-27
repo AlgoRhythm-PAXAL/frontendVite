@@ -955,12 +955,7 @@ const VehicleSchedules = () => {
                         Active
                       </div>
                     </SelectItem>
-                    <SelectItem value="upcoming">
-                      <div className="flex items-center">
-                        <AlertCircle className="w-4 h-4 mr-2 text-amber-500" />
-                        Upcoming
-                      </div>
-                    </SelectItem>
+                   
                     <SelectItem value="today">
                       <div className="flex items-center">
                         <CalendarIcon className="w-4 h-4 mr-2 text-green-500" />
@@ -973,12 +968,7 @@ const VehicleSchedules = () => {
                         Completed
                       </div>
                     </SelectItem>
-                    <SelectItem value="pending">
-                      <div className="flex items-center">
-                        <Clock className="w-4 h-4 mr-2 text-orange-500" />
-                        Pending
-                      </div>
-                    </SelectItem>
+                   
                   </SelectContent>
                 </Select>
               </div>
