@@ -47,6 +47,7 @@ import AdminProfile from "./pages/admin/AdminProfile";
 import { Toaster as SonnerToaster } from "sonner";
 import Vehicle from "./pages/admin/Vehicle";
 import ComprehensiveReports from "./pages/admin/ComprehensiveReports";
+import VehicleSchedules from './pages/admin/VehicleSchedules';
 // import Reports from "./pages/admin/Reports"; 
 
 {/* Staff login */}
@@ -136,6 +137,7 @@ const App = () => {
             <Route index element={<Dashboard />} />
             <Route path="userAccounts" element={<UserAccounts />} />
             <Route path="parcels" element={<Parcels />} />
+            <Route path="vehicleSchedules" element={<VehicleSchedules />} />
             <Route path="shipments" element={<Shipments />} />
             <Route path="branches" element={<Branches />} />
             <Route path="profile" element={<AdminProfile />} />
