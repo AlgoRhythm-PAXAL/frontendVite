@@ -27,9 +27,10 @@ const BranchSelector = ({ register, name, required = false, errors }) => {
     fetchBranches();
   }, []);
 
-  // Sort branches alphabetically by location
-  const sortedBranches = useMemo(() => {
-    return [...branches].sort((a, b) => a.location.localeCompare(b.location));
+  // Filter and Sort branches alphabetically by location
+  const filteredbranches = useMemo(() => {
+    return [...branches]
+    .sort((a, b) => a.location.localeCompare(b.location));
   }, [branches]);
 
   if (loading) {
@@ -42,12 +43,13 @@ const BranchSelector = ({ register, name, required = false, errors }) => {
 
   return (
     <div className="w-full">
+      
       <select
         {...register(name, { required })}
         className="w-full px-4 py-2 border rounded-md focus:ring-2 focus:Primary focus:border-Primary"
       >
         <option value="">Select Branch</option>
-        {sortedBranches.map((branch) => (
+        {filteredbranches.map((branch) => (
           <option key={branch._id} value={branch._id}>
             {branch.location}
           </option>

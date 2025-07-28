@@ -145,7 +145,7 @@ const ParcelInvoice = () => {
                   {parcel?.deliveryInformation?.deliveryDistrict},<br />
                   {parcel?.deliveryInformation?.deliveryProvince} Province
                   <br />
-                  Postal: {parcel?.deliveryInformation?.postalCode}
+                  <span className="font-medium">Postal Code:</span> {parcel?.deliveryInformation?.postalCode}
                 </p>
               </div>
             )}
