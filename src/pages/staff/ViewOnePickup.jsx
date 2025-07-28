@@ -6,6 +6,8 @@ import PickupSchedules from "../../components/staff/PickupSchedules";
 import { ArrowLeftIcon } from "@heroicons/react/24/outline";
 import { toast } from "sonner";
 
+const backendURL = import.meta.env.VITE_BACKEND_URL;
+
 const ViewOnePickup = () => {
   const { parcelId } = useParams();
   const [parcel, setParcel] = useState(null);
@@ -20,7 +22,7 @@ const ViewOnePickup = () => {
       setIsCheckingAssignment(true);
       try {
         const response = await axios.get(
-          "http://localhost:8000/staff/vehicle-schedules/check-parcel-assignment",
+          `${backendURL}/staff/vehicle-schedules/check-parcel-assignment`,
           {
             params: {
               parcelId: parcelId,
@@ -55,7 +57,7 @@ const ViewOnePickup = () => {
     try {
       setIsCheckingAssignment(true);
       const response = await axios.post(
-        "http://localhost:8000/staff/lodging-management/register-pickup",
+        `${backendURL}/staff/lodging-management/register-pickup`,
         { parcelId },
         { withCredentials: true }
       );

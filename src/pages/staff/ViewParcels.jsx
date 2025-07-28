@@ -2,7 +2,8 @@ import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import DataTable from "../../components/staff/DataTable";
 import axios from "axios";
-import StatsBox from "../../components/staff/StatsBox";
+
+const backendURL = import.meta.env.VITE_BACKEND_URL;
 
 const ViewParcels = () => {
   const [parcels, setParcels] = useState([]);
@@ -11,7 +12,7 @@ const ViewParcels = () => {
   const getParcels = async () => {
     try {
       const response = await axios.get(
-        "http://localhost:8000/staff/lodging-management/get-all-parcels",
+        `${backendURL}/staff/lodging-management/get-all-parcels`,
         { withCredentials: true }
       );
 

@@ -4,7 +4,8 @@ import ParcelInformation from "../../components/staff/ParcelInformation";
 import { ArrowLeftIcon } from "@heroicons/react/24/outline";
 import axios from "axios";
 import { toast } from "sonner";
-import { set } from "date-fns";
+
+const backendURL = import.meta.env.VITE_BACKEND_URL;
 
 const ViewOneCollectionCenterDeliveryparcel = () => {
   const { parcelId } = useParams();
@@ -20,7 +21,7 @@ const ViewOneCollectionCenterDeliveryparcel = () => {
     try {
       setDelivering(true);
       const response = await axios.post(
-        "http://localhost:8000/staff/collection-management/update-parcel-as-delivered",
+        `${backendURL}/staff/collection-management/update-parcel-as-delivered`,
         { parcelId },
         { withCredentials: true }
       );

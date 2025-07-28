@@ -3,6 +3,9 @@ import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import DataTable from "../../../components/staff/DataTable";
 
+const backendURL = import.meta.env.VITE_BACKEND_URL;
+
+
 const ViewRepliedInquiries = () => {
   const [inquiries, setInquiries] = useState([]);
   const navigate = useNavigate();
@@ -10,7 +13,7 @@ const ViewRepliedInquiries = () => {
   const getRepliedInquiries = async () => {
     try {
       const response = await axios.get(
-        "http://localhost:8000/staff/inquiry-management/get-replied-inquiries",
+        `${backendURL}/staff/inquiry-management/get-replied-inquiries`,
         { withCredentials: true }
       );
 

@@ -21,6 +21,9 @@ import PasswordResetCodePopup from "../../components/staff/PasswordResetCodePopu
 import NavigationBar from "../../components/staff/NavigationBar";
 import toast from "react-hot-toast";
 
+const backendURL = import.meta.env.VITE_BACKEND_URL;
+
+
 const StaffProfile = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
@@ -37,7 +40,7 @@ const StaffProfile = () => {
   const getStaffInfo = async () => {
     try {
       const response = await axios.get(
-        "http://localhost:8000/staff/ui/get-staff-information",
+        `${backendURL}/staff/ui/get-staff-information`,
         { withCredentials: true }
       );
       console.log(response.data);
@@ -95,7 +98,7 @@ const StaffProfile = () => {
 
       // Send updated data to backend
       const response = await axios.put(
-        "http://localhost:8000/staff/update-staff-info",
+        `${backendURL}/staff/update-staff-info`,
         formData,
         { withCredentials: true }
       );
@@ -122,7 +125,7 @@ const StaffProfile = () => {
     try {
       console.log("send email");
       const response = await axios.post(
-        "http://localhost:8000/staff/forgot-password",
+        `${backendURL}/staff/forgot-password`,
         { email }
       );
 

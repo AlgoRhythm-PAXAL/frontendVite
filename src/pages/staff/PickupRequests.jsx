@@ -5,6 +5,9 @@ import axios from "axios";
 import DataTable from "../../components/staff/DataTable";
 import StatsBox from "../../components/staff/StatsBox";
 
+const backendURL = import.meta.env.VITE_BACKEND_URL;
+
+
 const PickupRequests = () => {
   const [parcels, setParcels] = useState([]);
   const [pickupStats, setPickupStats] = useState({
@@ -17,7 +20,7 @@ const PickupRequests = () => {
   const getPickupParcels = async () => {
     try {
       const response = await axios.get(
-        "http://localhost:8000/staff/lodging-management/get-all-pickup-parcels",
+        `${backendURL}/staff/lodging-management/get-all-pickup-parcels`,
         { withCredentials: true }
       );
 
@@ -30,7 +33,7 @@ const PickupRequests = () => {
   const getPickupStats = async () => {
     try {
       const response = await axios.get(
-        "http://localhost:8000/staff/lodging-management/get-pickup-stats",
+        `${backendURL}/staff/lodging-management/get-pickup-stats`,
         { withCredentials: true }
       );
 

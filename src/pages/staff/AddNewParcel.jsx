@@ -7,6 +7,9 @@ import { toast } from "sonner";
 import ProvinceSelector from "../../components/staff/ProvinceSelector";
 import DistrictSelector from "../../components/staff/DistrictSelector";
 
+const backendURL = import.meta.env.VITE_BACKEND_URL;
+
+
 const AddNewParcel = () => {
   const {
     register,
@@ -35,7 +38,7 @@ const AddNewParcel = () => {
     try {
       if (itemSize && from && to && shippingMethod) {
         const response = await axios.get(
-          "http://localhost:8000/staff/lodging-management/calculate-payment",
+          `${backendURL}/staff/lodging-management/calculate-payment`,
           {
             params: {
               itemSize,
@@ -69,7 +72,7 @@ const AddNewParcel = () => {
       console.log("Data being sent to the server: ", formData);
 
       const response = await axios.post(
-        "http://localhost:8000/staff/lodging-management/register-parcel",
+        `${backendURL}/staff/lodging-management/register-parcel`,
         formData,
         {
           headers: { "Content-Type": "application/json" },

@@ -5,6 +5,9 @@ import { useNavigate, Link } from "react-router-dom";
 import { toast } from "sonner";
 import Logo from "../../../assets/userAssets/logo.jpg";
 
+const backendURL = import.meta.env.VITE_BACKEND_URL;
+
+
 const StaffLogin = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -18,7 +21,7 @@ const StaffLogin = () => {
     setIsLoading(true);
     try {
       const response = await axios.post(
-        "http://localhost:8000/staff/login",
+        `${backendURL}/staff/login`,
         { email, password },
         { withCredentials: true }
       );

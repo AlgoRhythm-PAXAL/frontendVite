@@ -1,6 +1,9 @@
 import { useEffect, useState, useMemo } from "react";
 import axios from "axios";
 
+const backendURL = import.meta.env.VITE_BACKEND_URL;
+
+
 const BranchSelector = ({ register, name, required = false, errors }) => {
   const [branches, setBranches] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -10,7 +13,7 @@ const BranchSelector = ({ register, name, required = false, errors }) => {
     const fetchBranches = async () => {
       try {
         const response = await axios.get(
-          "http://localhost:8000/staff/ui/branches"
+          `${backendURL}/staff/ui/branches`
         );
         setBranches(response.data);
         setLoading(false);

@@ -4,6 +4,9 @@ import InquiryInfo from "../../../components/staff/InquiryInfo";
 import axios from "axios";
 import { toast } from "sonner";
 
+const backendURL = import.meta.env.VITE_BACKEND_URL;
+
+
 const ReplyToInquiry = () => {
   const { inquiryId } = useParams();
   const [isLoaded, setIsLoaded] = useState(false);
@@ -18,7 +21,7 @@ const ReplyToInquiry = () => {
     try {
       setIsReplying(true);
       const response = await axios.post(
-        `http://localhost:8000/staff/inquiry-management/reply-to-inquiry/${inquiryId}`,
+        `${backendURL}/staff/inquiry-management/reply-to-inquiry/${inquiryId}`,
         { reply },
         {
           headers: {

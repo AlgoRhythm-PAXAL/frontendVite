@@ -4,6 +4,9 @@ import axios from "axios";
 import DataTable from "../../../components/staff/DataTable";
 import StatsBox from "../../../components/staff/StatsBox";
 
+const backendURL = import.meta.env.VITE_BACKEND_URL;
+
+
 const NewInquiries = () => {
   const [inquiries, setInquiries] = useState([]);
    const [inquiryStats, setInquiryStats] = useState({
@@ -15,7 +18,7 @@ const NewInquiries = () => {
   const getNewInquiries = async () => {
     try {
       const response = await axios.get(
-        "http://localhost:8000/staff/inquiry-management/get-all-new-inquiries",
+        `${backendURL}/staff/inquiry-management/get-all-new-inquiries`,
         { withCredentials: true }
       );
 
@@ -29,7 +32,7 @@ const NewInquiries = () => {
     try {
       console.log("Fetching inquiry stats...");
       const response = await axios.get(
-        "http://localhost:8000/staff/inquiry-management/get-inquiry-stats",
+        `${backendURL}/staff/inquiry-management/get-inquiry-stats`,
         { withCredentials: true }
       );
 

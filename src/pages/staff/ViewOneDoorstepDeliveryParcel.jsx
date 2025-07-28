@@ -6,6 +6,9 @@ import DeliverySchedules from "../../components/staff/DeliveryScedules";
 import axios from "axios";
 import { toast } from "sonner";
 
+const backendURL = import.meta.env.VITE_BACKEND_URL;
+
+
 const ViewOneDoorStepDeliveryParcel = () => {
   const { parcelId } = useParams();
   const [isLoaded, setIsLoaded] = useState(false);
@@ -19,7 +22,7 @@ const ViewOneDoorStepDeliveryParcel = () => {
       setIsCheckingAssignment(true);
       try {
         const response = await axios.get(
-          "http://localhost:8000/staff/delivery-schedules/check-parcel-assignment",
+          `${backendURL}/staff/delivery-schedules/check-parcel-assignment`,
           {
             params: {
               parcelId: parcelId,
@@ -55,7 +58,7 @@ const ViewOneDoorStepDeliveryParcel = () => {
     }
     try {
       const response = await axios.post(
-        `http://localhost:8000/staff/collection-management/update-delivery-parcel/:${parcelId}`,
+        `${backendURL}/staff/collection-management/update-delivery-parcel/:${parcelId}`,
         { parcelId },
         { withCredentials: true }
       );

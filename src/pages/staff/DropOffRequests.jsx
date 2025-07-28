@@ -4,6 +4,8 @@ import axios from "axios";
 import DataTable from "../../components/staff/DataTable";
 import StatsBox from "../../components/staff/StatsBox";
 
+const backendURL = import.meta.env.VITE_BACKEND_URL;
+
 const DropOffRequests = () => {
   const [parcels, setParcels] = useState([]);
   const [dropOffsStats, setdropOffsStats] = useState({
@@ -15,7 +17,7 @@ const DropOffRequests = () => {
   const getDropOffParcels = async () => {
     try {
       const response = await axios.get(
-        "http://localhost:8000/staff/lodging-management/get-all-dropOff-parcels",
+        `${backendURL}/staff/lodging-management/get-all-dropOff-parcels`,
         { withCredentials: true }
       );
 
@@ -28,7 +30,7 @@ const DropOffRequests = () => {
   const getDropOffsStats = async () => {
     try {
       const response = await axios.get(
-        "http://localhost:8000/staff/lodging-management/get-dropoffs-stats",
+        `${backendURL}/staff/lodging-management/get-dropoffs-stats`,
         { withCredentials: true }
       );
 

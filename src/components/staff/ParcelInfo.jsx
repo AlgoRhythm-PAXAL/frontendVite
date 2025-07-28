@@ -2,6 +2,9 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 
+const backendURL = import.meta.env.VITE_BACKEND_URL;
+
+
 const ParcelInfo = ({ parcelId, onParcelLoad }) => {
   const [parcel, setParcel] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -10,7 +13,7 @@ const ParcelInfo = ({ parcelId, onParcelLoad }) => {
   const getParcel = async () => {
     try {
       const res = await axios.get(
-        `http://localhost:8000/staff/lodging-management/get-one-parcel/${parcelId}`,
+        `${backendURL}/staff/lodging-management/get-one-parcel/${parcelId}`,
         { withCredentials: true }
       );
 

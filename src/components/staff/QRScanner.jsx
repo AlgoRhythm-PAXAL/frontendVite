@@ -3,6 +3,8 @@ import { Html5QrcodeScanner } from "html5-qrcode";
 import axios from "axios";
 import toast from "react-hot-toast";
 
+const backendURL = import.meta.env.VITE_BACKEND_URL;
+
 const QRScanner = ({ onClose }) => {
   const [statusMessage, setStatusMessage] = useState("Waiting for QR code...");
   const scannerRef = useRef(null);
@@ -21,7 +23,7 @@ const QRScanner = ({ onClose }) => {
         try {
           scanner.clear();
           const response = await axios.put(
-            "http://localhost:8000/staff/collection-management/qr-code/update-to-parcel-arrived",
+            `${backendURL}/staff/collection-management/qr-code/update-to-parcel-arrived`,
             { decodedText },
             { withCredentials: true }
           );

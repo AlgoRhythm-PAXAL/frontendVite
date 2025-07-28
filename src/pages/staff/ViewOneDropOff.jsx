@@ -5,6 +5,9 @@ import { ArrowLeftIcon } from "@heroicons/react/24/outline";
 import axios from "axios";
 import { toast } from "sonner";
 
+const backendURL = import.meta.env.VITE_BACKEND_URL;
+
+
 const ViewOneDropOff = () => {
   const { parcelId } = useParams();
   const [isLoaded, setIsLoaded] = useState(false);
@@ -19,7 +22,7 @@ const ViewOneDropOff = () => {
     try {
       setIsRegistering(true);
       const response = await axios.post(
-        `http://localhost:8000/staff/lodging-management/register-dropOff/${parcelId}`,
+        `${backendURL}/staff/lodging-management/register-dropOff/${parcelId}`,
         {},
         {
           withCredentials: true,

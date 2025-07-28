@@ -6,6 +6,9 @@ import DataTable from "../../components/staff/DataTable";
 import StatsBox from "../../components/staff/StatsBox";
 import ConfirmPopup from "../../components/staff/ConfirmPopup";
 
+const backendURL = import.meta.env.VITE_BACKEND_URL;
+
+
 const CollectionCenterDeliveryParcels = () => {
   const [parcels, setParcels] = useState([]);
   const [delivering, setDelivering] = useState(false);
@@ -20,7 +23,7 @@ const [selectedParcelId, setSelectedParcelId] = useState(null);
   const getCollectionCenterDeliveryParcels = async () => {
     try {
       const response = await axios.get(
-        "http://localhost:8000/staff/collection-management/get-all-collection-center-delivery-parcels",
+        `${backendURL}/staff/collection-management/get-all-collection-center-delivery-parcels`,
         { withCredentials: true }
       );
       setParcels(response.data.parcels);
@@ -32,7 +35,7 @@ const [selectedParcelId, setSelectedParcelId] = useState(null);
     try {
       console.log("Fetching collection-center delivery stats...");
       const response = await axios.get(
-        "http://localhost:8000/staff/collection-management/get-collection-center-delivery-stats",
+        `${backendURL}/staff/collection-management/get-collection-center-delivery-stats`,
         { withCredentials: true }
       );
 
@@ -61,7 +64,7 @@ const openConfirmDialog = (parcelId) => {
 
  
       const response = await axios.post(
-        "http://localhost:8000/staff/collection-management//update-parcel-as-delivered",
+        `${backendURL}/staff/collection-management//update-parcel-as-delivered`,
         { parcelId : selectedParcelId},
         { withCredentials: true }
       );
