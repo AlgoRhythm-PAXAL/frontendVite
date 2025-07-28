@@ -27,7 +27,6 @@ const QRScanner = ({ onClose }) => {
             { decodedText },
             { withCredentials: true }
           );
-          console.log(response);
           if (response.data.success) {
             toast.success(`Parcel ${decodedText} marked as arrived`);
             setStatusMessage("Status updated successfully.");

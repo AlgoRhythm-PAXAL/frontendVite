@@ -17,7 +17,6 @@ const ParcelInformation = ({ parcelId, onParcelLoad }) => {
       );
 
       setParcel(res.data);
-      console.log(res.data)
       onParcelLoad(res.data);
       setLoading(false);
     } catch (error) {

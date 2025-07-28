@@ -14,7 +14,6 @@ const ProtectedStaffRoute = () => {
         const response = await axios.get(`${backendURL}/staff/status`, {
           withCredentials: true,
         });
-        console.log('Token Verified!', response);
         setIsAuthenticated(true);
       } catch (error) {
         console.error('Token verification failed:', error);

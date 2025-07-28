@@ -13,7 +13,7 @@ const ViewOneParcel = () => {
   };
 
   const handleViewInvoice = (parcelId) => {
-    console.log("invoice clicked");
+    
     navigate(`/staff/lodging-management/view-parcels/invoice/${parcelId}`);
   };
 

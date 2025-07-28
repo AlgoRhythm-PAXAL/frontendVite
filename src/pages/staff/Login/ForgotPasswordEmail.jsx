@@ -19,7 +19,7 @@ const ForgotPasswordEmail = () => {
 
     setIsLoading(true);
     try {
-      console.log(email);
+      
       const response = await axios.post(
         `${backendURL}/staff/forgot-password`,
         { email }
