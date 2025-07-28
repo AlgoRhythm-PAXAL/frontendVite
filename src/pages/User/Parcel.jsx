@@ -407,10 +407,10 @@ const ParcelDashboard = () => {
                 </div>
                 <div className="ml-4">
                   <div className="text-sm font-medium text-gray-900">
-                    {parcel.receiverId.receiverEmail || parcel.receiverId.receiverEmail}
+                    {parcel.receiverId.receiverFullName || parcel.receiverId.receiverEmail}
                   </div>
                   <div className="text-sm text-gray-500">
-                    {parcel.receiverId.receiverContact || parcel.receiverId.receiverContact}
+                    {parcel.to?.location || parcel.to?.location}
                   </div>
                 </div>
               </div>
@@ -430,13 +430,13 @@ const ParcelDashboard = () => {
             <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-2">
               <button
                  onClick={(e) => handleTrack(e, parcel.trackingNo)}
-                className="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                className="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded-md shadow-sm text-white bg-red-400 hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
               >
                 <FiTruck className="mr-1" /> Track
               </button>
               <button
                onClick={(e) => handleDetailsClick(e, parcel.parcelId)}
-              className="inline-flex items-center px-3 py-1.5 border border-gray-300 text-xs font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500"
+              className="inline-flex items-center px-3 py-1.5 border border-[#1f818c] text-xs font-medium rounded-md text-[#1f818c] bg-white hover:bg-green-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500"
               >
                 <FiPackage className="mr-1" /> Details
               </button>

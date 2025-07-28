@@ -135,7 +135,7 @@ const isValidNIC = (nic) => {
       if (response.data && response.data.status === 'success') {
         localStorage.setItem('userEmail', formData.email);
         login();
-        toast.success('SignUp Successful!', { duration: 2000 });
+        toast.success('Your verify otp send to email', { duration: 2000 });
         console.log('Navigating to /verify');
         navigate('/verify');
       } else {
