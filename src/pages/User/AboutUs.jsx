@@ -245,8 +245,8 @@ const AboutUs = () => {
                 </span>
                 . What would you do with this extra time?
               </p>
-              <a
-                href="#"
+              <Link
+  to="/moreabout"
                 className="inline-flex items-center text-[#1f818c] font-semibold text-lg border-b-2 border-[#1f818c] pb-1 hover:text-[#16626b] transition-colors"
               >
                 Learn more about Scanning
@@ -263,7 +263,7 @@ const AboutUs = () => {
                     d="M14 5l7 7m0 0l-7 7m7-7H3"
                   ></path>
                 </svg>
-              </a>
+              </Link>
             </div>
           </div>
         </div>
@@ -293,8 +293,8 @@ const AboutUs = () => {
                 You can even link it to your own app via our API and Webhooks
                 for complete integration with your existing systems.
               </p>
-              <a
-                href="#"
+              <Link
+                to="/moreabout"
                 className="inline-flex items-center text-[#1f818c] font-semibold text-lg border-b-2 border-[#1f818c] pb-1 hover:text-[#16626b] transition-colors"
               >
                 Learn more about Notifications
@@ -311,7 +311,7 @@ const AboutUs = () => {
                     d="M14 5l7 7m0 0l-7 7m7-7H3"
                   ></path>
                 </svg>
-              </a>
+              </Link>
             </div>
           </div>
         </div>

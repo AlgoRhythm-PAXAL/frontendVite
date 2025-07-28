@@ -31,6 +31,9 @@ import ParcelDetails from './pages/User/ParcelDetails';
 // In your main routes file (e.g., App.js)
 import Notifications from './pages/User/Notifications';
 import LearnMore from './pages/User/LearnMore';
+import Terms from './pages/User/Terms';
+import Privacy from './pages/User/Privacy';
+
 
 
 
@@ -112,6 +115,9 @@ const App = () => {
         <Route path="/contactus" element={<ContactUs />} />
         <Route path="/aboutus" element={<AboutUs />} />
         <Route path="/moreabout" element={<LearnMore/>} />
+        <Route path="/terms" element={<Terms />} />
+        <Route path="/privacy" element={<Privacy />} />
+
         {/* All protected routes */}
         <Route element={<ProtectedRoute />}>
           <Route path="/profile" element={<Profile />} />
