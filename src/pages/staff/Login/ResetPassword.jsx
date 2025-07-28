@@ -22,7 +22,7 @@ const ResetPassword = () => {
     setIsLoading(true);
     try {
       const response = await axios.post(
-        "http://localhost:8000/staff/reset-password",
+        `${import.meta.env.VITE_BACKEND_URL}/staff/reset-password`,
         { newPassword: password, resetCode: resetCode, email: email }
       );
 

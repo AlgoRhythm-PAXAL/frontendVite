@@ -20,7 +20,7 @@ const ForgotPasswordCode = () => {
     setIsLoading(true);
     try {
       const response = await axios.post(
-        "http://localhost:8000/staff/verify-reset-code",
+        `${import.meta.env.VITE_BACKEND_URL}/staff/verify-reset-code`,
         { email, resetCode }
       );
 

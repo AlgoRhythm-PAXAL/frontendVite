@@ -18,7 +18,7 @@ const StaffLogin = () => {
     setIsLoading(true);
     try {
       const response = await axios.post(
-        "http://localhost:8000/staff/login",
+        `${import.meta.env.VITE_BACKEND_URL}/staff/login`,
         { email, password },
         { withCredentials: true }
       );
