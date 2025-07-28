@@ -336,9 +336,9 @@ const AddNewParcel = () => {
                   className="w-full px-4 py-2 border rounded-md focus:ring-2 focus:ring-Primary focus:border-Primary"
                 >
                   <option value="">Select Size</option>
-                  <option value="small">Small</option>
-                  <option value="medium">Medium</option>
-                  <option value="large">Large</option>
+                  <option value="small">Small (≤ 2kg)</option>
+                  <option value="medium">Medium (2kg - 5kg)</option>
+                  <option value="large">Large (5kg - 10kg)</option>
                 </select>
                 {errors.itemSize && (
                   <p className="mt-1 text-sm text-red-600">
