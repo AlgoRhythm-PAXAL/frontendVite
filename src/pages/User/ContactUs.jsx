@@ -5,6 +5,7 @@ import contactus from '@/assets/lottie/contactus.json';
 import Navbar from '../../components/User/Navbar';
 import Footer from '../../components/User/Footer';
 import toast from 'react-hot-toast';
+const backendURL = import.meta.env.VITE_BACKEND_URL;
 
 const ContactUsPage = () => {
   const [formData, setFormData] = useState({
@@ -32,7 +33,7 @@ const ContactUsPage = () => {
 
     try {
       const response = await fetch(
-        'http://localhost:8000/api/inquiries/postinquiry',
+        `${backendURL}/api/inquiries/postinquiry`,
         {
           method: 'POST',
           headers: {

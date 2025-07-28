@@ -7,6 +7,7 @@ import { toast } from 'react-hot-toast';
 import Navbar from '../../components/User/Navbar';
 import Footer from '../../components/User/Footer';
 import { useNavigate } from 'react-router-dom';
+const backendURL = import.meta.env.VITE_BACKEND_URL;
 
 const TrackParcelPage = () => {
   const { trackingNumber: trackingNumberFromURL } = useParams();
@@ -24,7 +25,7 @@ const TrackParcelPage = () => {
     setIsLoading(true);
     try {
       const response = await axios.get(
-        `http://localhost:8000/api/parcels/track/${trackingNumber}`,
+        `${backendURL}/api/parcels/track/${trackingNumber}`,
         { withCredentials: true }
       );
       setParcelData(response.data);

@@ -12,6 +12,7 @@ import {
   FaEnvelope,
   FaInfoCircle,
 } from 'react-icons/fa';
+const backendURL = import.meta.env.VITE_BACKEND_URL;
 
 const Navbar = () => {
   const { isAuthenticated, user, logout } = useContext(AuthContext);
@@ -32,7 +33,7 @@ const Navbar = () => {
   setLoading(true);
   try {
     console.log('Fetching notifications...'); // Debug log
-    const response = await axios.get('http://localhost:8000/api/notifications',
+    const response = await axios.get(`${backendURL}/api/notifications`,
        { withCredentials: true }
     );
     console.log('Notifications response:', response); // Debug log

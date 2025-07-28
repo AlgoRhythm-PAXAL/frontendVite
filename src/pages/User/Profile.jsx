@@ -19,6 +19,7 @@ const Profile = () => {
   const [profilePic, setProfilePic] = useState(null);
   const [previewImage, setPreviewImage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const backendURL = import.meta.env.VITE_BACKEND_URL;
 
   // Form state
   const [formData, setFormData] = useState({
@@ -69,7 +70,7 @@ const Profile = () => {
     const fetchUser = async () => {
       try {
         const response = await axios.get(
-          'http://localhost:8000/api/auth/profile',
+          `${backendURL}/api/auth/profile`,
           {
             withCredentials: true,
           }
@@ -89,7 +90,7 @@ const Profile = () => {
 
         if (response.data.data.user.profilePic) {
           setPreviewImage(
-            `http://localhost:8000/api/auth/profile/${response.data.data.user.profilePic}`
+            `${backendURL}/api/auth/profile/${response.data.data.user.profilePic}`
           );
         }
       } catch (error) {
@@ -169,7 +170,7 @@ const Profile = () => {
 
       // Send as JSON (no multipart/form-data needed)
       const response = await axios.put(
-        'http://localhost:8000/api/auth/profile',
+        `${backendURL}/api/auth/profile`,
         dataToSend,
         {
           withCredentials: true,

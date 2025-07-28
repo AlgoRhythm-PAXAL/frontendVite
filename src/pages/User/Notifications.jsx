@@ -28,6 +28,7 @@ const Notifications = () => {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [filter, setFilter] = useState('all');
   const [showFilters, setShowFilters] = useState(false);
+  const backendURL = import.meta.env.VITE_BACKEND_URL;
 
   useEffect(() => {
     fetchNotifications();
@@ -36,7 +37,7 @@ const Notifications = () => {
   const fetchNotifications = async () => {
     try {
       const response = await axios.get(
-        `http://localhost:8000/api/notifications?page=${page}&limit=10&filter=${filter}`,
+        `${backendURL}/api/notifications?page=${page}&limit=10&filter=${filter}`,
         { withCredentials: true }
       );
       
@@ -53,7 +54,7 @@ const Notifications = () => {
   const markAsRead = async (id) => {
     try {
       const response = await axios.post(
-        `http://localhost:8000/api/notifications/mark-as-read/${id}`,
+        `${backendURL}/api/notifications/mark-as-read/${id}`,
         {},
         { withCredentials: true }
       );
@@ -69,7 +70,7 @@ const Notifications = () => {
   const markAllAsRead = async () => {
     try {
       await axios.post(
-        'http://localhost:8000/api/notifications/mark-all-read',
+        `${backendURL}/api/notifications/mark-all-read`,
         {},
         { withCredentials: true }
       );

@@ -1,5 +1,6 @@
 import { createContext, useState, useEffect, useContext } from "react";
 import PropTypes from 'prop-types';
+const backendURL = import.meta.env.VITE_BACKEND_URL;
 
 /* eslint-disable react-refresh/only-export-components */
 
@@ -13,7 +14,7 @@ export const StaffAuthProvider = ({ children }) => {
     // Function to get current staff information from backend
     const getCurrentStaff = async () => {
         try {
-            const response = await fetch('http://localhost:8000/staff/status', {
+            const response = await fetch(`${backendURL}/staff/status`, {
                 method: 'GET',
                 credentials: 'include', // Include cookies for authentication
                 headers: {
@@ -43,7 +44,7 @@ export const StaffAuthProvider = ({ children }) => {
     // Login function
     const login = async (credentials) => {
         try {
-            const response = await fetch('http://localhost:8000/staff/login', {
+            const response = await fetch(`${backendURL}/staff/login`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -70,7 +71,7 @@ export const StaffAuthProvider = ({ children }) => {
     // Logout function
     const logout = async () => {
         try {
-            await fetch('http://localhost:8000/staff/logout', {
+            await fetch(`${backendURL}/staff/logout`, {
                 method: 'POST',
                 credentials: 'include'
             });

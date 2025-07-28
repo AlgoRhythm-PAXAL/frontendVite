@@ -10,6 +10,7 @@ const ResetPassword = () => {
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const backendURL = import.meta.env.VITE_BACKEND_URL;
 
   const [formData, setFormData] = useState({
     otp: '',
@@ -38,7 +39,7 @@ const ResetPassword = () => {
     setLoading(true);
     try {
       const response = await axios.post(
-        'http://localhost:8000/api/auth/reset-password',
+        `${backendURL}/api/auth/reset-password`,
         formData,
         { withCredentials: true }
       );

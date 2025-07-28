@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { AuthContext } from '../../contexts/AuthContext';
 import toast from 'react-hot-toast';
+const backendURL = import.meta.env.VITE_BACKEND_URL;
 
 const EmailVerify = () => {
   const { login } = useContext(AuthContext);
@@ -35,7 +36,7 @@ const EmailVerify = () => {
     setLoading(true);
     try {
       const response = await axios.post(
-        'http://localhost:8000/api/auth/verify',
+        `${backendURL}/api/auth/verify`,
         { otp: enteredOtp },
         { withCredentials: true }
       );
@@ -58,7 +59,7 @@ const EmailVerify = () => {
     setLoading(true);
     try {
       const response = await axios.post(
-        'http://localhost:8000/api/auth/resend-otp',
+        `${backendURL}/api/auth/resend-otp`,
         { email: storedEmail },
         { withCredentials: true }
       );

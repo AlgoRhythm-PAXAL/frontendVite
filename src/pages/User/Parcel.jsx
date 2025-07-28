@@ -18,6 +18,7 @@ import { AuthContext } from '../../contexts/AuthContext';
 import Navbar from '../../components/User/Navbar';
 import { useNavigate } from 'react-router-dom';
 import Footer from '../../components/User/Footer';
+const backendURL = import.meta.env.VITE_BACKEND_URL;
 
 
 

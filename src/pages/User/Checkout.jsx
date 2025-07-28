@@ -1,6 +1,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { loadStripe } from '@stripe/stripe-js';
+const backendURL = import.meta.env.VITE_BACKEND_URL;
 
 const Checkout = () => {
   const [stripe, setStripe] = useState(null);
@@ -21,7 +22,7 @@ const Checkout = () => {
       const handleCheckout = async () => {
         try {
           const response = await fetch(
-            'http://localhost:8000/api/payment/checkout',
+            `${backendURL}/api/payment/checkout`,
             {
               method: 'POST',
               headers: {

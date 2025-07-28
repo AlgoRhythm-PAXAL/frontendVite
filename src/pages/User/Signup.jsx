@@ -13,6 +13,7 @@ const Signup = () => {
   const [error, setError] = useState(null);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const backendURL = import.meta.env.VITE_BACKEND_URL;
 
   const [formData, setFormData] = useState({
     fName: '',
@@ -123,7 +124,7 @@ const isValidNIC = (nic) => {
     try {
       console.log('Sending data to server:', formData);
       const response = await axios.post(
-        'http://localhost:8000/api/auth/signup',
+        `${backendURL}/api/auth/signup`,
         formData,
         {
           withCredentials: true,

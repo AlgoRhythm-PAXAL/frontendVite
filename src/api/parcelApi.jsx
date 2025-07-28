@@ -1,6 +1,7 @@
 import axios from 'axios';
 
 const API_URL = 'http://localhost:8000/api';
+const backendURL = import.meta.env.VITE_BACKEND_URL;
 
 // Fetch all branches from backend
 export const fetchBranches = async () => {
@@ -17,7 +18,7 @@ export const fetchBranches = async () => {
 export const submitParcel = async (parcelData) => {
   try {
     const response = await axios.post(
-      'http://localhost:8000/api/parcels/addparcel',
+      `${backendURL}/api/parcels/addparcel`,
       parcelData,
       {
         withCredentials: true,

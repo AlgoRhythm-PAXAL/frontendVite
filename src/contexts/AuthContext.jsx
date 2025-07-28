@@ -86,6 +86,7 @@
 import { createContext, useState, useEffect } from 'react';
 import axios from 'axios';
 import PropTypes from 'prop-types';
+const backendURL = import.meta.env.VITE_BACKEND_URL;
 
 
 export const AuthContext = createContext();
@@ -121,7 +122,7 @@ export const AuthProvider = ({ children }) => {
   const fetchUser = async () => {
     try {
       const response = await axios.get(
-        'http://localhost:8000/api/auth/profile',
+        `${backendURL}/api/auth/profile`,
         { withCredentials: true }
       );
       return response.data.data.user;
@@ -145,7 +146,7 @@ export const AuthProvider = ({ children }) => {
   const logout = async () => {
     try {
       await axios.post(
-        'http://localhost:8000/api/auth/logout',
+        `${backendURL}/api/auth/logout`,
         {},
         { withCredentials: true }
       );

@@ -5,6 +5,7 @@ import { FaEye, FaEyeSlash } from 'react-icons/fa';
 import axios from 'axios';
 import toast from 'react-hot-toast';
 const backendURL = import.meta.env.VITE_BACKEND_URL;
+console.log("Backend URL:", backendURL);
 
 const Login = () => {
   const navigate = useNavigate();
@@ -26,7 +27,7 @@ const Login = () => {
 
     try {
       const response = await axios.post(
-        `${backendURL}/auth/login`,
+        `${ backendURL}/api/auth/login`,
         formData,
         {
           withCredentials: true,
@@ -38,6 +39,7 @@ const Login = () => {
         toast.success('Login Successful!', { duration: 2000 });
         navigate('/');
       } else {
+        console.log(`${backendURL}/auth/login`);
         toast.error('Invalid email or password');
       }
     } catch (error) {

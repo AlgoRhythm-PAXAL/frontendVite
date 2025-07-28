@@ -19,6 +19,7 @@ import {
 import { FiGitBranch } from 'react-icons/fi';
 import Navbar from '../../components/User/Navbar';
 import Footer from '../../components/User/Footer';
+const backendURL = import.meta.env.VITE_BACKEND_URL;
 
 const ParcelDetails = () => {
   const { parcelId } = useParams();
@@ -31,7 +32,7 @@ const ParcelDetails = () => {
     const fetchParcelDetails = async () => {
       try {
         const response = await axios.get(
-          `http://localhost:8000/api/parcels/${parcelId}`,
+          `${backendURL}/api/parcels/${parcelId}`,
           { withCredentials: true }
         );
         setParcel(response.data.parcel);
