@@ -1,9 +1,12 @@
 import React, { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import ParcelInformation from "../../components/staff/ParcelInformation";
+import ParcelInformation from "../../../components/staff/ParcelInformation";
 import { ArrowLeftIcon } from "@heroicons/react/24/outline";
 import axios from "axios";
 import { toast } from "sonner";
+
+const backendURL = import.meta.env.VITE_BACKEND_URL;
+
 
 const ViewOneDropOff = () => {
   const { parcelId } = useParams();
@@ -19,7 +22,7 @@ const ViewOneDropOff = () => {
     try {
       setIsRegistering(true);
       const response = await axios.post(
-        `http://localhost:8000/staff/lodging-management/register-dropOff/${parcelId}`,
+        `${backendURL}/staff/lodging-management/register-dropOff/${parcelId}`,
         {},
         {
           withCredentials: true,

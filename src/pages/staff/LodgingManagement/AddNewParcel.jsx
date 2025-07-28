@@ -2,10 +2,13 @@ import { useForm } from "react-hook-form";
 import axios from "axios";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import BranchSelector from "../../components/staff/BranchSelector";
+import BranchSelector from "../../../components/staff/BranchSelector";
 import { toast } from "sonner";
-import ProvinceSelector from "../../components/staff/ProvinceSelector";
-import DistrictSelector from "../../components/staff/DistrictSelector";
+import ProvinceSelector from "../../../components/staff/ProvinceSelector";
+import DistrictSelector from "../../../components/staff/DistrictSelector";
+
+const backendURL = import.meta.env.VITE_BACKEND_URL;
+
 
 const AddNewParcel = () => {
   const {
@@ -35,7 +38,7 @@ const AddNewParcel = () => {
     try {
       if (itemSize && from && to && shippingMethod) {
         const response = await axios.get(
-          "http://localhost:8000/staff/lodging-management/calculate-payment",
+          `${backendURL}/staff/lodging-management/calculate-payment`,
           {
             params: {
               itemSize,
@@ -69,7 +72,7 @@ const AddNewParcel = () => {
       console.log("Data being sent to the server: ", formData);
 
       const response = await axios.post(
-        "http://localhost:8000/staff/lodging-management/register-parcel",
+        `${backendURL}/staff/lodging-management/register-parcel`,
         formData,
         {
           headers: { "Content-Type": "application/json" },
@@ -229,22 +232,23 @@ const AddNewParcel = () => {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    District
-                  </label>
-                  <DistrictSelector
-                    register={register}
-                    name="district"
-                    selectedProvince={provinceOne}
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
                     Province
                   </label>
                   <ProvinceSelector
                     register={register}
                     name="province"
                     onChange={(e) => setSelectedProvinceOne(e.target.value)}
+                  />
+                  
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    District
+                  </label>
+                  <DistrictSelector
+                    register={register}
+                    name="district"
+                    selectedProvince={provinceOne}
                   />
                 </div>
               </div>

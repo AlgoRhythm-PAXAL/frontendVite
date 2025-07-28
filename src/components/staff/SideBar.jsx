@@ -4,6 +4,9 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import QRScanner from "../../components/staff/QRScanner";
 import axios from 'axios';
 
+const backendURL = import.meta.env.VITE_BACKEND_URL;
+
+
 const SideBar = () => {
     const location = useLocation();
     const [openDropdown, setOpenDropdown] = useState(null);
@@ -65,7 +68,7 @@ const SideBar = () => {
     const handleLogout = async () => {
         try {
             await axios.post(
-                "http://localhost:8000/staff/logout",
+                `${backendURL}/staff/logout`,
                 {},
                 { withCredentials: true }
             );

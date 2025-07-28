@@ -64,34 +64,37 @@ import StaffResetPassword from "./pages/staff/Login/ResetPassword";
 import ProtectedStaffRoute from "./components/staff/ProtectedStaffRoutes";
 import StaffMainMenu from "./pages/staff/StaffMainMenu";
 import StaffLayout from "./pages/staff/StaffLayout";
-import ViewParcels from "./pages/staff/ViewParcels";
-import PickupRequests from "./pages/staff/PickupRequests";
-import DropOffRequests from "./pages/staff/DropOffRequests";
-import ViewOneParcel from "./pages/staff/ViewOneParcel";
-import ViewOnePickup from "./pages/staff/ViewOnePickup";
-import ViewOneDropOff from "./pages/staff/ViewOneDropOff";
-import ParcelInvoice from "./pages/staff/ParcelInvoice";
-import AddNewParcel from "./pages/staff/AddNewParcel";
-import ViewOneDoorStepDeliveryParcel from "./pages/staff/ViewOneDoorstepDeliveryParcel";
-import DoorstepDeliveryParcels from "./pages/staff/DoorstepDeliveryParcels";
-import CollectionCenterDeliveryParcels from "./pages/staff/CollectionCenterDeliveryParcels";
+import StaffProfile from "./pages/staff/StaffProfile";
+{/* Lodging Management - Staff */}
+import ViewParcels from "./pages/staff/LodgingManagement/ViewParcels";
+import PickupRequests from "./pages/staff/LodgingManagement/PickupRequests";
+import DropOffRequests from "./pages/staff/LodgingManagement/DropOffRequests";
+import ViewOneParcel from "./pages/staff//LodgingManagement/ViewOneParcel";
+import ViewOnePickup from "./pages/staff/LodgingManagement/ViewOnePickup";
+import ViewOneDropOff from "./pages/staff/LodgingManagement/ViewOneDropOff";
+import ParcelInvoice from "./pages/staff/LodgingManagement/ParcelInvoice";
+import AddNewParcel from "./pages/staff/LodgingManagement/AddNewParcel";
+{/* Collection Management - Staff */}
+import DoorstepDeliveryParcels from "./pages/staff/CollectionManagement/DoorstepDeliveryParcels";
+import ViewOneDoorStepDeliveryParcel from "./pages/staff/CollectionManagement/ViewOneDoorstepDeliveryParcel";
+import CollectionCenterDeliveryParcels from "./pages/staff/CollectionManagement/CollectionCenterDeliveryParcels";
+import ViewOneCollectionCenterDeliveryparcel from "./pages/staff/CollectionManagement/ViewOneCollectionCenterDeliveryParcel";
+import DashboardPage from "./pages/staff/CollectionManagement/Dashboard/dashboardPage";
+import ParcelListPage from "./pages/staff/CollectionManagement/Dashboard/ParcelListPage";
+import TrackingPageStaff from "./pages/staff/CollectionManagement/Tracking/trackingPage";
+import Scanner from "./pages/staff/CollectionManagement/Scanner";
+{/* Inquiry Management - Staff */}
 import NewInquiries from "./pages/staff/Inquiry/NewInquiries";
 import ViewRepliedInquiries from "./pages/staff/Inquiry/ViewRepliedInquiries";
 import ReplyToInquiry from "./pages/staff/Inquiry/ReplyToInquiry";
 import ViewOneRepliedInquiry from "./pages/staff/Inquiry/ViewOneRepliedInquiry";
-import ViewOneCollectionCenterDeliveryparcel from "./pages/staff/ViewOneCollectionCenterDeliveryParcel";
-
-
+{/* Shipment Management */}
 import ParcelTablePage from "./pages/staff/ShipmentManagement/ParcelTablePage/parcelTablePage";
 import ManualShipmentPage from "./pages/staff/ShipmentManagement/ManualShipmentPage/manualShipmentPage";
 import CreatedShipmentsPage from "./pages/staff/ShipmentManagement/CreatedShipmentsPage/createdShipmentsPage";
 import ViewShipmentsPage from "./pages/staff/ShipmentManagement/ViewShipmentsPage/viewShipmentsPage";
 import ManifestPage from "./pages/staff/ShipmentManagement/ManifestPage/manifestPage";
-import DashboardPage from "./pages/staff/CollectionManagement/Dashboard/dashboardPage";
-import ParcelListPage from "./pages/staff/CollectionManagement/Dashboard/ParcelListPage";
-import TrackingPageStaff from "./pages/staff/CollectionManagement/Tracking/trackingPage";
-import Scanner from "./pages/staff/Scanner";
-import StaffProfile from "./pages/staff/StaffProfile";
+
  // You'll need to create this
 
 const App = () => {

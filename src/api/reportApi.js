@@ -397,6 +397,106 @@ export const branchApi = {
   }
 };
 
+// AI Insights API
+export const aiApi = {
+  /**
+   * Get business metrics for AI analysis
+   * @param {Object} params - Parameters for metrics
+   * @param {string} params.dateRange - JSON string of date range
+   * @param {string} params.branchId - Branch ID or 'all'
+   * @returns {Promise} Business metrics data
+   */
+  getBusinessMetrics: async (params = {}) => {
+    try {
+      const response = await apiClient.get('/api/admin/ai/metrics', {
+        params: {
+          dateRange: params.dateRange || JSON.stringify({
+            startDate: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(),
+            endDate: new Date().toISOString()
+          }),
+          branchId: params.branchId || 'all'
+        }
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching business metrics:', error);
+      throw error;
+    }
+  },
+
+  /**
+   * Generate AI-powered business report
+   * @param {Object} params - Report parameters
+   * @param {string} params.reportType - Type of report (comprehensive, performance, etc.)
+   * @param {string} params.dateRange - JSON string of date range
+   * @param {string} params.branchId - Branch ID or 'all'
+   * @returns {Promise} AI-generated insights and recommendations
+   */
+  generateAIReport: async (params = {}) => {
+    try {
+      const response = await apiClient.post('/api/admin/ai/generate-report', {
+        reportType: params.reportType || 'comprehensive',
+        dateRange: params.dateRange || JSON.stringify({
+          startDate: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(),
+          endDate: new Date().toISOString()
+        }),
+        branchId: params.branchId || 'all'
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Error generating AI report:', error);
+      throw error;
+    }
+  },
+
+  /**
+   * Get AI insights for custom data
+   * @param {Object} params - Parameters for insights
+   * @param {Object} params.reportData - Custom data to analyze
+   * @param {string} params.reportType - Type of analysis
+   * @returns {Promise} AI insights and recommendations
+   */
+  getAIInsights: async (params = {}) => {
+    try {
+      const response = await apiClient.post('/api/admin/ai/insights', {
+        reportData: params.reportData,
+        reportType: params.reportType || 'comprehensive'
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Error getting AI insights:', error);
+      throw error;
+    }
+  },
+
+  /**
+   * Get performance analysis data
+   * @param {Object} params - Parameters for performance analysis
+   * @param {string} params.analysisType - Type of analysis
+   * @param {string} params.dateRange - JSON string of date range
+   * @param {string} params.branchId - Branch ID or 'all'
+   * @returns {Promise} Performance analysis data
+   */
+  getPerformanceAnalysis: async (params = {}) => {
+    try {
+      const response = await apiClient.get('/api/admin/ai/performance', {
+        params: {
+          analysisType: params.analysisType || 'comprehensive',
+          dateRange: params.dateRange || JSON.stringify({
+            startDate: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(),
+            endDate: new Date().toISOString()
+          }),
+          branchId: params.branchId || 'all'
+        }
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Error getting performance analysis:', error);
+      throw error;
+    }
+  }
+};
+
 // Export the configured axios instance for custom calls
 export { apiClient };
 
@@ -405,5 +505,6 @@ export default {
   dashboardApi,
   reportApi,
   branchApi,
+  aiApi,
   apiClient
 };

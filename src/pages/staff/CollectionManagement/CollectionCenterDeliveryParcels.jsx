@@ -1,16 +1,21 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { formatDistanceToNow } from "date-fns";
+import { formatDistanceToNow, set } from "date-fns";
 import axios from "axios";
-import DataTable from "../../components/staff/DataTable";
-import StatsBox from "../../components/staff/StatsBox";
-import ConfirmPopup from "../../components/staff/ConfirmPopup";
+import DataTable from "../../../components/staff/DataTable";
+import StatsBox from "../../../components/staff/StatsBox";
+import ConfirmPopup from "../../../components/staff/ConfirmPopup";
+
+const backendURL = import.meta.env.VITE_BACKEND_URL;
+
 
 const CollectionCenterDeliveryParcels = () => {
   const [parcels, setParcels] = useState([]);
   const [delivering, setDelivering] = useState(false);
-  const [dialogOpen, setDialogOpen] = useState(false);
+  const [deliveryDialogOpen, setDeliveryDialogOpen] = useState(false);
+  const [paymentDialogOpen, setPaymentDialogOpen] = useState(false);
 const [selectedParcelId, setSelectedParcelId] = useState(null);
+const [paid, setPaid] = useState(false);
    const [deliveryStats, setDeliveryStats] = useState({
       pendingCollectionCenterDeliveries: 0
         
@@ -20,7 +25,7 @@ const [selectedParcelId, setSelectedParcelId] = useState(null);
   const getCollectionCenterDeliveryParcels = async () => {
     try {
       const response = await axios.get(
-        "http://localhost:8000/staff/collection-management/get-all-collection-center-delivery-parcels",
+        `${backendURL}/staff/collection-management/get-all-collection-center-delivery-parcels`,
         { withCredentials: true }
       );
       setParcels(response.data.parcels);
@@ -32,7 +37,7 @@ const [selectedParcelId, setSelectedParcelId] = useState(null);
     try {
       console.log("Fetching collection-center delivery stats...");
       const response = await axios.get(
-        "http://localhost:8000/staff/collection-management/get-collection-center-delivery-stats",
+        `${backendURL}/staff/collection-management/get-collection-center-delivery-stats`,
         { withCredentials: true }
       );
 
@@ -48,10 +53,23 @@ const [selectedParcelId, setSelectedParcelId] = useState(null);
     getCollectionCenterDeliveryParcels();
     getDeliveryStats();
   }, []);
-const openConfirmDialog = (parcelId) => {
+const openConfirmDialog = (parcelId, paymentStatus) => {
   setSelectedParcelId(parcelId);
-  setDialogOpen(true);
+  if (paymentStatus === "paid") {
+    setPaid(true);
+  }else {
+    setPaid(false);
+    setPaymentDialogOpen(true);
+  }
+  
 };
+
+const handlePayment = async () => {
+  setPaymentDialogOpen(false);
+  setPaid(true);
+  setDeliveryDialogOpen(true);
+
+}
 
 
   const handleDelivery = async () => {
@@ -61,8 +79,8 @@ const openConfirmDialog = (parcelId) => {
 
  
       const response = await axios.post(
-        "http://localhost:8000/staff/collection-management//update-parcel-as-delivered",
-        { parcelId : selectedParcelId},
+        `${backendURL}/staff/collection-management//update-parcel-as-delivered`,
+        { parcelId : selectedParcelId, paid},
         { withCredentials: true }
       );
 
@@ -84,7 +102,9 @@ const openConfirmDialog = (parcelId) => {
         duration: 4000,
       });
     }finally {
-      setDialogOpen(false);
+      setDeliveryDialogOpen(false);
+      setPaymentDialogOpen(false);
+      setPaid(false);
       setDelivering(false);
       setSelectedParcelId(null);
       getCollectionCenterDeliveryParcels(); 
@@ -122,7 +142,7 @@ const openConfirmDialog = (parcelId) => {
       className:
         "bg-Primary text-white font-semibold px-5 py-2 rounded-lg hover:shadow-md transition-all duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-Primary-light",
       disabled: setDelivering,
-        onClick: (row) => openConfirmDialog(row.parcelId),
+        onClick: (row) => openConfirmDialog(row.parcelId, row.paymentStatus),
       
     },
     {
@@ -163,12 +183,24 @@ const openConfirmDialog = (parcelId) => {
         />
       </div>
     </div>
+
+    <ConfirmPopup
+  isOpen={paymentDialogOpen}
+  onClose={() => setPaymentDialogOpen(false)}
+  onConfirm={handlePayment}
+  title="Confirm Payment"
+  message="This parcel hasn't been paid for. Has the staff collected
+                      payment?"
+                      buttonName={"Payment Collected"}
+/>
+  
   <ConfirmPopup
-  isOpen={dialogOpen}
-  onClose={() => setDialogOpen(false)}
+  isOpen={deliveryDialogOpen}
+  onClose={() => setDeliveryDialogOpen(false)}
   onConfirm={handleDelivery}
   title="Confirm Delivery"
   message="Are you sure you want to mark this parcel as delivered?"
+  buttonName={"Confirm Delivery"}
 />
 </>
   );

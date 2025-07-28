@@ -3,6 +3,9 @@ import DataTable from "../../components/staff/DataTable";
 import axios from "axios";
 import { toast } from "sonner";
 
+const backendURL = import.meta.env.VITE_BACKEND_URL;
+
+
 const PickupSchedules = ({
   pickupDate,
   pickupTimeSlot,
@@ -24,7 +27,7 @@ const PickupSchedules = ({
   const getPickupSchedules = async () => {
     try {
       const response = await axios.get(
-        "http://localhost:8000/staff/vehicle-schedules/get-all-pickup-schedules",
+        `${backendURL}/staff/vehicle-schedules/get-all-pickup-schedules`,
         {
           params: {
             pickupDate: pickupDate,
@@ -48,7 +51,7 @@ const PickupSchedules = ({
   const handlePickupScheduleSelection = async (parcelId, scheduleId) => {
     try {
       const response = await axios.post(
-        "http://localhost:8000/staff/vehicle-schedules/select-pickup-schedule",
+        `${backendURL}/staff/vehicle-schedules/select-pickup-schedule`,
         { parcelId, scheduleId },
         { withCredentials: true }
       );
@@ -66,7 +69,7 @@ const PickupSchedules = ({
   const handleCancelSelection = async (parcelId) => {
     try {
       const response = await axios.post(
-        "http://localhost:8000/staff/vehicle-schedules/cancel-pickup-schdeule",
+        `${backendURL}/staff/vehicle-schedules/cancel-pickup-schdeule`,
         { parcelId, scheduleId: selectedScheduleId },
         { withCredentials: true }
       );
@@ -85,7 +88,7 @@ const PickupSchedules = ({
     try {
       setIsCreating(true);
       const response = await axios.post(
-        "http://localhost:8000/staff/vehicle-schedules/new-pickup-schedule",
+        `${backendURL}/staff/vehicle-schedules/new-pickup-schedule`,
         { parcelId },
         { withCredentials: true }
       );

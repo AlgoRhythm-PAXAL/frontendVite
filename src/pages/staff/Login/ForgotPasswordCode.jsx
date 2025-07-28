@@ -5,6 +5,9 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import Logo from "../../../assets/userAssets/logo.jpg";
 
+const backendURL = import.meta.env.VITE_BACKEND_URL;
+
+
 const ForgotPasswordCode = () => {
   const location = useLocation();
   const { email } = location.state || {};
@@ -20,7 +23,7 @@ const ForgotPasswordCode = () => {
     setIsLoading(true);
     try {
       const response = await axios.post(
-        `${import.meta.env.VITE_BACKEND_URL}/staff/verify-reset-code`,
+        `${backendURL}/staff/verify-reset-code`,
         { email, resetCode }
       );
 

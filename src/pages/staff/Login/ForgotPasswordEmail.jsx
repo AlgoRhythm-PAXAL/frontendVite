@@ -5,6 +5,9 @@ import { Link, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import Logo from "../../../assets/userAssets/logo.jpg";
 
+const backendURL = import.meta.env.VITE_BACKEND_URL;
+
+
 const ForgotPasswordEmail = () => {
   const [email, setEmail] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -18,7 +21,9 @@ const ForgotPasswordEmail = () => {
     try {
       console.log(email);
       const response = await axios.post(
-        `${import.meta.env.VITE_BACKEND_URL}/staff/forgot-password`,
+
+        `${backendURL}/staff/forgot-password`,
+
         { email }
       );
 

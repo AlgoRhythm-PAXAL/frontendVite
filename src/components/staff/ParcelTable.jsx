@@ -12,6 +12,9 @@ import {
 } from "@mui/material";
 import axios from "axios";
 
+const backendURL = import.meta.env.VITE_BACKEND_URL;
+
+
 const ParcelTable = ({ apiUrl }) => {
   const headers = [
     "Parcel ID",
@@ -29,7 +32,7 @@ const ParcelTable = ({ apiUrl }) => {
 
   useEffect(() => {
     axios
-      .get('http://localhost:8000/staff/lodging-management/get-all-parcels')
+      .get(`${backendURL}/staff/lodging-management/get-all-parcels`)
       .then((response) => {
         setRows(response.data);
   })

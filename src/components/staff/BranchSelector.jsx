@@ -1,6 +1,9 @@
 import { useEffect, useState, useMemo } from "react";
 import axios from "axios";
 
+const backendURL = import.meta.env.VITE_BACKEND_URL;
+
+
 const BranchSelector = ({ register, name, required = false, errors }) => {
   const [branches, setBranches] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -10,7 +13,7 @@ const BranchSelector = ({ register, name, required = false, errors }) => {
     const fetchBranches = async () => {
       try {
         const response = await axios.get(
-          "http://localhost:8000/staff/ui/branches"
+          `${backendURL}/staff/ui/branches`
         );
         setBranches(response.data);
         setLoading(false);
@@ -24,9 +27,10 @@ const BranchSelector = ({ register, name, required = false, errors }) => {
     fetchBranches();
   }, []);
 
-  // Sort branches alphabetically by location
-  const sortedBranches = useMemo(() => {
-    return [...branches].sort((a, b) => a.location.localeCompare(b.location));
+  // Filter and Sort branches alphabetically by location
+  const filteredbranches = useMemo(() => {
+    return [...branches]
+    .sort((a, b) => a.location.localeCompare(b.location));
   }, [branches]);
 
   if (loading) {
@@ -39,12 +43,13 @@ const BranchSelector = ({ register, name, required = false, errors }) => {
 
   return (
     <div className="w-full">
+      
       <select
         {...register(name, { required })}
         className="w-full px-4 py-2 border rounded-md focus:ring-2 focus:Primary focus:border-Primary"
       >
         <option value="">Select Branch</option>
-        {sortedBranches.map((branch) => (
+        {filteredbranches.map((branch) => (
           <option key={branch._id} value={branch._id}>
             {branch.location}
           </option>

@@ -3,6 +3,9 @@ import LoginInput from "../ui/LoginInput";
 import { toast } from "sonner";
 import axios from "axios";
 
+const backendURL = import.meta.env.VITE_BACKEND_URL;
+
+
 const PasswordResetCodePopup = ({ isOpen, onClose, email}) => {
   if (!isOpen) return null;
 const [confirm, setConfirm] = useState(false);
@@ -29,7 +32,7 @@ const [showPasswordReset, setShowPasswordReset] = useState(false);
     try {
       console.log("code confirming");
       const response = await axios.post(
-        "http://localhost:8000/staff/verify-reset-code",
+        `${backendURL}/staff/verify-reset-code`,
         { email, resetCode }
       );
 
@@ -73,7 +76,7 @@ if (newPassword !== confirmPassword) {
     try {
       console.log("password updating");
       const response = await axios.post(
-        "http://localhost:8000/staff/reset-password",
+        `${backendURL}/staff/reset-password`,
         { newPassword: newPassword, resetCode: resetCode, email: email }
       );
 

@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 
-const ConfirmPopup = ({ isOpen, onClose, onConfirm, title, message }) => {
+const ConfirmPopup = ({ isOpen, onClose, onConfirm, title, message, buttonName }) => {
   if (!isOpen) return null;
 const [confirm, setConfirm] = useState(false);
 
@@ -39,7 +39,7 @@ const [confirm, setConfirm] = useState(false);
                   Updating..
                 </div>
               ) : (
-                "Confirm"
+                buttonName
               )}
             
           </button>
