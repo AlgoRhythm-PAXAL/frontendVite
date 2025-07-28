@@ -26,6 +26,7 @@ const ResetPassword = () => {
     try {
       const response = await axios.post(
         `${backendURL}/staff/reset-password`,
+
         { newPassword: password, resetCode: resetCode, email: email }
       );
 

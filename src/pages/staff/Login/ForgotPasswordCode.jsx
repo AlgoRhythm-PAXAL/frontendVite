@@ -23,7 +23,9 @@ const ForgotPasswordCode = () => {
     setIsLoading(true);
     try {
       const response = await axios.post(
+
         `${backendURL}/staff/verify-reset-code`,
+
         { email, resetCode }
       );
 
