@@ -22,6 +22,7 @@ const ManifestPage = () => {
                 headers: {
                     'Content-Type': 'application/json',
                 },
+                credentials: 'include'
             });
 
             if (!response.ok) {
@@ -118,6 +119,7 @@ const ManifestPage = () => {
                     headers: {
                         'Content-Type': 'application/json',
                     },
+                    credentials: 'include'
                 });
 
                 if (!response.ok) {
