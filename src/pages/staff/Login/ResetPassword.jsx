@@ -5,6 +5,9 @@ import axios from "axios";
 import { toast } from "sonner";
 import Logo from "../../../assets/userAssets/logo.jpg";
 
+const backendURL = import.meta.env.VITE_BACKEND_URL;
+
+
 const ResetPassword = () => {
   const location = useLocation();
 
@@ -22,7 +25,8 @@ const ResetPassword = () => {
     setIsLoading(true);
     try {
       const response = await axios.post(
-        `${import.meta.env.VITE_BACKEND_URL}/staff/reset-password`,
+        `${backendURL}/staff/reset-password`,
+
         { newPassword: password, resetCode: resetCode, email: email }
       );
 

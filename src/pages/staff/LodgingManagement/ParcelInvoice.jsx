@@ -4,6 +4,9 @@ import { useReactToPrint } from "react-to-print";
 import axios from "axios";
 import { PrinterIcon } from "@heroicons/react/24/outline";
 
+const backendURL = import.meta.env.VITE_BACKEND_URL;
+
+
 const ParcelInvoice = () => {
   const { parcelId } = useParams();
   const [parcel, setParcel] = useState(null);
@@ -15,7 +18,7 @@ const ParcelInvoice = () => {
     try {
       console.log(parcelId);
       const res = await axios.get(
-        `http://localhost:8000/staff/lodging-management/get-one-parcel/${parcelId}`,
+        `${backendURL}/staff/lodging-management/get-one-parcel/${parcelId}`,
         { withCredentials: true }
       );
       setParcel(res.data);
@@ -142,7 +145,7 @@ const ParcelInvoice = () => {
                   {parcel?.deliveryInformation?.deliveryDistrict},<br />
                   {parcel?.deliveryInformation?.deliveryProvince} Province
                   <br />
-                  Postal: {parcel?.deliveryInformation?.postalCode}
+                  <span className="font-medium">Postal Code:</span> {parcel?.deliveryInformation?.postalCode}
                 </p>
               </div>
             )}

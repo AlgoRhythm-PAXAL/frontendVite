@@ -2,7 +2,8 @@ import React, { useEffect, useState } from "react";
 import DataTable from "../../components/staff/DataTable";
 import axios from "axios";
 import toast from "react-hot-toast";
-import { set } from "date-fns";
+
+const backendURL = import.meta.env.VITE_BACKEND_URL;
 
 const timeSlots = ["08:00 - 12:00", "13:00 - 17:00"];
 
@@ -30,7 +31,7 @@ const DeliverySchedules = ({ onAssignmentChange, parcelId }) => {
   const getDeliverySchedules = async () => {
     try {
       const response = await axios.get(
-        "http://localhost:8000/staff/delivery-schedules/get-all-delivery-schedules",
+        `${backendURL}/staff/delivery-schedules/get-all-delivery-schedules`,
         { withCredentials: true }
       );
 
@@ -44,7 +45,7 @@ const DeliverySchedules = ({ onAssignmentChange, parcelId }) => {
   const handleDeliveryScheduleSelection = async (parcelId, scheduleId) => {
     try {
       const response = await axios.post(
-        "http://localhost:8000/staff/delivery-schedules/select-delivery-schedule",
+        `${backendURL}/staff/delivery-schedules/select-delivery-schedule`,
         { parcelId, scheduleId },
         { withCredentials: true }
       );
@@ -60,7 +61,7 @@ const DeliverySchedules = ({ onAssignmentChange, parcelId }) => {
   const handleCancelSelection = async (parcelId) => {
     try {
       const response = await axios.post(
-        "http://localhost:8000/staff/delivery-schedules/cancel-delivery-schdeule",
+        `${backendURL}/staff/delivery-schedules/cancel-delivery-schdeule`,
         { parcelId, scheduleId: selectedScheduleId },
         { withCredentials: true }
       );
@@ -76,7 +77,7 @@ const DeliverySchedules = ({ onAssignmentChange, parcelId }) => {
   const addNewDeliverySchedule = async (parcelId) => {
     try {
       const response = await axios.post(
-        "http://localhost:8000/staff/delivery-schedules/new-delivery-schedule",
+        `${backendURL}/staff/delivery-schedules/new-delivery-schedule`,
         { parcelId },
         { withCredentials: true }
       );
@@ -110,7 +111,7 @@ const DeliverySchedules = ({ onAssignmentChange, parcelId }) => {
     try {
       setConfirming(true);
       const response = await axios.post(
-        "http://localhost:8000/staff/delivery-schedules/new-express-delivery-schedule",
+        `${backendURL}/staff/delivery-schedules/new-express-delivery-schedule`,
         { parcelId,
           deliveryDate: selectedDate,
           timeSlot: selectedTimeSlot,

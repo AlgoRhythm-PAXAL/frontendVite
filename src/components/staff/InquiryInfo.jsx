@@ -1,16 +1,17 @@
 import axios from "axios";
 import React, { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+
+const backendURL = import.meta.env.VITE_BACKEND_URL;
+
 
 const InquiryInfo = ({ inquiryId, onInquiryLoad }) => {
   const [inquiry, setInquiry] = useState(null);
   const [loading, setLoading] = useState(true);
-  const navigate = useNavigate();
 
   const getInquiry = async () => {
     try {
       const res = await axios.get(
-        `http://localhost:8000/staff/inquiry-management/get-one-inquiry/${inquiryId}`,
+        `${backendURL}/staff/inquiry-management/get-one-inquiry/${inquiryId}`,
         { withCredentials: true }
       );
 

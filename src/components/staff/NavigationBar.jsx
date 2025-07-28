@@ -9,6 +9,9 @@ import {
   UserCircleIcon,
 } from "@heroicons/react/24/outline";
 
+const backendURL = import.meta.env.VITE_BACKEND_URL;
+
+
 const NavigationBar = () => {
   const [staff, setStaff] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -23,7 +26,7 @@ const NavigationBar = () => {
   const getStaffInfo = async () => {
     try {
       const response = await axios.get(
-        "http://localhost:8000/staff/ui/get-staff-information",
+        `${backendURL}/staff/ui/get-staff-information`,
         { withCredentials: true }
       );
       setStaff(response.data);
@@ -40,7 +43,7 @@ const NavigationBar = () => {
   const handleLogout = async () => {
     try {
       await axios.post(
-        "http://localhost:8000/staff/logout",
+        `${backendURL}/staff/logout`,
         {},
         { withCredentials: true }
       );

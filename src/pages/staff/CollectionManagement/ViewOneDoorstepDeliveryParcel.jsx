@@ -1,10 +1,13 @@
 import { useNavigate, useParams } from "react-router-dom";
-import ParcelInformation from "../../components/staff/ParcelInformation";
+import ParcelInformation from "../../../components/staff/ParcelInformation";
 import { useEffect, useState } from "react";
 import { ArrowLeftIcon } from "@heroicons/react/24/outline";
-import DeliverySchedules from "../../components/staff/DeliveryScedules";
+import DeliverySchedules from "../../../components/staff/DeliveryScedules";
 import axios from "axios";
 import { toast } from "sonner";
+
+const backendURL = import.meta.env.VITE_BACKEND_URL;
+
 
 const ViewOneDoorStepDeliveryParcel = () => {
   const { parcelId } = useParams();
@@ -19,7 +22,7 @@ const ViewOneDoorStepDeliveryParcel = () => {
       setIsCheckingAssignment(true);
       try {
         const response = await axios.get(
-          "http://localhost:8000/staff/delivery-schedules/check-parcel-assignment",
+          `${backendURL}/staff/delivery-schedules/check-parcel-assignment`,
           {
             params: {
               parcelId: parcelId,
@@ -55,7 +58,7 @@ const ViewOneDoorStepDeliveryParcel = () => {
     }
     try {
       const response = await axios.post(
-        `http://localhost:8000/staff/collection-management/update-delivery-parcel/:${parcelId}`,
+        `${backendURL}/staff/collection-management/update-delivery-parcel/:${parcelId}`,
         { parcelId },
         { withCredentials: true }
       );

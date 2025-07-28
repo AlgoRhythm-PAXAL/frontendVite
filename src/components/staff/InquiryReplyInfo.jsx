@@ -1,5 +1,7 @@
 import axios from "axios";
 import React, { useEffect, useState } from "react";
+const backendURL = import.meta.env.VITE_BACKEND_URL;
+
 
 const InquiryReplyInfo = ({ inquiryId, onInquiryLoad }) => {
   const [inquiry, setInquiry] = useState(null);
@@ -8,7 +10,7 @@ const InquiryReplyInfo = ({ inquiryId, onInquiryLoad }) => {
   const getInquiry = async () => {
     try {
       const res = await axios.get(
-        `http://localhost:8000/staff/inquiry-management/get-one-replied-inquiry/${inquiryId}`,
+        `${backendURL}/staff/inquiry-management/get-one-replied-inquiry/${inquiryId}`,
         { withCredentials: true }
       );
 

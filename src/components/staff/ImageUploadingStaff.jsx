@@ -80,7 +80,7 @@ const ImageUploadingStaff = () => {
     setIsUploading(true);
     try {
       const result = await axios.post(
-        `http://localhost:8000/staff/profile/upload`,
+        `${backendURL}/staff/profile/upload`,
         { image },
         { withCredentials: true }
       );

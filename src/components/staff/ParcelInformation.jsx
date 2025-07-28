@@ -1,21 +1,23 @@
 import React, { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
 import DetailItem from "./DetailItem";
 import axios from "axios";
+
+const backendURL = import.meta.env.VITE_BACKEND_URL;
+
 
 const ParcelInformation = ({ parcelId, onParcelLoad }) => {
   const [parcel, setParcel] = useState(null);
   const [loading, setLoading] = useState(true);
-  const navigate = useNavigate();
 
   const getParcel = async () => {
     try {
       const res = await axios.get(
-        `http://localhost:8000/staff/collection-management/view-one-doorstep-delivery-parcel/${parcelId}`,
+        `${backendURL}/staff/lodging-management/get-one-parcel/${parcelId}`,
         { withCredentials: true }
       );
 
       setParcel(res.data);
+      console.log(res.data)
       onParcelLoad(res.data);
       setLoading(false);
     } catch (error) {
@@ -100,6 +102,10 @@ const ParcelInformation = ({ parcelId, onParcelLoad }) => {
                 label="Instructions"
                 value={parcel?.specialInstructions}
               />
+              <DetailItem
+                label="From"
+                value={parcel?.from.location}
+              />
             </div>
             <div className="space-y-4">
               <DetailItem
@@ -113,6 +119,10 @@ const ParcelInformation = ({ parcelId, onParcelLoad }) => {
               <DetailItem
                 label="Receiving Type"
                 value={parcel?.receivingType}
+              />
+              <DetailItem
+                label="To"
+                value={parcel?.to.location}
               />
             </div>
           </div>

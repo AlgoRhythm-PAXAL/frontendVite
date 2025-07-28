@@ -2,13 +2,16 @@ import { Navigate, Outlet } from 'react-router-dom';
 import axios from 'axios';
 import { useEffect, useState } from 'react';
 
+const backendURL = import.meta.env.VITE_BACKEND_URL;
+
+
 const ProtectedStaffRoute = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(null);
 
   useEffect(() => {
     const verifyToken = async () => {
       try {
-        const response = await axios.get('http://localhost:8000/staff/status', {
+        const response = await axios.get(`${backendURL}/staff/status`, {
           withCredentials: true,
         });
         console.log('Token Verified!', response);

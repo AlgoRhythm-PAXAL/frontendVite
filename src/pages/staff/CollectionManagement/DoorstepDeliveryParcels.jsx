@@ -2,8 +2,11 @@ import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { formatDistanceToNow } from "date-fns";
 import axios from "axios";
-import DataTable from "../../components/staff/DataTable";
-import StatsBox from "../../components/staff/StatsBox";
+import DataTable from "../../../components/staff/DataTable";
+import StatsBox from "../../../components/staff/StatsBox";
+
+const backendURL = import.meta.env.VITE_BACKEND_URL;
+
 
 const DoorstepDeliveryParcels = () => {
   const [parcels, setParcels] = useState([]);
@@ -16,7 +19,7 @@ const DoorstepDeliveryParcels = () => {
   const getDoorstepDeliveryParcels = async () => {
     try {
       const response = await axios.get(
-        "http://localhost:8000/staff/collection-management/get-all-doorstep-delivery-parcels",
+        `${backendURL}/staff/collection-management/get-all-doorstep-delivery-parcels`,
         { withCredentials: true }
       );
 
@@ -31,7 +34,7 @@ const DoorstepDeliveryParcels = () => {
     try {
       console.log("Fetching door-step delivery stats...");
       const response = await axios.get(
-        "http://localhost:8000/staff/collection-management/get-doorstep-delivery-stats",
+        `${backendURL}/staff/collection-management/get-doorstep-delivery-stats`,
         { withCredentials: true }
       );
 
