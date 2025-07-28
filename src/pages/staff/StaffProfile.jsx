@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect } from 'react';
 import {
   LockClosedIcon,
   PencilIcon,
@@ -10,32 +10,29 @@ import {
   ArrowPathIcon,
   CheckCircleIcon,
   ExclamationTriangleIcon,
-} from "@heroicons/react/24/outline";
-import { ImagePlus, SaveIcon } from "lucide-react";
-import axios from "axios";
-import ProfilePicture from "../../components/admin/ImageUpload/ProfilePicture";
-import { Button } from "@/components/ui/button";
-import Modal from "../../components/admin/adminProfile/Modal";
-import ImageUploadingStaff from "../../components/staff/ImageUploadingStaff";
-import PasswordResetCodePopup from "../../components/staff/PasswordResetCodePopup";
-import NavigationBar from "../../components/staff/NavigationBar";
-import toast from "react-hot-toast";
+} from '@heroicons/react/24/outline';
+import { ImagePlus, SaveIcon } from 'lucide-react';
+import axios from 'axios';
+import ProfilePicture from '../../components/admin/ImageUpload/ProfilePicture';
+import { Button } from '@/components/ui/button';
+import Modal from '../../components/admin/adminProfile/Modal';
+import ImageUploadingStaff from '../../components/staff/ImageUploadingStaff';
+import PasswordResetCodePopup from '../../components/staff/PasswordResetCodePopup';
+import NavigationBar from '../../components/staff/NavigationBar';
+import toast from 'react-hot-toast';
 
 const backendURL = import.meta.env.VITE_BACKEND_URL;
-
 
 const StaffProfile = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [profileData, setProfileData] = useState(null);
   const [formData, setFormData] = useState({});
-  const [successMessage, setSuccessMessage] = useState("");
-  const [errorMessage, setErrorMessage] = useState("");
+  const [successMessage, setSuccessMessage] = useState('');
+  const [errorMessage, setErrorMessage] = useState('');
   const [dialogOpen, setDialogOpen] = useState(false);
   const [open, setOpen] = useState(false);
   const [validationErrors, setValidationErrors] = useState({});
-
-
 
   const getStaffInfo = async () => {
     try {
@@ -47,7 +44,7 @@ const StaffProfile = () => {
       setProfileData(response.data);
       setFormData(response.data);
     } catch (error) {
-      console.error("Error fetching staff info:", error);
+      console.error('Error fetching staff info:', error);
     } finally {
       setIsLoading(false);
     }
@@ -71,23 +68,13 @@ const StaffProfile = () => {
     const errors = {};
 
     // check emapty fields
-    if (!formData.name?.trim()) errors.name = "Full Name is required";
-    if (!formData.nic?.trim()) errors.nic = "NIC is required";
-    if (!formData.email?.trim()) errors.email = "Email is required";
+    if (!formData.name?.trim()) errors.name = 'Full Name is required';
     if (!formData.contactNo?.trim())
-      errors.contactNo = "Contact number is required";
-
-    // NIC validation
-    if (formData.nic && !/^\d{9}[vV]$|^\d{12}$/.test(formData.nic))
-      errors.nic = "NIC format is invalid";
-
-    // email validation
-    if (formData.email && !/^\S+@\S+\.\S+$/.test(formData.email))
-      errors.email = "Email format is invalid";
+      errors.contactNo = 'Contact number is required';
 
     // contact number validation
     if (formData.contactNo && !/^0\d{9}$/.test(formData.contactNo))
-      errors.contactNo = "Contact number must be 10 digits and start with 0";
+      errors.contactNo = 'Contact number must be 10 digits and start with 0';
 
     setValidationErrors(errors);
 
@@ -105,15 +92,15 @@ const StaffProfile = () => {
 
       setProfileData(response.data);
       setIsEditing(false);
-      setSuccessMessage("Profile updated successfully!");
+      setSuccessMessage('Profile updated successfully!');
     } catch (error) {
-      console.error("Update failed:", error);
-      setErrorMessage("Failed to update profile");
+      console.error('Update failed:', error);
+      setErrorMessage('Failed to update profile');
     } finally {
       setIsLoading(false);
       setTimeout(() => {
-        setSuccessMessage("");
-        setErrorMessage("");
+        setSuccessMessage('');
+        setErrorMessage('');
       }, 3000);
     }
   };
@@ -123,21 +110,19 @@ const StaffProfile = () => {
   }
   const openResetCodePopup = async (email) => {
     try {
-      console.log("send email");
-      const response = await axios.post(
-        `${backendURL}/staff/forgot-password`,
-        { email }
-      );
+      console.log('send email');
+      const response = await axios.post(`${backendURL}/staff/forgot-password`, {
+        email,
+      });
 
       setDialogOpen(true);
     } catch (error) {
       const errorMessage =
         error.response?.message ||
-        "Failed to update the staff password. Please try again.";
-      console.log(error)
+        'Failed to update the staff password. Please try again.';
+      console.log(error);
       toast.error(errorMessage, {
         duration: 4000,
-        
       });
     }
   };
@@ -225,13 +210,13 @@ const StaffProfile = () => {
                   <div className="flex items-center gap-2 mt-1">
                     <LockClosedIcon className="w-4 h-4 text-gray-500 flex-shrink-0" />
                     <span className="text-gray-500">
-                      Staff since{" "}
+                      Staff since{' '}
                       {new Date(profileData.createdAt).toLocaleDateString(
-                        "en-US",
+                        'en-US',
                         {
-                          year: "numeric",
-                          month: "long",
-                          day: "numeric",
+                          year: 'numeric',
+                          month: 'long',
+                          day: 'numeric',
                         }
                       )}
                     </span>
@@ -248,7 +233,7 @@ const StaffProfile = () => {
             </div>
           </div>
 
-          {/* Profile Form Section */}
+          {/* Profile Information Section */}
           <form onSubmit={handleSubmit} className="space-y-8">
             <div className="border rounded-2xl p-6 space-y-6 bg-white shadow-sm border-gray-100">
               <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
@@ -304,13 +289,13 @@ const StaffProfile = () => {
                   <div className="relative">
                     <input
                       name="name"
-                      value={formData.name || ""}
+                      value={formData.name || ''}
                       onChange={handleChange}
                       disabled={!isEditing || isLoading}
                       className={`w-full px-4 py-2.5 rounded-lg border ${
                         isEditing
-                          ? "bg-white border-gray-300 focus:border-green-600 focus:ring-1 focus:ring-green-600"
-                          : "bg-gray-50 border-transparent"
+                          ? 'bg-white border-gray-300 focus:border-green-600 focus:ring-1 focus:ring-green-600'
+                          : 'bg-gray-50 border-transparent'
                       }`}
                     />
                   </div>
@@ -337,21 +322,10 @@ const StaffProfile = () => {
                     NIC
                   </label>
                   <input
-                    name="nic"
-                    value={formData.nic || ""}
-                    onChange={handleChange}
-                    disabled={!isEditing || isLoading}
-                    className={`w-full px-4 py-2.5 rounded-lg border ${
-                      isEditing
-                        ? "bg-white border-gray-300 focus:border-green-600 focus:ring-1 focus:ring-green-600"
-                        : "bg-gray-50 border-transparent"
-                    }`}
+                    value={profileData.nic}
+                    disabled
+                    className="w-full px-4 py-2.5 rounded-lg border bg-gray-50 border-transparent"
                   />
-                  {validationErrors.nic && (
-                    <p className="text-sm text-red-600">
-                      {validationErrors.nic}
-                    </p>
-                  )}
                 </div>
 
                 <div className="space-y-2">
@@ -373,23 +347,12 @@ const StaffProfile = () => {
                   </label>
                   <div className="relative">
                     <input
-                      name="email"
-                      value={formData.email || ""}
-                      onChange={handleChange}
-                      disabled={!isEditing || isLoading}
-                      className={`w-full pl-10 px-4 py-2.5 rounded-lg border ${
-                        isEditing
-                          ? "bg-white border-gray-300 focus:border-green-600 focus:ring-1 focus:ring-green-600"
-                          : "bg-gray-50 border-transparent"
-                      }`}
+                      value={profileData.email}
+                      disabled
+                      className="w-full px-10 py-2.5 rounded-lg border bg-gray-50 border-transparent"
                     />
-                    <EnvelopeIcon className="w-5 h-5 text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2" />
+                    <EnvelopeIcon className="w-5 h-5 text-gray-400 absolute left-3  top-1/2 transform -translate-y-1/2" />
                   </div>
-                  {validationErrors.email && (
-                    <p className="text-sm text-red-600">
-                      {validationErrors.email}
-                    </p>
-                  )}
                 </div>
 
                 <div className="space-y-2">
@@ -399,13 +362,13 @@ const StaffProfile = () => {
                   <div className="relative">
                     <input
                       name="contactNo"
-                      value={formData.contactNo || ""}
+                      value={formData.contactNo || ''}
                       onChange={handleChange}
                       disabled={!isEditing || isLoading}
                       className={`w-full pl-10 px-4 py-2.5 rounded-lg border ${
                         isEditing
-                          ? "bg-white border-gray-300 focus:border-green-600 focus:ring-1 focus:ring-green-600"
-                          : "bg-gray-50 border-transparent"
+                          ? 'bg-white border-gray-300 focus:border-green-600 focus:ring-1 focus:ring-green-600'
+                          : 'bg-gray-50 border-transparent'
                       }`}
                     />
                     <PhoneIcon className="w-5 h-5 text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2" />
@@ -429,7 +392,7 @@ const StaffProfile = () => {
                 <div className="flex flex-col md:flex-row md:items-center justify-between p-4 rounded-lg bg-blue-50 border border-blue-100">
                   <div className="space-y-1">
                     <h3 className="font-medium text-gray-700 flex items-center gap-2">
-                      <LockClosedIcon className="w-5 h-5 text-green-600" />{" "}
+                      <LockClosedIcon className="w-5 h-5 text-green-600" />{' '}
                       Password
                     </h3>
                     <p className="text-sm text-gray-500">••••••••</p>
