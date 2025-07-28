@@ -3,7 +3,6 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { fetchBranches, submitParcel } from '../../api/parcelApi';
 import toast from 'react-hot-toast';
- 
 import {
   FiUser,
   FiPackage,
@@ -20,6 +19,20 @@ import {
 } from 'react-icons/fi';
 import Navbar from '../../components/User/Navbar';
 
+// Validation functions with different strictness levels
+const validateEmail = (email, isFinal = false) => {
+  if (!email) return isFinal ? '' : null;
+  const re = /^[^\s@]+@[^\s@]+\.(com|net|org|gov|edu|lk|io|info|me|co|biz|int|mil|name|pro|aero|asia|jobs|museum|tv|xyz|cloud|dev)$/;
+  return re.test(String(email).toLowerCase());
+};
+
+const validatePhone = (phone, isFinal = false) => {
+  if (!phone) return isFinal ? 'Contact number is required' : null;
+  const typingRegex = /^[0-9+\s]{0,12}$/;
+  const finalRegex = /^(?:0|94|\+94)?(?:(11|21|23|24|25|26|27|31|32|33|34|35|36|37|38|41|45|47|51|52|54|55|57|63|65|66|67|81|912)(0|2|3|4|5|7|9)|7(0|1|2|4|5|6|7|8)\d)\d{6}$/;
+  return isFinal ? finalRegex.test(phone) : typingRegex.test(phone);
+};
+
 // Constants
 const itemTypes = [
   'Document',
@@ -30,18 +43,68 @@ const itemTypes = [
   'Glass',
   'Flowers',
 ];
-const itemSizes = ['Small', 'Medium', 'Large'];
+
 const paymentMethods = ['Online', 'Cash on Delivery'];
 const shipmentMethods = ['Standard', 'Express'];
-;
 
 const AddParcel = () => {
+  const validateField = (name, value, isFinal = false) => {
+    let error = '';
+    
+    if (name === 'receiverEmail') {
+      if (!validateEmail(value, isFinal)) {
+        error = 'Please enter a valid email address';
+      }
+    } else if (name === 'receiverContactNumber') {
+      if (!validatePhone(value, isFinal)) {
+        error = value 
+          ? 'Please enter a valid Sri Lankan phone number' 
+          : 'Contact number is required';
+      }
+    }
+    
+    setValidationErrors(prev => ({
+      ...prev,
+      [name]: {
+        error,
+        isTyping: !isFinal && value.length > 0
+      }
+    }));
+    
+    return !error;
+  };
+
+
+    const validateCurrentSection = () => {
+    if (activeSection === 'receiver') {
+      const isEmailValid = validateField('receiverEmail', formData.receiverEmail, true);
+      const isPhoneValid = validateField('receiverContactNumber', formData.receiverContactNumber, true);
+      return isEmailValid && isPhoneValid;
+    }
+    return true; // For other sections, allow by default
+  };
+
+  const handleNextSection = () => {
+    if (!validateCurrentSection()) {
+      toast.error('Please check receiver email or contact is valid!');
+      return;
+    }
+    
+    if (activeSection === 'receiver') setActiveSection('parcel');
+    else if (activeSection === 'parcel') setActiveSection('location');
+    else if (activeSection === 'location') setActiveSection('payment');
+  };
+
   const [branches, setBranches] = useState([]);
   const [isLoadingBranches, setIsLoadingBranches] = useState(false);
   const [activeSection, setActiveSection] = useState('receiver');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitSuccess, setSubmitSuccess] = useState(false);
   const [error, setError] = useState(null);
+  const [validationErrors, setValidationErrors] = useState({
+    receiverEmail: { error: '', isTyping: false },
+    receiverContactNumber: { error: '', isTyping: false },
+  });
   const navigate = useNavigate();
 
   const [formData, setFormData] = useState({
@@ -70,7 +133,6 @@ const AddParcel = () => {
     specialInstructions: '',
   });
 
-  // Fetch branches on component mount
   useEffect(() => {
     const loadBranches = async () => {
       setIsLoadingBranches(true);
@@ -93,22 +155,36 @@ const AddParcel = () => {
       ...prev,
       [name]: value,
     }));
+    if (name === 'receiverEmail' || name === 'receiverContactNumber') {
+      validateField(name, value, false);
+    }
   };
 
-  // Derived state
+  const handleBlur = (e) => {
+    const { name, value } = e.target;
+    if (name === 'receiverEmail' || name === 'receiverContactNumber') {
+      validateField(name, value, true);
+    }
+  };
+
   const showPickupFields = formData.submittingType === 'Pickup';
   const showDeliveryFields = formData.receivingType === 'doorstep';
   const showFromBranchField = formData.submittingType === 'Drop-off';
   const showToBranchField = formData.receivingType === 'collection_center';
 
-  // Update your handleSubmit function
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
     setError(null);
 
     try {
-      // Transform data to match backend expectations
+      const isEmailValid = validateField('receiverEmail', formData.receiverEmail, true);
+      const isPhoneValid = validateField('receiverContactNumber', formData.receiverContactNumber, true);
+      
+      if (!isEmailValid || !isPhoneValid) {
+        return;
+      }
+
       const payload = {
         receiverFullName: formData.receiverFullName,
         receiverContact: formData.receiverContactNumber,
@@ -120,7 +196,6 @@ const AddParcel = () => {
         paymentMethod: formData.paymentMethod === 'Online' ? 'Online' : 'COD',
         specialInstructions: formData.specialInstructions,
         receivingType: formData.receivingType,
-        // Conditional fields
         ...(formData.submittingType === 'Pickup' && {
           pickupDate: formData.pickupDate,
           pickupTime: formData.pickupTime,
@@ -136,7 +211,6 @@ const AddParcel = () => {
           deliveryProvince: formData.deliveryProvince,
           postalCode: formData.postalCode,
         }),
-        // Branch references
         from: formData.fromBranch || null,
         to: formData.toBranch || null,
       };
@@ -144,15 +218,13 @@ const AddParcel = () => {
       const response = await submitParcel(payload);
 
       if (response.paymentUrl) {
-        // For online payments - redirect to Stripe
         window.location.href = response.paymentUrl;
       } else {
-        // For COD - show success
         setSubmitSuccess(true);
         toast.success('Your parcel added Successful!', { duration: 3000 });
-         setTimeout(() => {
-        navigate('/parcel');
-      }, 3000);
+        setTimeout(() => {
+          navigate('/parcel');
+        }, 3000);
       }
     } catch (err) {
       setError(
@@ -165,107 +237,84 @@ const AddParcel = () => {
     }
   };
 
+  const sriLankaDistricts = [
+    { district: "Colombo", province: "Western" },
+    { district: "Gampaha", province: "Western" },
+    { district: "Kalutara", province: "Western" },
+    { district: "Kandy", province: "Central" },
+    { district: "Matale", province: "Central" },
+    { district: "Nuwara Eliya", province: "Central" },
+    { district: "Galle", province: "Southern" },
+    { district: "Matara", province: "Southern" },
+    { district: "Hambantota", province: "Southern" },
+    { district: "Jaffna", province: "Northern" },
+    { district: "Kilinochchi", province: "Northern" },
+    { district: "Mannar", province: "Northern" },
+    { district: "Vavuniya", province: "Northern" },
+    { district: "Mullaitivu", province: "Northern" },
+    { district: "Trincomalee", province: "Eastern" },
+    { district: "Batticaloa", province: "Eastern" },
+    { district: "Ampara", province: "Eastern" },
+    { district: "Puttalam", province: "North Western" },
+    { district: "Kurunegala", province: "North Western" },
+    { district: "Anuradhapura", province: "North Central" },
+    { district: "Polonnaruwa", province: "North Central" },
+    { district: "Badulla", province: "Uva" },
+    { district: "Monaragala", province: "Uva" },
+    { district: "Ratnapura", province: "Sabaragamuwa" },
+    { district: "Kegalle", province: "Sabaragamuwa" },
+  ];
 
-  // Sri Lanka districts with their provinces
-const sriLankaDistricts = [
-  // Western Province
-  { district: "Colombo", province: "Western" },
-  { district: "Gampaha", province: "Western" },
-  { district: "Kalutara", province: "Western" },
-
-  // Central Province
-  { district: "Kandy", province: "Central" },
-  { district: "Matale", province: "Central" },
-  { district: "Nuwara Eliya", province: "Central" },
-
-  // Southern Province
-  { district: "Galle", province: "Southern" },
-  { district: "Matara", province: "Southern" },
-  { district: "Hambantota", province: "Southern" },
-
-  // Northern Province
-  { district: "Jaffna", province: "Northern" },
-  { district: "Kilinochchi", province: "Northern" },
-  { district: "Mannar", province: "Northern" },
-  { district: "Vavuniya", province: "Northern" },
-  { district: "Mullaitivu", province: "Northern" },
-
-  // Eastern Province
-  { district: "Trincomalee", province: "Eastern" },
-  { district: "Batticaloa", province: "Eastern" },
-  { district: "Ampara", province: "Eastern" },
-
-  // North Western Province
-  { district: "Puttalam", province: "North Western" },
-  { district: "Kurunegala", province: "North Western" },
-
-  // North Central Province
-  { district: "Anuradhapura", province: "North Central" },
-  { district: "Polonnaruwa", province: "North Central" },
-
-  // Uva Province
-  { district: "Badulla", province: "Uva" },
-  { district: "Monaragala", province: "Uva" },
-
-  // Sabaragamuwa Province
-  { district: "Ratnapura", province: "Sabaragamuwa" },
-  { district: "Kegalle", province: "Sabaragamuwa" },
-];
-
-  // Modified branch dropdown component with province auto-fill based on branch location
-const renderBranchDropdown = (name, value, label, required) => {
-  const handleBranchChange = (e) => {
-    const selectedBranchId = e.target.value;
-    const selectedBranch = branches.find(branch => branch._id === selectedBranchId);
-    
-    // Update form data with branch
-    handleChange(e);
-    
-    if (selectedBranch) {
-      // Find the district-province mapping
-      const districtInfo = sriLankaDistricts.find(
-        d => d.district === selectedBranch.location
-      );
+  const renderBranchDropdown = (name, value, label, required) => {
+    const handleBranchChange = (e) => {
+      const selectedBranchId = e.target.value;
+      const selectedBranch = branches.find(branch => branch._id === selectedBranchId);
       
-      // Update province based on branch location (district)
-      setFormData(prev => ({
-        ...prev,
-        pickupProvince: districtInfo?.province || '',
-        pickupDistrict: selectedBranch.location // Set district from branch location
-      }));
-       // Update delivery province based on branch location (district)
-      setFormData(prev => ({
-        ...prev,
-        deliveryProvince: districtInfo?.province || '',
-        deliveryDistrict: selectedBranch.location // Set district from branch location
-      }));
-    }
-  };
+      handleChange(e);
+      
+      if (selectedBranch) {
+        const districtInfo = sriLankaDistricts.find(
+          d => d.district === selectedBranch.location
+        );
+        
+        setFormData(prev => ({
+          ...prev,
+          pickupProvince: districtInfo?.province || '',
+          pickupDistrict: selectedBranch.location
+        }));
+        
+        setFormData(prev => ({
+          ...prev,
+          deliveryProvince: districtInfo?.province || '',
+          deliveryDistrict: selectedBranch.location
+        }));
+      }
+    };
 
-  return (
-    <div className="mt-1">
-      <select
-        id={name}
-        name={name}
-        value={value}
-        onChange={handleBranchChange}
-        required={required}
-        className="block w-full rounded-lg border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm py-2 px-3 border transition-all duration-200"
-        disabled={isLoadingBranches}
-      >
-        <option value="">Select {label.toLowerCase()}</option>
-        {branches.map((branch) => (
-          <option key={branch._id} value={branch._id}>
-            {branch.location} ({branch.branchId})
-          </option>
-        ))}
-      </select>
-      {isLoadingBranches && (
-        <p className="mt-1 text-sm text-gray-500">Loading branches...</p>
-      )}
-    </div>
-  );
-};
+    return (
+      <div className="mt-1">
+        <select
+          id={name}
+          name={name}
+          value={value}
+          onChange={handleBranchChange}
+          required={required}
+          className="block w-full rounded-lg border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm py-2 px-3 border transition-all duration-200"
+          disabled={isLoadingBranches}
+        >
+          <option value="">Select {label.toLowerCase()}</option>
+          {branches.map((branch) => (
+            <option key={branch._id} value={branch._id}>
+              {branch.location} 
+            </option>
+          ))}
+        </select>
+        {isLoadingBranches && (
+          <p className="mt-1 text-sm text-gray-500">Loading branches...</p>
+        )}
+      </div>
+    );
+  };
 
   return (
     <div>
@@ -299,7 +348,7 @@ const renderBranchDropdown = (name, value, label, required) => {
 
         <div className="max-w-4xl mx-auto relative px-4 py-8 sm:px-6 lg:px-8">
           <div className="text-center mb-8">
-            <h1 className="text-3xl  font-extrabold text-gray-900">
+            <h1 className="text-3xl font-extrabold text-gray-900">
               Add New Parcel
             </h1>
             <p className="mt-2 text-lg text-gray-600">
@@ -307,7 +356,6 @@ const renderBranchDropdown = (name, value, label, required) => {
             </p>
           </div>
 
-          {/* Progress Steps */}
           <div className="mb-30">
             <div className="flex justify-between items-center">
               {['receiver', 'parcel', 'location', 'payment'].map((step) => (
@@ -350,7 +398,6 @@ const renderBranchDropdown = (name, value, label, required) => {
             onSubmit={handleSubmit}
             className="bg-white shadow-xl rounded-xl overflow-hidden border border-teal-100"
           >
-            {/* Form Sections */}
             <div className="p-6 space-y-8">
               {/* Receiver Details Section */}
               {activeSection === 'receiver' && (
@@ -384,10 +431,7 @@ const renderBranchDropdown = (name, value, label, required) => {
                     </div>
 
                     <div className="sm:col-span-3">
-                      <label
-                        htmlFor="receiverContactNumber"
-                        className="block text-sm font-medium text-gray-700"
-                      >
+                      <label htmlFor="receiverContactNumber" className="block text-sm font-medium text-gray-700">
                         Contact Number
                       </label>
                       <div className="mt-1 relative">
@@ -397,20 +441,30 @@ const renderBranchDropdown = (name, value, label, required) => {
                           name="receiverContactNumber"
                           value={formData.receiverContactNumber}
                           onChange={handleChange}
+                          onBlur={handleBlur}
                           required
-                          className="block w-full rounded-lg border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm py-2 px-3 border pl-10 transition-all duration-200"
+                          className={`block w-full rounded-lg shadow-sm sm:text-sm py-2 px-3 border pl-10 transition-all duration-200 ${
+                            validationErrors.receiverContactNumber.error
+                              ? 'border-red-500 focus:border-red-500 focus:ring-red-500'
+                              : 'border-gray-300 focus:border-teal-500 focus:ring-teal-500'
+                          }`}
+                          placeholder="07XXXXXXXX or 0XX XXXXXXX"
                         />
                         <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                           <FiPhone className="h-5 w-5 text-gray-400" />
                         </div>
                       </div>
+                      {validationErrors.receiverContactNumber.error && (
+                        <p className={`mt-1 text-sm ${
+                          validationErrors.receiverContactNumber.isTyping ? 'text-gray-500' : 'text-red-600'
+                        }`}>
+                          {validationErrors.receiverContactNumber.error}
+                        </p>
+                      )}
                     </div>
 
                     <div className="sm:col-span-6">
-                      <label
-                        htmlFor="receiverEmail"
-                        className="block text-sm font-medium text-gray-700"
-                      >
+                      <label htmlFor="receiverEmail" className="block text-sm font-medium text-gray-700">
                         Email Address
                       </label>
                       <div className="mt-1 relative">
@@ -420,18 +474,30 @@ const renderBranchDropdown = (name, value, label, required) => {
                           name="receiverEmail"
                           value={formData.receiverEmail}
                           onChange={handleChange}
-                          className="block w-full rounded-lg border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm py-2 px-3 border pl-10 transition-all duration-200"
+                          onBlur={handleBlur}
+                          className={`block w-full rounded-lg shadow-sm sm:text-sm py-2 px-3 border pl-10 transition-all duration-200 ${
+                            validationErrors.receiverEmail.error
+                              ? 'border-red-500 focus:border-red-500 focus:ring-red-500'
+                              : 'border-gray-300 focus:border-teal-500 focus:ring-teal-500'
+                          }`}
                         />
                         <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                           <FiMail className="h-5 w-5 text-gray-400" />
                         </div>
                       </div>
+                      {validationErrors.receiverEmail.error && (
+                        <p className={`mt-1 text-sm ${
+                          validationErrors.receiverEmail.isTyping ? 'text-gray-500' : 'text-red-600'
+                        }`}>
+                          {validationErrors.receiverEmail.error}
+                        </p>
+                      )}
                     </div>
                   </div>
                   <div className="mt-6 flex justify-end">
                     <button
                       type="button"
-                      onClick={() => setActiveSection('parcel')}
+                        onClick={handleNextSection}
                       className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-lg shadow-sm text-white bg-teal-600 hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500 transition-colors duration-200"
                     >
                       Next: Parcel Details
@@ -491,13 +557,21 @@ const renderBranchDropdown = (name, value, label, required) => {
                           className="block w-full rounded-lg border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm py-2 px-3 border transition-all duration-200"
                         >
                           <option value="">Select item size</option>
-                          {itemSizes.map((size) => (
+                          {/* {itemSizes.map((size) => (
                             <option key={size} value={size}>
                               {size}
                             </option>
-                          ))}
+                          ))} */}
+                          <option value="Small">Small (0-2kg)</option>
+                          <option value="Medium">Medium (2kg-5kg) </option>
+                          <option value="Large">Large (5kg-10kg)</option>
+                          
                         </select>
                       </div>
+                        
+                        
+                       
+                    
                     </div>
 
                     <div className="sm:col-span-3">
@@ -518,7 +592,7 @@ const renderBranchDropdown = (name, value, label, required) => {
                         >
                           <option value="">Select submitting type</option>
                           <option value="Pickup">Pickup</option>
-                          <option value="Drop-off">Drop-off</option>
+                          <option value="Drop-off">Drop-off (Branch)</option>
                         </select>
                       </div>
                     </div>
@@ -558,7 +632,7 @@ const renderBranchDropdown = (name, value, label, required) => {
                     </button>
                     <button
                       type="button"
-                      onClick={() => setActiveSection('location')}
+                        onClick={handleNextSection}
                       className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-lg shadow-sm text-white bg-teal-600 hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500 transition-colors duration-200"
                     >
                       Next: Location Details
@@ -613,20 +687,20 @@ const renderBranchDropdown = (name, value, label, required) => {
                             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                               <FiClock className="h-5 w-5 text-gray-400" />
                             </div>
-                                   <select
-                id="pickupTime"
-                name="pickupTime"
-                value={formData.pickupTime}
-                onChange={handleChange}
-                required={showPickupFields}
-                className="block w-full rounded-lg border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm py-2 pl-10 border transition-all duration-200"
-              >
-                <option value="">Select time slot</option>
-                <option value="08:00 - 12:00">Morning (08:00 - 12:00)</option>
-                <option value="13:00 - 17:00">Afternoon (13:00 - 17:00)</option>
-              </select>
-            </div>
-          </div>
+                            <select
+                              id="pickupTime"
+                              name="pickupTime"
+                              value={formData.pickupTime}
+                              onChange={handleChange}
+                              required={showPickupFields}
+                              className="block w-full rounded-lg border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm py-2 pl-10 border transition-all duration-200"
+                            >
+                              <option value="">Select time slot</option>
+                              <option value="08:00 - 12:00">Morning (08:00 - 12:00)</option>
+                              <option value="13:00 - 17:00">Afternoon (13:00 - 17:00)</option>
+                            </select>
+                          </div>
+                        </div>
 
                         <div className="sm:col-span-6">
                           <label
@@ -678,14 +752,14 @@ const renderBranchDropdown = (name, value, label, required) => {
                           >
                             District
                           </label>
-                           <div className="mt-1">
-                             {renderBranchDropdown(
+                          <div className="mt-1">
+                            {renderBranchDropdown(
                               'fromBranch',
                               formData.fromBranch,
                               'branch',
                               true
                             )}
-                          </div> 
+                          </div>
                         </div>
 
                         <div className="sm:col-span-2">
@@ -771,8 +845,7 @@ const renderBranchDropdown = (name, value, label, required) => {
                             District
                           </label>
                           <div className="mt-1">
-                     
-                             {renderBranchDropdown(
+                            {renderBranchDropdown(
                               'toBranch',
                               formData.toBranch,
                               'branch',
@@ -797,7 +870,6 @@ const renderBranchDropdown = (name, value, label, required) => {
                               onChange={handleChange}
                               required={showDeliveryFields}
                               readOnly
-                              
                               className="block w-full rounded-lg border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm py-2 px-3 border transition-all duration-200"
                             />
                           </div>
@@ -881,7 +953,7 @@ const renderBranchDropdown = (name, value, label, required) => {
                     </button>
                     <button
                       type="button"
-                      onClick={() => setActiveSection('payment')}
+                       onClick={handleNextSection}
                       className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-lg shadow-sm text-white bg-teal-600 hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500 transition-colors duration-200"
                     >
                       Next: Payment & Shipment
@@ -939,7 +1011,6 @@ const renderBranchDropdown = (name, value, label, required) => {
                     </div>
                   </div>
 
-                  {/* Shipment Method Section */}
                   <div className="border-b border-gray-200 pb-6">
                     <h2 className="text-xl font-semibold text-gray-800 flex items-center">
                       <FiTruck className="mr-2 text-teal-600" />
@@ -1046,7 +1117,6 @@ const renderBranchDropdown = (name, value, label, required) => {
             </div>
           </form>
 
-          {/* Error display */}
           {error && (
             <div className="mt-4 p-4 bg-red-50 text-red-700 rounded-lg">
               {error}
