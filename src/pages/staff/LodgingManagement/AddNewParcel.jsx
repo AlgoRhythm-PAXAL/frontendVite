@@ -2,10 +2,10 @@ import { useForm } from "react-hook-form";
 import axios from "axios";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import BranchSelector from "../../components/staff/BranchSelector";
+import BranchSelector from "../../../components/staff/BranchSelector";
 import { toast } from "sonner";
-import ProvinceSelector from "../../components/staff/ProvinceSelector";
-import DistrictSelector from "../../components/staff/DistrictSelector";
+import ProvinceSelector from "../../../components/staff/ProvinceSelector";
+import DistrictSelector from "../../../components/staff/DistrictSelector";
 
 const backendURL = import.meta.env.VITE_BACKEND_URL;
 

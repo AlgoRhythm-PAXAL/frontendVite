@@ -2,9 +2,9 @@ import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { formatDistanceToNow } from "date-fns";
 import axios from "axios";
-import DataTable from "../../components/staff/DataTable";
-import StatsBox from "../../components/staff/StatsBox";
-import ConfirmPopup from "../../components/staff/ConfirmPopup";
+import DataTable from "../../../components/staff/DataTable";
+import StatsBox from "../../../components/staff/StatsBox";
+import ConfirmPopup from "../../../components/staff/ConfirmPopup";
 
 const backendURL = import.meta.env.VITE_BACKEND_URL;
 

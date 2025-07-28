@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import axios from "axios";
-import ParcelInformation from "../../components/staff/ParcelInformation";
-import PickupSchedules from "../../components/staff/PickupSchedules";
+import ParcelInformation from "../../../components/staff/ParcelInformation";
+import PickupSchedules from "../../../components/staff/PickupSchedules";
 import { ArrowLeftIcon } from "@heroicons/react/24/outline";
 import { toast } from "sonner";
 

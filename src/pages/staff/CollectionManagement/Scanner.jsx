@@ -1,5 +1,5 @@
 import { useState } from "react";
-import QRScanner from "../../components/staff/QRScanner";
+import QRScanner from "../../../components/staff/QRScanner";
 
 const Scanner = () => {
       const [showScanner, setShowScanner] = useState(false);

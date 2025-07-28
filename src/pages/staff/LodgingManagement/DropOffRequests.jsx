@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
-import DataTable from "../../components/staff/DataTable";
-import StatsBox from "../../components/staff/StatsBox";
+import DataTable from "../../../components/staff/DataTable";
+import StatsBox from "../../../components/staff/StatsBox";
 
 const backendURL = import.meta.env.VITE_BACKEND_URL;
 
