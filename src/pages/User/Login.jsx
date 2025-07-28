@@ -4,6 +4,7 @@ import { AuthContext } from '../../contexts/AuthContext';
 import { FaEye, FaEyeSlash } from 'react-icons/fa';
 import axios from 'axios';
 import toast from 'react-hot-toast';
+const backendURL = import.meta.env.VITE_BACKEND_URL;
 
 const Login = () => {
   const navigate = useNavigate();
@@ -25,7 +26,7 @@ const Login = () => {
 
     try {
       const response = await axios.post(
-        'http://localhost:8000/api/auth/login',
+        `${backendURL}/auth/login`,
         formData,
         {
           withCredentials: true,
