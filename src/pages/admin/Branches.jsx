@@ -264,7 +264,14 @@ const Branches = () => {
 
   // Loading state
   if (loading) {
-    return <LoadingAnimation />;
+    return (
+      <div className="mx-8">
+        <SectionTitle title="Branches" />
+        <div className="flex items-center justify-center min-h-screen">
+          <LoadingAnimation message="Loading branches..." />
+        </div>
+      </div>
+    );
   }
 
   // Error state

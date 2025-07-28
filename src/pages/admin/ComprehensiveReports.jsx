@@ -496,7 +496,9 @@ const Reports = () => {
 
       {/* Main Content */}
       {loading ? (
-        <LoadingAnimation />
+        <div className="min-h-screen flex items-center justify-center">
+          <LoadingAnimation message="Loading report data..." />
+        </div>
       ) : !reportData ? (
         <Card>
           <CardContent className="flex flex-col items-center justify-center p-12">

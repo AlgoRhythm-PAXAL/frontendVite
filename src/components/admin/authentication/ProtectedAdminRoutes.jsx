@@ -1,5 +1,6 @@
 import { Navigate, Outlet } from "react-router-dom";
 import { useAdminAuth } from "../../../hooks/useAdminAuth";
+import LoadingAnimation from "../../../utils/LoadingAnimation";
 
 const ProtectedAdminRoute = () => {
   const { isAuthenticated, loading } = useAdminAuth();
@@ -8,10 +9,7 @@ const ProtectedAdminRoute = () => {
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-gray-50">
-        <div className="flex flex-col items-center space-y-4">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-          <p className="text-sm text-gray-600">Authenticating...</p>
-        </div>
+       <LoadingAnimation message="Checking admin authentication..." />
       </div>
     );
   }

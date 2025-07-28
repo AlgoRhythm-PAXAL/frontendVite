@@ -168,9 +168,8 @@ const Vehicle = () => {
 
       {/* Loading State */}
       {loading && (
-        <div className="flex flex-col items-center justify-center py-12 bg-white rounded-lg border border-gray-200">
-          <LoadingAnimation />
-          <p className="text-gray-600 mt-4 text-sm">Loading vehicle data...</p>
+        <div className="min-h-screen flex items-center justify-center">
+          <LoadingAnimation message="Loading vehicle data..." />
         </div>
       )}
 
