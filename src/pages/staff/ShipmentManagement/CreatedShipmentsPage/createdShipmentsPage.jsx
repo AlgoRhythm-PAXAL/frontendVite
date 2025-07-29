@@ -87,6 +87,7 @@ const ShipmentManagement = () => {
             setFetchingBranches(true);
             const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/branches/details`, {
                 method: 'POST',
+                credentials: 'include', // Include cookies for authentication
                 headers: {
                     'Content-Type': 'application/json',
                 },
@@ -210,18 +211,18 @@ const ShipmentManagement = () => {
             // Try fetching shipments for the staff's branch
             let url = `${import.meta.env.VITE_BACKEND_URL}/vehicles/b2b/shipments/branch/${branchId}?${queryParams.toString()}`;
            // console.log('Fetching shipments from:', import.meta.env.VITE_BACKEND_URL);
-            let response = await fetch(url);
+            let response = await fetch(url, { credentials: 'include' });
             
             // Fallback to original endpoints if branch-specific endpoint doesn't exist
             if (response.status === 404) {
                 // Use staff ID from staffInfo if available, otherwise use branch-based approach
                 const staffId = staffInfo?._id || branchId;
                 url = `${import.meta.env.VITE_BACKEND_URL}/vehicles/b2b/shipments/${staffId}?${queryParams.toString()}`;
-                response = await fetch(url);
+                response = await fetch(url, { credentials: 'include' });
                 
                 if (response.status === 404) {
                     url = `${import.meta.env.VITE_BACKEND_URL}/shipments/active/${staffId}`;
-                    response = await fetch(url);
+                    response = await fetch(url, { credentials: 'include' });
                 }
             }
 
@@ -367,7 +368,7 @@ const ShipmentManagement = () => {
         showConfirmation(
             'verify',
             'Verify Shipment',
-            `Are you sure you want to verify shipment "${shipment?.trackingNumber || shipmentId}"? This will confirm the shipment and update its status to "Verified".`,
+            `Are you sure you want to verify shipment "${shipment.shipmentId}"?".`,
             async () => await performSingleVerify(shipmentId)
         );
     };
@@ -378,6 +379,7 @@ const ShipmentManagement = () => {
         try {
             const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/shipments/${shipmentId}/verify`, {
                 method: 'PUT',
+                credentials: 'include', // Include cookies for authentication
                 headers: {
                     'Content-Type': 'application/json',
                 }
@@ -433,6 +435,7 @@ const ShipmentManagement = () => {
             
             const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/shipments/${shipmentId}/dispatch`, {
                 method: 'PUT',
+                credentials: 'include', // Include cookies for authentication
                 headers: {
                     'Content-Type': 'application/json',
                 },
@@ -469,6 +472,7 @@ const ShipmentManagement = () => {
             
             const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/shipments/${shipmentId}/complete`, {
                 method: 'PUT',
+                credentials: 'include', // Include cookies for authentication
                 headers: {
                     'Content-Type': 'application/json',
                 },
@@ -489,7 +493,7 @@ const ShipmentManagement = () => {
                 )
             );
 
-            showPopup('success', 'Shipment delivered successfully! Parcels have been updated to ArrivedAtCollectionCenter status.');
+            showPopup('success', 'Shipment delivered successfully!');
             await fetchShipments(); // Refresh the list
         } catch (err) {
             showPopup('error', `Error completing shipment: ${err.message}`);
@@ -511,7 +515,7 @@ const ShipmentManagement = () => {
         showConfirmation(
             'delete',
             'Delete Shipment',
-            `Are you sure you want to delete shipment "${shipment?.trackingNumber || shipmentId}"? This action cannot be undone and will reset the associated parcels to ArrivedAtCollectionCenter status.`,
+            `Are you sure you want to delete shipment "${shipment.shipmentId}"?"`,
             async () => await performSingleDelete(shipmentId)
         );
     };
@@ -522,6 +526,7 @@ const ShipmentManagement = () => {
         try {
             const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/shipments/${shipmentId}`, {
                 method: 'DELETE',
+                credentials: 'include', // Include cookies for authentication
                 headers: {
                     'Content-Type': 'application/json',
                 }
@@ -586,6 +591,7 @@ const ShipmentManagement = () => {
         try {
             const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/vehicles/b2b/shipments/${shipmentId}/assign-vehicle/manual`, {
                 method: 'POST',
+                credentials: 'include', // Include cookies for authentication
                 headers: {
                     'Content-Type': 'application/json',
                 },
@@ -652,6 +658,7 @@ const ShipmentManagement = () => {
         try {
             const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/vehicles/b2b/shipments/${shipmentId}/${vehicleSelectionModal.deliveryType}/enhanced-find-vehicle`, {
                 method: 'GET',
+                credentials: 'include', // Include cookies for authentication
                 headers: {
                     'Content-Type': 'application/json',
                 }
@@ -864,6 +871,7 @@ const ShipmentManagement = () => {
             
             const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/vehicles/b2b/shipments/${shipmentId}/add-parcels-to-current`, {
                 method: 'POST',
+                credentials: 'include', // Include cookies for authentication
                 headers: {
                     'Content-Type': 'application/json',
                 },
@@ -1076,6 +1084,7 @@ const ShipmentManagement = () => {
         try {
             const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/shipments/b2b/standard-shipments/${shipmentId}/add-more`, {
                 method: 'POST',
+                credentials: 'include', // Include cookies for authentication
                 headers: {
                     'Content-Type': 'application/json',
                 }
@@ -1140,6 +1149,7 @@ const ShipmentManagement = () => {
         try {
             const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/parcels/validate-for-shipment`, {
                 method: 'POST',
+                credentials: 'include', // Include cookies for authentication
                 headers: {
                     'Content-Type': 'application/json',
                 },
@@ -1173,6 +1183,7 @@ const ShipmentManagement = () => {
         try {
             const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/shipments/b2b/standard-shipments/${addMoreParcelsModal.shipmentId}/add-manual-parcel`, {
                 method: 'POST',
+                credentials: 'include', // Include cookies for authentication
                 headers: {
                     'Content-Type': 'application/json',
                 },
@@ -1327,6 +1338,7 @@ const ShipmentManagement = () => {
         try {
             const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/vehicles/findVehicleForShipment/${shipmentId}/${deliveryType}`, {
                 method: 'GET',
+                credentials: 'include', // Include cookies for authentication
                 headers: {
                     'Content-Type': 'application/json',
                 }
@@ -1511,7 +1523,9 @@ const ShipmentManagement = () => {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                }
+                    
+                },
+                credentials: 'include' // Include cookies for authentication
             });
 
             const data = await response.json();
@@ -1586,7 +1600,7 @@ const ShipmentManagement = () => {
         showConfirmation(
             'verify',
             'Bulk Verify Shipments',
-            `Are you sure you want to verify ${pendingShipments.length} pending shipment${pendingShipments.length > 1 ? 's' : ''}? This action will confirm these shipments and update their status to "Verified".`,
+            `Are you sure you want to verify ${pendingShipments.length} pending shipment${pendingShipments.length > 1 ? 's' : ''}?`,
             async () => await performBulkVerify(pendingShipments)
         );
     };
@@ -1597,7 +1611,8 @@ const ShipmentManagement = () => {
             const promises = pendingShipments.map(shipment =>
                 fetch(`${import.meta.env.VITE_BACKEND_URL}/shipments/${shipment._id || shipment.id}/verify`, {
                     method: 'PUT',
-                    headers: { 'Content-Type': 'application/json' }
+                    headers: {'Content-Type': 'application/json'},
+                    credentials: 'include' // Include cookies for authentication
                 })
             );
 
@@ -1616,18 +1631,18 @@ const ShipmentManagement = () => {
                 );
 
                 if (failedCount === 0) {
-                    showPopup('success', `🎉 Successfully verified ${successCount} shipment${successCount > 1 ? 's' : ''}! All shipments are now confirmed and ready for processing.`);
+                    showPopup('success', `Successfully verified ${successCount} shipment${successCount > 1 ? 's' : ''}! All shipments are now confirmed and ready for processing.`);
                 } else {
-                    showPopup('warning', `✅ ${successCount} shipment${successCount > 1 ? 's' : ''} verified successfully, ❌ ${failedCount} failed to verify.`);
+                    showPopup('warning', `${successCount} shipment${successCount > 1 ? 's' : ''} verified successfully,  ${failedCount} failed to verify.`);
                 }
                 
                 // Clear selections after successful operation
                 setSelectedShipments(new Set());
             } else {
-                showPopup('error', '❌ All shipments failed to verify. Please check your connection and try again.');
+                showPopup('error', 'All shipments failed to verify. Please check your connection and try again.');
             }
         } catch (err) {
-            showPopup('error', `❌ Error in bulk verification: ${err.message}`);
+            showPopup('error', `Error in bulk verification: ${err.message}`);
         }
     };
 
@@ -1641,14 +1656,14 @@ const ShipmentManagement = () => {
         }
 
         // Check if any selected shipments are in protected stages
-        const protectedShipments = shipments.filter(s => 
+        const protectedShipments = shipments.filter(s =>    
             selectedShipments.has(s._id || s.id) && 
             ['In Transit', 'Dispatched', 'Completed'].includes(s.status)
         );
 
         if (protectedShipments.length > 0) {
             const protectedStatuses = [...new Set(protectedShipments.map(s => s.status))].join(', ');
-            showPopup('warning', `⚠️ Cannot delete ${protectedShipments.length} shipment(s) in "${protectedStatuses}" status. Only Pending and Verified shipments can be deleted.`);
+            showPopup('warning', `Cannot delete ${protectedShipments.length} shipment(s) in "${protectedStatuses}" status. Only Pending and Verified shipments can be deleted.`);
             return;
         }
 
@@ -1656,7 +1671,7 @@ const ShipmentManagement = () => {
         showConfirmation(
             'delete',
             'Delete Shipments',
-            `Are you sure you want to delete ${selectedShipmentIds.length} shipment${selectedShipmentIds.length > 1 ? 's' : ''}? This action cannot be undone and will reset the associated parcels to ArrivedAtCollectionCenter status.`,
+            `Are you sure you want to delete ${selectedShipmentIds.length} shipment${selectedShipmentIds.length > 1 ? 's' : ''}?`,
             async () => await performBulkDelete(selectedShipmentIds)
         );
     };
@@ -1667,6 +1682,7 @@ const ShipmentManagement = () => {
             const promises = selectedShipmentIds.map(shipmentId =>
                 fetch(`${import.meta.env.VITE_BACKEND_URL}/shipments/${shipmentId}`, {
                     method: 'DELETE',
+                    credentials: 'include',
                     headers: { 'Content-Type': 'application/json' }
                 })
             );
@@ -1685,7 +1701,7 @@ const ShipmentManagement = () => {
                 if (failedCount === 0) {
                     showPopup('success', `Successfully deleted ${successCount} shipment${successCount > 1 ? 's' : ''}! Associated parcels have been reset.`);
                 } else {
-                    showPopup('warning', `${successCount} shipment${successCount > 1 ? 's' : ''} deleted successfully, ❌ ${failedCount} failed to delete.`);
+                    showPopup('warning', `${successCount} shipment${successCount > 1 ? 's' : ''} deleted successfully, ${failedCount} failed to delete.`);
                 }
             } else {
                 showPopup('error', 'All shipments failed to delete. Please check your connection and try again.');
@@ -1854,17 +1870,17 @@ const ShipmentManagement = () => {
                 );
             }
 
-            // Status display section
-            const statusDisplay = (
-                <div className="flex items-center justify-center gap-2 mb-2">
-                    {shipment.status === 'In Transit' && <CheckCircle className="w-4 h-4 text-blue-600" />}
-                    {shipment.status === 'Dispatched' && <CheckCircle className="w-4 h-4 text-orange-600" />}
-                    {shipment.status === 'Completed' && <CheckCircle className="w-4 h-4 text-green-600" />}
-                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(shipment.status)}`}>
-                        {shipment.status}
-                    </span>
-                </div>
-            );
+            // // Status display section
+            // const statusDisplay = (
+            //     <div className="flex items-center justify-center gap-2 mb-2">
+            //         {shipment.status === 'In Transit' && <CheckCircle className="w-4 h-4 text-blue-600" />}
+            //         {shipment.status === 'Dispatched' && <CheckCircle className="w-4 h-4 text-orange-600" />}
+            //         {shipment.status === 'Completed' && <CheckCircle className="w-4 h-4 text-green-600" />}
+            //         <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(shipment.status)}`}>
+            //             {shipment.status}
+            //         </span>
+            //     </div>
+            // );
 
             // FIRST BRANCH ACTIONS
             if (branchPosition === 'first') {
@@ -1873,7 +1889,7 @@ const ShipmentManagement = () => {
                     // Standard: "Find More Parcels" + "Inform Dispatch"
                     return (
                         <div className="text-center text-gray-500 text-sm">
-                            {statusDisplay}
+                            { }
                             <div className="flex flex-col gap-2">
                                 {deliveryType === 'standard' && (
                                     <button
@@ -1913,9 +1929,9 @@ const ShipmentManagement = () => {
             else if (branchPosition === 'intermediate') {
                 return (
                     <div className="text-center text-gray-500 text-sm">
-                        {statusDisplay}
+                        {}
                         <div className="px-3 py-2 bg-blue-100 text-blue-800 rounded-lg text-xs">
-                            Shipment Ongoing
+                            In Progress
                         </div>
                     </div>
                 );
@@ -1926,7 +1942,7 @@ const ShipmentManagement = () => {
                 if (['In Transit', 'Dispatched'].includes(shipment.status)) {
                     return (
                         <div className="text-center text-gray-500 text-sm">
-                            {statusDisplay}
+                            {}
                             <button
                                 onClick={() => handleFinishDelivery(shipmentId)}
                                 disabled={isProcessing}
@@ -1948,13 +1964,11 @@ const ShipmentManagement = () => {
             // Default status display with vehicle info
             return (
                 <div className="text-center text-gray-500 text-sm">
-                    {statusDisplay}
+                    {}
                     {shipment.assignedVehicle && (
                         <div className="text-xs text-gray-600 mt-1 space-y-1">
                             {(shipment.assignedVehicle.vehicleId || shipment.assignedVehicle.registrationNo) && (
-                                <div>
-                                    Vehicle: {shipment.assignedVehicle.vehicleId || shipment.assignedVehicle.registrationNo}
-                                </div>
+                                <div></div>
                             )}
                             {shipment.assignedDriver?.name && (
                                 <div>Driver: {shipment.assignedDriver.name}</div>

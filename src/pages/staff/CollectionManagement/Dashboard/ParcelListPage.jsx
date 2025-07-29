@@ -47,7 +47,8 @@ const ParcelListPage = () => {
                 headers: {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${localStorage.getItem('token')}`
-                }
+                },
+                credentials: 'include'
             });
 
             if (response.ok) {

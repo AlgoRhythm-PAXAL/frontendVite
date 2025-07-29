@@ -762,8 +762,8 @@ const VehicleSchedules = () => {
     return (
       <div className="mx-8">
         <SectionTitle title="Vehicle Schedules" />
-        <div className="flex items-center justify-center py-12">
-          <LoadingAnimation />
+        <div className="min-h-screen flex items-center justify-center">
+          <LoadingAnimation message="Loading vehicle schedules..." />
         </div>
       </div>
     );

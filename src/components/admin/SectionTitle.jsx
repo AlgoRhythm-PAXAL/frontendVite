@@ -21,7 +21,7 @@ export default function SectionTitle({
   return (
     <div className={`flex justify-between items-center py-6 ${className}`}>
       <div>
-        <h1 className={`font-bold text-gray-900 ${sizeClasses[size]} mb-2`}>
+        <h1 className={`font-bold text-3xl text-gray-900 ${sizeClasses[size]} mb-2`}>
           {title}
         </h1>
         {subtitle && (

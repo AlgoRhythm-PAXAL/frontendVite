@@ -1,113 +1,3 @@
-// import { useEffect, useState } from "react";
-// import axios from "axios";
-// import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-// import {
-//   faUser, // Customers
-//   faTruck, // Drivers
-//   faUserShield, // Admins
-//   faUsers, // Staff
-// } from "@fortawesome/free-solid-svg-icons";
-// import { toast } from "sonner";
-// import LoadingAnimation from "../../utils/LoadingAnimation";
-
-// const NumberShowingCard = ({ title, type }) => {
-//   const [data, setData] = useState({ count: 0, since: "" });
-//   const [loading, setLoading] = useState(true);
-
-//   const getIconConfig = () => {
-//     const baseClasses = "w-14 h-14 flex items-center justify-center rounded-xl";
-
-//     switch (type) {
-//       case "Customer":
-//         return {
-//           icon: faUser,
-//           bgClass: `${baseClasses} bg-blue-100 text-blue-600`,
-//         };
-//       case "Driver":
-//         return {
-//           icon: faTruck,
-//           bgClass: `${baseClasses} bg-green-100 text-green-600`,
-//         };
-//       case "Admin":
-//         return {
-//           icon: faUserShield,
-//           bgClass: `${baseClasses} bg-purple-100 text-purple-600`,
-//         };
-//       case "Staff":
-//         return {
-//           icon: faUsers,
-//           bgClass: `${baseClasses} bg-orange-100 text-orange-600`,
-//         };
-//       default:
-//         return {
-//           icon: faUser,
-//           bgClass: `${baseClasses} bg-gray-100 text-gray-600`,
-//         };
-//     }
-//   };
-
-//   useEffect(() => {
-//     const fetchUserCount = async () => {
-//       const backendUrl = import.meta.env.VITE_BACKEND_URL;
-//       try {
-//         const response = await axios.get(
-//           `${backendUrl}/api/admin/users/count`,
-//           { withCredentials: true, params: { user: type } }
-//         );
-
-//         setData({
-//           count: response.data.count,
-//           since: new Date(response.data.since).toLocaleDateString("en-US", {
-//             year: "numeric",
-//             month: "short",
-//             day: "numeric",
-//           }),
-//         });
-//       } catch (error) {
-//         const errorMessage = error.message;
-//         console.error(`Error fetching ${type} count:`, error);
-//         toast.error(`Fetching data went fishing 🎣. No luck yet. ${type}`, {
-//           description: errorMessage,
-//         });
-//       } finally {
-//         setLoading(false);
-//       }
-//     };
-
-//     fetchUserCount();
-//   }, [type]);
-
-//   const { icon, bgClass } = getIconConfig();
-
-//   return (
-//     <div className="flex items-center gap-5 p-6 bg-white rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-all duration-300 flex-[1_1_280px] min-w-[280px] max-w-full">
-//       {/* Icon Container */}
-//       <div className={bgClass}>
-//         <FontAwesomeIcon icon={icon} className="text-2xl" />
-//       </div>
-
-//       {/* Content */}
-//       <div className="flex flex-col gap-1">
-//         <span className="text-sm font-medium text-gray-500">{title}</span>
-//         <div className="flex items-baseline gap-3">
-//           {loading ? (
-//             <LoadingAnimation />
-//           ) : (
-//             <span className="text-3xl font-bold text-gray-900">
-//               {data.count.toLocaleString()}
-//             </span>
-//           )}
-//         </div>
-//         <span className="text-xs font-medium text-gray-400">
-//           Since {loading ? "..." : data.since}
-//         </span>
-//       </div>
-//     </div>
-//   );
-// };
-
-// export default NumberShowingCard;
-
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -115,18 +5,13 @@ import {
   faUsers, 
   faSync, 
   faExclamationTriangle, 
-  faWifi,
-  faCheckCircle 
+  faWifi
 } from '@fortawesome/free-solid-svg-icons';
 import PropTypes from 'prop-types';
 import axios from 'axios';
 
 const backendUrl = import.meta.env.VITE_BACKEND_URL;
 
-/**
- * Professional Number Showing Card Component
- * Enhanced with historical data tracking and period-based comparisons
- */
 const NumberShowingCard = ({ 
   title, 
   type, 
@@ -139,15 +24,13 @@ const NumberShowingCard = ({
   className = "",
   refreshInterval = 300000,
   enableAutoRefresh = false,
-  forceRefresh = 0,
-  comparisonPeriod = 7 // Default to 7 days comparison
+  forceRefresh = 0
 }) => {
   const [count, setCount] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const [hasError, setHasError] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const [lastUpdated, setLastUpdated] = useState(null);
-  const [comparisonData, setComparisonData] = useState(null);
   const [isRetrying, setIsRetrying] = useState(false);
   const [retryCount, setRetryCount] = useState(0);
 
@@ -168,19 +51,8 @@ const NumberShowingCard = ({
     // Don't abort controller here to prevent cancellation errors
   }, []);
 
-  // Enhanced fetch function with historical data
+  // Enhanced fetch function
   const fetchUserCount = useCallback(async (isRetry = false, isForceRefresh = false) => {
-    // Get comparison period text inside callback
-    const getComparisonPeriodText = () => {
-      switch (comparisonPeriod) {
-        case 1: return "yesterday";
-        case 7: return "7 days ago";
-        case 30: return "30 days ago";
-        case 90: return "3 months ago";
-        default: return `${comparisonPeriod} days ago`;
-      }
-    };
-
     // Prevent multiple simultaneous requests
     if (isRequestInProgressRef.current && !isForceRefresh) {
       return;
@@ -217,98 +89,39 @@ const NumberShowingCard = ({
         throw new Error('Backend URL is not configured');
       }
 
-      // Calculate comparison date
-      const comparisonDate = new Date();
-      comparisonDate.setDate(comparisonDate.getDate() - comparisonPeriod);
-
-      // Fetch current count and historical count in parallel
-      const [currentResponse, historicalResponse] = await Promise.allSettled([
-        // Current count
-        axios.get(
-          `${backendUrl}/api/admin/users/count`,
-          { 
-            withCredentials: true, 
-            params: { user: type },
-            timeout: 10000,
-            signal: abortControllerRef.current.signal
-          }
-        ),
-        // Historical count
-        axios.get(
-          `${backendUrl}/api/admin/users/count`,
-          { 
-            withCredentials: true, 
-            params: { 
-              user: type,
-              date: comparisonDate.toISOString().split('T')[0] // YYYY-MM-DD format
-            },
-            timeout: 10000,
-            signal: abortControllerRef.current.signal
-          }
-        )
-      ]);
+      // Fetch current count
+      const response = await axios.get(
+        `${backendUrl}/api/admin/users/count`,
+        { 
+          withCredentials: true, 
+          params: { user: type },
+          timeout: 10000,
+          signal: abortControllerRef.current.signal
+        }
+      );
 
       // Handle current count
-      if (currentResponse.status === 'fulfilled' && currentResponse.value.data) {
-        const currentData = currentResponse.value.data;
-        if (typeof currentData.count !== 'number') {
-          throw new Error('Invalid current count response format');
+      if (response.data) {
+        const currentData = response.data;
+        if (typeof currentData.count !== 'number' || isNaN(currentData.count)) {
+          throw new Error('Invalid count response format');
         }
 
-        const newCount = Math.max(0, currentData.count);
+        const newCount = Math.max(0, Math.floor(currentData.count || 0));
         setCount(newCount);
         setLastUpdated(Date.now());
         setRetryCount(0);
-
-        // Handle historical count with better error handling
-        let historicalCount = null;
-        let hasValidHistoricalData = false;
-        let change = 0;
-        let changePercentage = 0;
-        
-        if (historicalResponse.status === 'fulfilled' && historicalResponse.value.data) {
-          const historicalData = historicalResponse.value.data;
-          if (typeof historicalData.count === 'number') {
-            historicalCount = Math.max(0, historicalData.count);
-            hasValidHistoricalData = true;
-          }
-        } else if (historicalResponse.status === 'rejected') {
-          console.warn(`Historical data for ${comparisonPeriod} days ago failed:`, historicalResponse.reason?.message);
-        }
-        
-        // Only set comparison data if we have valid historical data
-        if (hasValidHistoricalData && historicalCount !== null) {
-          change = newCount - historicalCount;
-          changePercentage = historicalCount > 0 ? ((change / historicalCount) * 100) : 0;
-          
-          setComparisonData({
-            current: newCount,
-            previous: historicalCount,
-            change: change,
-            changePercentage: changePercentage,
-            period: comparisonPeriod,
-            periodText: getComparisonPeriodText()
-          });
-        } else {
-          // Clear comparison data if historical data is not available
-          setComparisonData(null);
-          console.info(`No comparison data available for ${type} - ${comparisonPeriod} days ago`);
-        }
         
         // Notify parent component
         if (onDataUpdate) {
           onDataUpdate({
             count: newCount,
-            previousCount: historicalCount,
-            change: hasValidHistoricalData ? change : 0,
-            changePercentage: hasValidHistoricalData ? changePercentage : 0,
             type,
-            comparisonPeriod,
             timestamp: Date.now()
           });
         }
       } else {
-        throw new Error('Failed to fetch current user count');
+        throw new Error('Failed to fetch user count');
       }
       
     } catch (error) {
@@ -366,7 +179,7 @@ const NumberShowingCard = ({
       setIsRetrying(false);
       isRequestInProgressRef.current = false;
     }
-  }, [type, onError, onDataUpdate, retryCount, comparisonPeriod]);
+  }, [type, onError, onDataUpdate, retryCount]);
 
   // Manual retry handler
   const handleRetry = useCallback(() => {
@@ -418,48 +231,6 @@ const NumberShowingCard = ({
       cleanup();
     };
   }, [type, fetchUserCount, cleanup]);
-
-  // Enhanced change indicator with period information
-  const getChangeIndicator = () => {
-    if (!comparisonData) return null;
-    
-    const { change, changePercentage, periodText } = comparisonData;
-    const isPositive = change > 0;
-    const isUnchanged = change === 0;
-    
-    // If no change, don't show anything
-    if (isUnchanged) return null;
-    
-    return (
-      <div className="flex flex-col gap-1 text-xs font-medium">
-        {/* Change amount and icon */}
-        <div className={`flex items-center gap-1 ${
-          isPositive ? 'text-green-600' : 'text-red-600'
-        }`}>
-          <span>{isPositive ? '+' : ''}{change.toLocaleString()}</span>
-          <FontAwesomeIcon 
-            icon={isPositive ? faCheckCircle : faExclamationTriangle} 
-            className="w-3 h-3" 
-          />
-        </div>
-        
-        {/* Always show comparison period when there's a change */}
-        <div className="text-gray-500 text-xs">
-          vs {periodText}
-        </div>
-        
-        {/* Percentage change */}
-        {Math.abs(changePercentage) > 0 && (
-          <div className={`text-xs flex items-center gap-1 ${
-            isPositive ? 'text-green-500' : 'text-red-500'
-          }`}>
-            <span>{isPositive ? '↗' : '↘'}</span>
-            <span>{Math.abs(changePercentage).toFixed(1)}%</span>
-          </div>
-        )}
-      </div>
-    );
-  };
 
   // Loading skeleton
   if (isLoading && !isRetrying) {
@@ -537,9 +308,8 @@ const NumberShowingCard = ({
           
           <div className="flex items-center gap-3 mb-1">
             <p className="text-3xl font-bold text-gray-900">
-              {count.toLocaleString()}
+              {(count || 0).toLocaleString()}
             </p>
-            {getChangeIndicator()}
           </div>
           
           {description && (
@@ -555,13 +325,6 @@ const NumberShowingCard = ({
           </span>
           
           <div className="flex items-center gap-2">
-            {enableAutoRefresh && (
-              <div className="flex items-center gap-1 text-green-600">
-                <div className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></div>
-                <span>Live</span>
-              </div>
-            )}
-            
             {lastUpdated && (
               <span className="text-gray-500">
                 {new Date(lastUpdated).toLocaleTimeString('en-US', {
@@ -590,7 +353,6 @@ NumberShowingCard.propTypes = {
   refreshInterval: PropTypes.number,
   enableAutoRefresh: PropTypes.bool,
   forceRefresh: PropTypes.number,
-  comparisonPeriod: PropTypes.number,
 };
 
 export default NumberShowingCard;

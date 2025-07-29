@@ -319,10 +319,8 @@ export default function TableDistributor({
   if (loading && !entryData) {
     return (
       <div className="container mx-auto p-6 bg-white rounded-xl border border-gray-200 shadow-sm">
-        <LoadingAnimation />
-        <p className="text-center text-gray-500 mt-4">
-          Loading {formattedUser}...
-        </p>
+        <LoadingAnimation message={`Loading ${formattedUser}...`} />
+       
       </div>
     );
   }

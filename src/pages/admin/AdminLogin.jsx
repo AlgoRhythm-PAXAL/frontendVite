@@ -1,72 +1,79 @@
-import { useState, useCallback, useMemo } from "react";
-import { useNavigate, Link } from "react-router-dom";
-import { useAdminAuth } from "../../hooks/useAdminAuth";
-import FormField from "../../components/admin/FormField";
-import LOGO from "../../assets/Velox-Logo.png";
-import formValidator from "../../utils/formValidator.js";
+import { useState, useCallback, useMemo } from 'react';
+import { useNavigate, Link } from 'react-router-dom';
+import { useAdminAuth } from '../../hooks/useAdminAuth';
+import FormField from '../../components/admin/FormField';
+import LOGO from '../../assets/Velox-Logo.png';
+import formValidator from '../../utils/formValidator.js';
 
 const AdminLogin = () => {
-  const [formData, setFormData] = useState({ email: "", password: "" });
+  const [formData, setFormData] = useState({ email: '', password: '' });
   const [validationErrors, setValidationErrors] = useState({});
   const navigate = useNavigate();
-  
+
   // Use admin auth context
   const { login, loading: isLoading } = useAdminAuth();
 
   // Validate form data
   const validateForm = useCallback(() => {
     const errors = {};
-    
+
     if (!formData.email) {
-      errors.email = "Email is required";
+      errors.email = 'Email is required';
     } else if (!formValidator.validateEmail(formData.email)) {
-      errors.email = "Invalid email format";
+      errors.email = 'Invalid email format';
     }
-    
+
     if (!formData.password) {
-      errors.password = "Password is required";
+      errors.password = 'Password is required';
     }
-    
+
     setValidationErrors(errors);
     return Object.keys(errors).length === 0;
   }, [formData]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     // Clear previous validation errors
     setValidationErrors({});
-    
+
     if (!validateForm()) {
       return;
     }
 
     try {
       const result = await login(formData);
-      
+
       if (result.success) {
         // Navigate to dashboard after successful login
-        setTimeout(() => navigate("/admin"), 1000);
+        setTimeout(() => navigate('/admin'), 1000);
       }
       // Error handling is done in the context
     } catch (error) {
-      console.error("Login submit error:", error);
+      console.error('Login submit error:', error);
     }
   };
 
-  const handleChange = useCallback((e) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
-    
-    // Clear validation error for this field when user starts typing
-    if (validationErrors[name]) {
-      setValidationErrors(prev => ({ ...prev, [name]: "" }));
-    }
-  }, [validationErrors]);
+  const handleChange = useCallback(
+    (e) => {
+      const { name, value } = e.target;
+      setFormData((prev) => ({ ...prev, [name]: value }));
+
+      // Clear validation error for this field when user starts typing
+      if (validationErrors[name]) {
+        setValidationErrors((prev) => ({ ...prev, [name]: '' }));
+      }
+    },
+    [validationErrors]
+  );
 
   // Check if form is valid for button state
   const isFormValid = useMemo(() => {
-    return formData.email && formData.password && Object.keys(validationErrors).length === 0;
+    return (
+      formData.email &&
+      formData.password &&
+      Object.keys(validationErrors).length === 0
+    );
   }, [formData, validationErrors]);
 
   return (
@@ -75,11 +82,14 @@ const AdminLogin = () => {
       <div className="w-full max-w-md bg-white rounded-3xl shadow-2xl p-8 relative z-10 mx-4">
         {/* Logo */}
         <div className="flex justify-center mb-8">
-          <img 
-            src={LOGO} 
-            alt="Company Logo" 
-            className="w-30 h-30 object-contain"
-          />
+          <picture>
+            <source srcSet={LOGO} type="image/webp" />
+            <img
+              src={LOGO}
+              alt="Company Logo"
+              className="w-40 h-40 object-contain"
+            />
+          </picture>
         </div>
 
         {/* Header */}
@@ -87,9 +97,7 @@ const AdminLogin = () => {
           <h1 className="text-3xl font-bold text-gray-800 font-mulish">
             Admin Login
           </h1>
-          <p className="text-gray-600 mt-2">
-            Please sign in to your account
-          </p>
+          <p className="text-gray-600 mt-2">Please sign in to your account</p>
         </div>
 
         {/* Login Form */}
@@ -106,7 +114,9 @@ const AdminLogin = () => {
                 required
               />
               {validationErrors.email && (
-                <p className="text-red-500 text-sm mt-1">{validationErrors.email}</p>
+                <p className="text-red-500 text-sm mt-1">
+                  {validationErrors.email}
+                </p>
               )}
             </div>
 
@@ -121,7 +131,9 @@ const AdminLogin = () => {
                 required
               />
               {validationErrors.password && (
-                <p className="text-red-500 text-sm mt-1">{validationErrors.password}</p>
+                <p className="text-red-500 text-sm mt-1">
+                  {validationErrors.password}
+                </p>
               )}
             </div>
           </div>
@@ -140,7 +152,7 @@ const AdminLogin = () => {
                 <span>Signing in...</span>
               </div>
             ) : (
-              "Sign In"
+              'Sign In'
             )}
           </button>
 
