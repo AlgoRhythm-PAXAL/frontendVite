@@ -1,21 +1,3 @@
-// import NumberShowingCard from '../NUmberShowingCard'
-
-// const UserCount = () => {
-//     return (
-//         <div className="w-full">
-//             <h1 className="text-2xl font-semibold mb-6">User Statistics</h1>
-//             <div className="flex flex-wrap justify-between items-center gap-3">
-//                 <NumberShowingCard title="Total Customers"type="Customer"/>
-//                 <NumberShowingCard title="Total Drivers" type="Driver" />
-//                 <NumberShowingCard title="Total Admins"  type="Admin" />
-//                 <NumberShowingCard title="Total Staffs" type="Staff" />
-//             </div>
-//         </div>
-//     )
-// }
-
-// export default UserCount
-
 import { useState, useCallback, useMemo } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { 
@@ -129,15 +111,15 @@ const UserCount = () => {
     });
 
     // Log the enhanced comparison data for debugging
-    if (updateData.change !== 0) {
-      console.log(`${updateData.type}: ${updateData.count} (${updateData.change > 0 ? '+' : ''}${updateData.change} vs ${updateData.comparisonPeriod} days ago, ${updateData.changePercentage.toFixed(1)}%)`);
+    if (updateData.change && updateData.change !== 0) {
+      console.log(`${updateData.type}: ${updateData.count} (${updateData.change > 0 ? '+' : ''}${updateData.change} vs ${updateData.comparisonPeriod || 'previous'} days ago, ${(updateData.changePercentage || 0).toFixed(1)}%)`);
     }
 
     // Show toast for significant changes (optional)
-    if (Math.abs(updateData.changePercentage) > 10) {
+    if (updateData.changePercentage && Math.abs(updateData.changePercentage) > 10) {
       const changeDirection = updateData.change > 0 ? 'increased' : 'decreased';
       toast.info(`${updateData.type} count ${changeDirection}`, {
-        description: `${Math.abs(updateData.changePercentage).toFixed(1)}% change vs ${updateData.comparisonPeriod} days ago`,
+        description: `${Math.abs(updateData.changePercentage).toFixed(1)}% change vs ${updateData.comparisonPeriod || 'previous'} days ago`,
         duration: 3000
       });
     }
@@ -195,9 +177,6 @@ const UserCount = () => {
             />
             <h1 className="text-2xl font-bold text-gray-900">User Statistics</h1>
           </div>
-          <p className="text-sm text-gray-600">
-            Real-time overview of user counts across all categories
-          </p>
         </div>
 
         <div className="flex items-center gap-3">
@@ -234,10 +213,7 @@ const UserCount = () => {
         <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-xl p-4">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
             <div className="flex items-center gap-4">
-              <div className="flex items-center gap-2">
-                <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                <span className="text-sm font-medium text-gray-700">Live Data</span>
-              </div>
+              
               
               <div className="text-sm text-gray-600">
                 Last updated: {new Date(globalStats.lastUpdated).toLocaleTimeString('en-US', {
@@ -248,13 +224,7 @@ const UserCount = () => {
               </div>
             </div>
 
-            <div className="flex items-center gap-4 text-sm">
-              <span className="text-gray-600">
-                Status: <span className={`font-medium ${errorSummary.hasErrors ? 'text-red-600' : 'text-green-600'}`}>
-                  {errorSummary.hasErrors ? 'Partial' : 'Healthy'}
-                </span>
-              </span>
-            </div>
+            
           </div>
         </div>
       )}
@@ -317,9 +287,7 @@ const UserCount = () => {
         </div>
       )}
 
-      <div className="text-center text-xs text-gray-500 pt-4 border-t border-gray-200">
-        <p>Data refreshes automatically every 5 minutes • Click &quot;Refresh All&quot; for immediate updates</p>
-      </div>
+      
     </div>
   );
 };

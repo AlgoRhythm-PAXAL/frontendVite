@@ -61,21 +61,7 @@ export default function Sidebar() {
       icon: faBox,
       path: "/admin/parcels",
     },
-    {
-      title: "Vehicle Schedules",
-      icon: faCalendarWeek,
-      path: "/admin/vehicleSchedules",
-    },
-    {
-      title: "B2B Shipments",
-      icon: faTruck,
-      path: "/admin/b2b-shipments",
-    },
-    {
-      title: "Shipments",
-      icon: faTruck,
-      path: "/admin/shipments",
-    },
+   
     {
       title: "Branches",
       icon: faBuilding,
@@ -85,6 +71,16 @@ export default function Sidebar() {
       title: "Vehicles",
       icon: faCar,
       path: "/admin/vehicles",
+    },
+     {
+      title: "Vehicle Schedules",
+      icon: faCalendarWeek,
+      path: "/admin/vehicleSchedules",
+    },
+    {
+      title: "B2B Shipments",
+      icon: faTruck,
+      path: "/admin/b2b-shipments",
     },
     {
       title: "Reports",
