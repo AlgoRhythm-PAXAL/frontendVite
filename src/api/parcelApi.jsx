@@ -32,4 +32,32 @@ export const submitParcel = async (parcelData) => {
     );
     throw error;
   }
+
+}
+
+  export const calculatePayment=async({itemSize,fromBranchId,toBranchId,shippingMethod})=>{
+
+    console.log("Passing parameters",fromBranchId,toBranchId)
+    try{
+
+      const params = new URLSearchParams({
+      itemSize,
+      shippingMethod
+    });
+
+    if (fromBranchId) params.append('from', fromBranchId);
+    if (toBranchId) params.append('to', toBranchId);
+      const response = await axios.get(`${backendURL}/api/payment/get-price?${params.toString()}`)
+       return response.data;
+    }
+    catch(error){
+      console.error(
+      'Error calculating payment:',
+      error.response?.data || error.message
+    );
+    throw error;
+    }
+  
+  
 };
+
