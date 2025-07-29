@@ -10,6 +10,10 @@ import {
   ArrowUp,
   ArrowDown,
   Loader,
+  Brain,
+  Lightbulb,
+  Target,
+  AlertTriangle,
 } from 'lucide-react';
 import {
   ResponsiveContainer,
@@ -40,7 +44,7 @@ import { toast } from 'sonner';
 import { format, subDays, subMonths, subYears } from 'date-fns';
 
 // Import API functions
-import { dashboardApi, reportApi } from '@/api/reportApi';
+import { dashboardApi, reportApi, aiApi } from '@/api/reportApi';
 
 // Import components
 import LoadingAnimation from '../../utils/LoadingAnimation';
@@ -50,6 +54,11 @@ const Reports = () => {
   const [reportData, setReportData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [downloadingCSV, setDownloadingCSV] = useState(false);
+  
+  // AI Insights state
+  const [aiInsights, setAiInsights] = useState(null);
+  const [loadingAI, setLoadingAI] = useState(false);
+  const [businessMetrics, setBusinessMetrics] = useState(null);
   
   // Date range state
   const [dateRange, setDateRange] = useState({
@@ -165,6 +174,97 @@ const Reports = () => {
       toast.error('Failed to generate report');
     } finally {
       setLoading(false);
+    }
+  };
+
+  // AI Insights Functions
+  const fetchBusinessMetrics = async () => {
+    try {
+      setLoadingAI(true);
+      const params = {
+        dateRange: JSON.stringify({
+          startDate: dateRange.startDate,
+          endDate: dateRange.endDate
+        }),
+        branchId: 'all'
+      };
+
+      const data = await aiApi.getBusinessMetrics(params);
+      
+      if (data.success) {
+        setBusinessMetrics(data.data.metrics);
+        return data.data.metrics;
+      } else {
+        throw new Error(data.message || 'Failed to fetch business metrics');
+      }
+    } catch (error) {
+      console.error('Error fetching business metrics:', error);
+      toast.error('Failed to fetch business metrics');
+      return null;
+    }
+  };
+
+  const generateAIInsights = async () => {
+    try {
+      setLoadingAI(true);
+      
+      // First, get business metrics if not already available
+      let metrics = businessMetrics;
+      if (!metrics) {
+        metrics = await fetchBusinessMetrics();
+        if (!metrics) return;
+      }
+
+      // Generate AI insights using the metrics
+      const params = {
+        reportType: 'comprehensive',
+        dateRange: JSON.stringify({
+          startDate: dateRange.startDate,
+          endDate: dateRange.endDate
+        }),
+        branchId: 'all'
+      };
+
+      const data = await aiApi.generateAIReport(params);
+      
+      if (data.success) {
+        setAiInsights(data.data);
+        toast.success('AI insights generated successfully');
+        // Auto-switch to AI insights tab
+        document.querySelector('[value="ai-insights"]')?.click();
+      } else {
+        throw new Error(data.message || 'Failed to generate AI insights');
+      }
+    } catch (error) {
+      console.error('Error generating AI insights:', error);
+      toast.error('Failed to generate AI insights. Please try again.');
+    } finally {
+      setLoadingAI(false);
+    }
+  };
+
+  const getPerformanceAnalysis = async () => {
+    try {
+      const params = {
+        analysisType: 'comprehensive',
+        dateRange: JSON.stringify({
+          startDate: dateRange.startDate,
+          endDate: dateRange.endDate
+        }),
+        branchId: 'all'
+      };
+
+      const data = await aiApi.getPerformanceAnalysis(params);
+      
+      if (data.success) {
+        return data.data;
+      } else {
+        throw new Error(data.message || 'Failed to get performance analysis');
+      }
+    } catch (error) {
+      console.error('Error getting performance analysis:', error);
+      toast.error('Failed to get performance analysis');
+      return null;
     }
   };
 
@@ -451,6 +551,19 @@ const Reports = () => {
           Generate Report
         </Button>
         <Button
+          onClick={generateAIInsights}
+          disabled={loadingAI}
+          variant="outline"
+          className="flex items-center gap-2 bg-gradient-to-r from-blue-50 to-purple-50 border-blue-200 hover:from-blue-100 hover:to-purple-100"
+        >
+          {loadingAI ? (
+            <Loader className="h-4 w-4 animate-spin text-blue-600" />
+          ) : (
+            <Brain className="h-4 w-4 text-blue-600" />
+          )}
+          <span className="text-blue-700">AI Insights</span>
+        </Button>
+        <Button
           onClick={downloadComprehensiveCSV}
           disabled={downloadingCSV || !reportData}
           className="flex items-center gap-2"
@@ -521,12 +634,13 @@ const Reports = () => {
       ) : (
         <div>
           <Tabs defaultValue="overview" className="space-y-4">
-            <TabsList className="grid w-full grid-cols-5">
+            <TabsList className="grid w-full grid-cols-6">
               <TabsTrigger value="overview">Overview</TabsTrigger>
               <TabsTrigger value="parcels">Parcels</TabsTrigger>
               <TabsTrigger value="shipments">Shipments</TabsTrigger>
               <TabsTrigger value="financial">Financial</TabsTrigger>
               <TabsTrigger value="branches">Branches</TabsTrigger>
+              <TabsTrigger value="ai-insights">AI Insights</TabsTrigger>
             </TabsList>
 
             <TabsContent value="overview">
@@ -957,6 +1071,293 @@ const Reports = () => {
                   )}
                 </CardContent>
               </Card>
+            </TabsContent>
+
+            <TabsContent value="ai-insights">
+              <div className="space-y-6">
+                {/* AI Insights Header */}
+                <Card>
+                  <CardContent className="flex items-center justify-between p-4">
+                    <div className="flex items-center gap-3">
+                      <Brain className="h-6 w-6 text-blue-600" />
+                      <div>
+                        <h3 className="text-lg font-semibold text-gray-900">AI Business Intelligence</h3>
+                        <p className="text-sm text-gray-600">
+                          Get AI-powered insights and recommendations for your business
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex gap-2">
+                      <Button
+                        onClick={fetchBusinessMetrics}
+                        disabled={loadingAI}
+                        variant="outline"
+                        size="sm"
+                        className="flex items-center gap-2"
+                      >
+                        <RefreshCw className={`h-4 w-4 ${loadingAI ? 'animate-spin' : ''}`} />
+                        Fetch Metrics
+                      </Button>
+                      <Button
+                        onClick={generateAIInsights}
+                        disabled={loadingAI}
+                        className="flex items-center gap-2"
+                      >
+                        {loadingAI ? (
+                          <Loader className="h-4 w-4 animate-spin" />
+                        ) : (
+                          <Brain className="h-4 w-4" />
+                        )}
+                        Generate AI Insights
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Loading State */}
+                {loadingAI && (
+                  <Card>
+                    <CardContent className="flex flex-col items-center justify-center p-12">
+                      <Brain className="h-16 w-16 text-blue-400 mb-4 animate-pulse" />
+                      <h3 className="text-xl font-semibold text-gray-600 mb-2">
+                        AI is Analyzing Your Business Data
+                      </h3>
+                      <p className="text-gray-500 text-center mb-4">
+                        Please wait while our AI generates comprehensive insights and recommendations...
+                      </p>
+                      <div className="w-full max-w-xs bg-gray-200 rounded-full h-2">
+                        <div className="bg-blue-600 h-2 rounded-full animate-pulse" style={{width: '70%'}}></div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
+
+                {/* Business Metrics Summary */}
+                {businessMetrics && (
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2">
+                        <Target className="h-5 w-5 text-green-600" />
+                        Business Metrics Overview
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        {businessMetrics.overview && (
+                          <>
+                            <div className="text-center p-3 bg-blue-50 rounded-lg">
+                              <div className="text-2xl font-bold text-blue-600">
+                                {businessMetrics.overview.totalUsers?.toLocaleString() || 0}
+                              </div>
+                              <div className="text-sm text-gray-600">Total Users</div>
+                            </div>
+                            <div className="text-center p-3 bg-green-50 rounded-lg">
+                              <div className="text-2xl font-bold text-green-600">
+                                {businessMetrics.overview.totalParcels?.toLocaleString() || 0}
+                              </div>
+                              <div className="text-sm text-gray-600">Total Parcels</div>
+                            </div>
+                            <div className="text-center p-3 bg-purple-50 rounded-lg">
+                              <div className="text-2xl font-bold text-purple-600">
+                                Rs. {businessMetrics.overview.totalRevenue?.toLocaleString() || 0}
+                              </div>
+                              <div className="text-sm text-gray-600">Total Revenue</div>
+                            </div>
+                            <div className="text-center p-3 bg-orange-50 rounded-lg">
+                              <div className="text-2xl font-bold text-orange-600">
+                                {businessMetrics.overview.totalBranches?.toLocaleString() || 0}
+                              </div>
+                              <div className="text-sm text-gray-600">Branches</div>
+                            </div>
+                          </>
+                        )}
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
+
+                {/* AI Insights Display */}
+                {aiInsights ? (
+                  <div className="grid grid-cols-1 gap-6">
+                    {/* Executive Summary */}
+                    {aiInsights.aiInsights?.executiveSummary && (
+                      <Card>
+                        <CardHeader>
+                          <CardTitle className="flex items-center gap-2">
+                            <Lightbulb className="h-5 w-5 text-yellow-600" />
+                            Executive Summary
+                          </CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          <p className="text-gray-700 leading-relaxed">
+                            {aiInsights.aiInsights.executiveSummary}
+                          </p>
+                        </CardContent>
+                      </Card>
+                    )}
+
+                    {/* Performance Score */}
+                    {aiInsights.aiInsights?.performanceScore && (
+                      <Card>
+                        <CardHeader>
+                          <CardTitle className="flex items-center gap-2">
+                            <TrendingUp className="h-5 w-5 text-blue-600" />
+                            Performance Score
+                          </CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+                            <div className="text-center">
+                              <div className="text-3xl font-bold text-blue-600 mb-1">
+                                {aiInsights.aiInsights.performanceScore.overall}
+                              </div>
+                              <div className="text-sm text-gray-600">Overall</div>
+                            </div>
+                            {Object.entries(aiInsights.aiInsights.performanceScore.breakdown || {}).map(([key, value]) => (
+                              <div key={key} className="text-center">
+                                <div className="text-2xl font-bold text-gray-700 mb-1">
+                                  {value}
+                                </div>
+                                <div className="text-sm text-gray-600 capitalize">
+                                  {key.replace(/([A-Z])/g, ' $1').trim()}
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </CardContent>
+                      </Card>
+                    )}
+
+                    {/* Key Findings */}
+                    {aiInsights.aiInsights?.keyFindings && aiInsights.aiInsights.keyFindings.length > 0 && (
+                      <Card>
+                        <CardHeader>
+                          <CardTitle className="flex items-center gap-2">
+                            <Target className="h-5 w-5 text-green-600" />
+                            Key Findings
+                          </CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          <ul className="space-y-3">
+                            {aiInsights.aiInsights.keyFindings.map((finding, index) => (
+                              <li key={index} className="flex items-start gap-3">
+                                <div className="w-2 h-2 bg-green-500 rounded-full mt-2 flex-shrink-0"></div>
+                                <span className="text-gray-700">{finding}</span>
+                              </li>
+                            ))}
+                          </ul>
+                        </CardContent>
+                      </Card>
+                    )}
+
+                    {/* Recommendations */}
+                    {aiInsights.aiInsights?.recommendations && aiInsights.aiInsights.recommendations.length > 0 && (
+                      <Card>
+                        <CardHeader>
+                          <CardTitle className="flex items-center gap-2">
+                            <Lightbulb className="h-5 w-5 text-yellow-600" />
+                            AI Recommendations
+                          </CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          <div className="space-y-4">
+                            {aiInsights.aiInsights.recommendations.map((rec, index) => (
+                              <div key={index} className="border border-gray-200 rounded-lg p-4">
+                                <div className="flex items-start justify-between mb-2">
+                                  <h4 className="font-semibold text-gray-900">{rec.title}</h4>
+                                  <span className={`px-2 py-1 text-xs rounded-full ${
+                                    rec.priority === 'High' ? 'bg-red-100 text-red-700' :
+                                    rec.priority === 'Medium' ? 'bg-yellow-100 text-yellow-700' :
+                                    'bg-green-100 text-green-700'
+                                  }`}>
+                                    {rec.priority} Priority
+                                  </span>
+                                </div>
+                                <p className="text-gray-600 mb-3">{rec.description}</p>
+                                <div className="grid grid-cols-1 md:grid-cols-3 gap-2 text-sm">
+                                  <div>
+                                    <span className="font-medium text-gray-700">Category: </span>
+                                    <span className="text-gray-600">{rec.category}</span>
+                                  </div>
+                                  <div>
+                                    <span className="font-medium text-gray-700">Impact: </span>
+                                    <span className="text-gray-600">{rec.expectedImpact}</span>
+                                  </div>
+                                  <div>
+                                    <span className="font-medium text-gray-700">Timeframe: </span>
+                                    <span className="text-gray-600">{rec.timeframe}</span>
+                                  </div>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </CardContent>
+                      </Card>
+                    )}
+
+                    {/* Risk Assessment */}
+                    {aiInsights.aiInsights?.riskAssessment && (
+                      <Card>
+                        <CardHeader>
+                          <CardTitle className="flex items-center gap-2">
+                            <AlertTriangle className="h-5 w-5 text-red-600" />
+                            Risk Assessment
+                          </CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            {aiInsights.aiInsights.riskAssessment.highRisks && aiInsights.aiInsights.riskAssessment.highRisks.length > 0 && (
+                              <div>
+                                <h4 className="font-semibold text-red-700 mb-3">High Risks</h4>
+                                <ul className="space-y-2">
+                                  {aiInsights.aiInsights.riskAssessment.highRisks.map((risk, index) => (
+                                    <li key={index} className="flex items-start gap-2">
+                                      <AlertTriangle className="h-4 w-4 text-red-500 mt-0.5 flex-shrink-0" />
+                                      <span className="text-gray-700 text-sm">{risk}</span>
+                                    </li>
+                                  ))}
+                                </ul>
+                              </div>
+                            )}
+                            {aiInsights.aiInsights.riskAssessment.mediumRisks && aiInsights.aiInsights.riskAssessment.mediumRisks.length > 0 && (
+                              <div>
+                                <h4 className="font-semibold text-yellow-700 mb-3">Medium Risks</h4>
+                                <ul className="space-y-2">
+                                  {aiInsights.aiInsights.riskAssessment.mediumRisks.map((risk, index) => (
+                                    <li key={index} className="flex items-start gap-2">
+                                      <AlertTriangle className="h-4 w-4 text-yellow-500 mt-0.5 flex-shrink-0" />
+                                      <span className="text-gray-700 text-sm">{risk}</span>
+                                    </li>
+                                  ))}
+                                </ul>
+                              </div>
+                            )}
+                          </div>
+                        </CardContent>
+                      </Card>
+                    )}
+                  </div>
+                ) : !loadingAI && (
+                  <Card>
+                    <CardContent className="flex flex-col items-center justify-center p-12">
+                      <Brain className="h-16 w-16 text-gray-400 mb-4" />
+                      <h3 className="text-xl font-semibold text-gray-600 mb-2">
+                        No AI Insights Available
+                      </h3>
+                      <p className="text-gray-500 text-center mb-6">
+                        Click &quot;Generate AI Insights&quot; to get comprehensive business intelligence analysis and recommendations.
+                      </p>
+                      <p className="text-sm text-gray-400 text-center mb-6">
+                        Analysis period: {format(new Date(dateRange.startDate), 'MMM dd, yyyy')} - {format(new Date(dateRange.endDate), 'MMM dd, yyyy')}
+                      </p>
+                      <Button onClick={generateAIInsights} className="flex items-center gap-2">
+                        <Brain className="h-4 w-4" />
+                        Generate AI Insights
+                      </Button>
+                    </CardContent>
+                  </Card>
+                )}
+              </div>
             </TabsContent>
           </Tabs>
         </div>
