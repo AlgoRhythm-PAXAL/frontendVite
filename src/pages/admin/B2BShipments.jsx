@@ -247,7 +247,9 @@ const B2BShipments = () => {
 
   if (loading) {
     return (
-      <LoadingAnimation message="Loading B2B shipments..." />
+      <div className="min-h-screen flex items-center justify-center">
+        <LoadingAnimation message="Loading B2B shipments..." />
+      </div>
     );
   }
 
