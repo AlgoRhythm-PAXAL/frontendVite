@@ -270,6 +270,18 @@ const ScheduleCard = ({ schedule, type }) => {
                       {schedule.vehicle?.vehicleType || 'N/A'}
                     </span>
                   </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600 font-medium">Max Volume:</span>
+                    <span className="font-semibold text-gray-900">
+                      {schedule.vehicle?.capacity?.maxVolume || 0} {schedule.vehicle?.capacity?.volumeUnit || 'm³'}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600 font-medium">Max Weight:</span>
+                    <span className="font-semibold text-gray-900">
+                      {schedule.vehicle?.capacity?.maxWeight || 0} {schedule.vehicle?.capacity?.weightUnit || 'kg'}
+                    </span>
+                  </div>
                   <div className="flex justify-between items-center">
                     <span className="text-gray-600 font-medium">Status:</span>
                     <Badge
@@ -518,82 +530,180 @@ const ScheduleCard = ({ schedule, type }) => {
   );
 };
 
-// Summary Stats Component
+// Summary Stats Component with Date Filters
 /* eslint-disable react/prop-types */
-const SummaryStats = ({ data }) => {
-  if (!data) return null;
+const SummaryStats = ({ pickupData, deliveryData, onDateFilterChange, selectedDateFilter }) => {
+  if (!pickupData && !deliveryData) return null;
+
+  // Calculate combined statistics
+  const totalPickupSchedules = pickupData?.summary?.totalSchedules || 0;
+  const totalDeliverySchedules = deliveryData?.summary?.totalSchedules || 0;
+  const totalSchedules = totalPickupSchedules + totalDeliverySchedules;
+
+  const totalPickupParcels = pickupData?.summary?.totalParcels || 0;
+  const totalDeliveryParcels = deliveryData?.summary?.totalParcels || 0;
+  const totalParcels = totalPickupParcels + totalDeliveryParcels;
+
+  // Date filter presets
+  const datePresets = [
+    {
+      label: 'Today',
+      value: 'today',
+      getDate: () => new Date().toISOString()
+    },
+    {
+      label: 'Yesterday',
+      value: 'yesterday',
+      getDate: () => {
+        const date = new Date();
+        date.setDate(date.getDate() - 1);
+        return date.toISOString();
+      }
+    },
+    {
+      label: 'Last 7 Days',
+      value: '7days',
+      getDate: () => {
+        const date = new Date();
+        date.setDate(date.getDate() - 7);
+        return date.toISOString();
+      }
+    },
+    {
+      label: 'Last 30 Days',
+      value: '30days',
+      getDate: () => {
+        const date = new Date();
+        date.setDate(date.getDate() - 30);
+        return date.toISOString();
+      }
+    },
+    {
+      label: 'All Time',
+      value: 'all',
+      getDate: () => null
+    }
+  ];
 
   return (
-    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-      <Card className="hover:shadow-md transition-shadow">
-        <CardContent className="p-6">
-          <div className="flex items-center space-x-3">
-            <div className="p-3 bg-blue-100 rounded-full">
-              <CalendarIcon className="w-6 h-6 text-blue-600" />
+    <div className="space-y-4">
+      {/* Date Filter Presets */}
+      <Card className="shadow-sm border-gray-200">
+        <CardHeader className="pb-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-2">
+              <CalendarIcon className="w-5 h-5 text-gray-600" />
+              <span className="text-lg font-semibold text-gray-900">Quick Date Filters</span>
             </div>
-            <div>
-              <div className="text-2xl font-bold text-gray-900">
-                {data.summary?.totalSchedules || 0}
-              </div>
-              <div className="text-sm font-medium text-gray-600">
-                Total Schedules
-              </div>
-            </div>
+          </div>
+        </CardHeader>
+        <CardContent className="pt-0">
+          <div className="flex flex-wrap gap-2">
+            {datePresets.map((preset) => (
+              <Button
+                key={preset.value}
+                variant={selectedDateFilter === preset.value ? "default" : "outline"}
+                size="sm"
+                onClick={() => onDateFilterChange(preset.value, preset.getDate())}
+                className={`h-8 text-xs ${
+                  selectedDateFilter === preset.value
+                    ? 'bg-blue-600 text-white'
+                    : 'hover:bg-blue-50 hover:text-blue-600'
+                }`}
+              >
+                {preset.label}
+              </Button>
+            ))}
           </div>
         </CardContent>
       </Card>
 
-      <Card className="hover:shadow-md transition-shadow">
-        <CardContent className="p-6">
-          <div className="flex items-center space-x-3">
-            <div className="p-3 bg-green-100 rounded-full">
-              <Package className="w-6 h-6 text-green-600" />
-            </div>
-            <div>
-              <div className="text-2xl font-bold text-gray-900">
-                {data.summary?.totalParcels || 0}
+      {/* Statistics Cards - Less Colorful */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <Card className="hover:shadow-md transition-shadow border-gray-200">
+          <CardContent className="p-6">
+            <div className="flex items-center space-x-3">
+              <div className="p-3 bg-gray-100 rounded-full">
+                <CalendarIcon className="w-6 h-6 text-gray-600" />
               </div>
-              <div className="text-sm font-medium text-gray-600">
-                Total Parcels
+              <div>
+                <div className="text-2xl font-bold text-gray-900">
+                  {totalSchedules}
+                </div>
+                <div className="text-sm font-medium text-gray-600">
+                  Total Schedules
+                </div>
+                <div className="text-xs text-gray-500 mt-1">
+                  {totalPickupSchedules} Pickups • {totalDeliverySchedules} Deliveries
+                </div>
               </div>
             </div>
-          </div>
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
 
-      <Card className="hover:shadow-md transition-shadow">
-        <CardContent className="p-6">
-          <div className="flex items-center space-x-3">
-            <div className="p-3 bg-purple-100 rounded-full">
-              <User className="w-6 h-6 text-purple-600" />
-            </div>
-            <div>
-              <div className="text-2xl font-bold text-gray-900">
-                {data.summary?.schedulesWithDrivers || 0}
+        <Card className="hover:shadow-md transition-shadow border-gray-200">
+          <CardContent className="p-6">
+            <div className="flex items-center space-x-3">
+              <div className="p-3 bg-gray-100 rounded-full">
+                <Package className="w-6 h-6 text-gray-600" />
               </div>
-              <div className="text-sm font-medium text-gray-600">
-                With Drivers
+              <div>
+                <div className="text-2xl font-bold text-gray-900">
+                  {totalParcels}
+                </div>
+                <div className="text-sm font-medium text-gray-600">
+                  Total Parcels
+                </div>
+                <div className="text-xs text-gray-500 mt-1">
+                  {totalPickupParcels} Pickups • {totalDeliveryParcels} Deliveries
+                </div>
               </div>
             </div>
-          </div>
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
 
-      <Card className="hover:shadow-md transition-shadow">
-        <CardContent className="p-6">
-          <div className="flex items-center space-x-3">
-            <div className="p-3 bg-green-100 rounded-full">
-              <CheckCircle className="w-6 h-6 text-green-600" />
-            </div>
-            <div>
-              <div className="text-2xl font-bold text-gray-900">
-                {data.summary?.statusBreakdown?.completed || 0}
+        <Card className="hover:shadow-md transition-shadow border-gray-200">
+          <CardContent className="p-6">
+            <div className="flex items-center space-x-3">
+              <div className="p-3 bg-gray-100 rounded-full">
+                <Truck className="w-6 h-6 text-gray-600" />
               </div>
-              <div className="text-sm font-medium text-gray-600">Completed</div>
+              <div>
+                <div className="text-2xl font-bold text-gray-900">
+                  {totalPickupSchedules}
+                </div>
+                <div className="text-sm font-medium text-gray-600">
+                  Pickup Schedules
+                </div>
+                <div className="text-xs text-gray-500 mt-1">
+                  {totalPickupParcels} Parcels
+                </div>
+              </div>
             </div>
-          </div>
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+
+        <Card className="hover:shadow-md transition-shadow border-gray-200">
+          <CardContent className="p-6">
+            <div className="flex items-center space-x-3">
+              <div className="p-3 bg-gray-100 rounded-full">
+                <CheckCircle className="w-6 h-6 text-gray-600" />
+              </div>
+              <div>
+                <div className="text-2xl font-bold text-gray-900">
+                  {totalDeliverySchedules}
+                </div>
+                <div className="text-sm font-medium text-gray-600">
+                  Delivery Schedules
+                </div>
+                <div className="text-xs text-gray-500 mt-1">
+                  {totalDeliveryParcels} Parcels
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 };
@@ -604,12 +714,19 @@ const VehicleSchedules = () => {
   const [allBranches, setAllBranches] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [selectedDate, setSelectedDate] = useState(null);
+  const [selectedDate, setSelectedDate] = useState(new Date().toISOString()); // Default to today
   const [selectedBranch, setSelectedBranch] = useState('all');
   const [selectedTimeSlot, setSelectedTimeSlot] = useState('all');
   const [selectedStatus, setSelectedStatus] = useState('all');
   const [activeTab, setActiveTab] = useState('pickup');
   const [datePickerOpen, setDatePickerOpen] = useState(false);
+  const [selectedDateFilter, setSelectedDateFilter] = useState('today'); // New state for date filter presets
+
+  // Handle date filter changes from presets
+  const handleDateFilterChange = useCallback((filterType, dateValue) => {
+    setSelectedDateFilter(filterType);
+    setSelectedDate(dateValue);
+  }, []);
 
   // Fetch schedules data
   const fetchSchedules = useCallback(async () => {
@@ -795,7 +912,12 @@ const VehicleSchedules = () => {
   return (
     <div className="mx-8 space-y-6">
       <SectionTitle title="Vehicle Schedules" />
-      <SummaryStats data={pickupData} />
+      <SummaryStats 
+        pickupData={pickupData} 
+        deliveryData={deliveryData} 
+        onDateFilterChange={handleDateFilterChange}
+        selectedDateFilter={selectedDateFilter}
+      />
       {/* Professional Filters Card */}
       <Card className="shadow-sm border-gray-200">
         <CardHeader className="pb-4 border-b border-gray-100">
@@ -982,7 +1104,8 @@ const VehicleSchedules = () => {
                 selectedStatus !== 'all') && (
                 <Button
                   onClick={() => {
-                    setSelectedDate(null);
+                    setSelectedDate(new Date().toISOString());
+                    setSelectedDateFilter('today');
                     setSelectedBranch('all');
                     setSelectedTimeSlot('all');
                     setSelectedStatus('all');
@@ -992,7 +1115,7 @@ const VehicleSchedules = () => {
                   className="h-9 hover:bg-gray-50"
                 >
                   <XCircle className="w-4 h-4 mr-2" />
-                  Clear Filters
+                  Reset to Today
                 </Button>
               )}
               <Button
@@ -1010,7 +1133,7 @@ const VehicleSchedules = () => {
       </Card>
 
       {/* Active Filters Badge */}
-      {(selectedDate ||
+      {(selectedDateFilter !== 'today' ||
         selectedBranch !== 'all' ||
         selectedTimeSlot !== 'all' ||
         selectedStatus !== 'all') && (
@@ -1019,13 +1142,17 @@ const VehicleSchedules = () => {
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-2 text-sm text-blue-800">
                 <span className="font-medium">Active filters:</span>
-                {selectedDate && (
+                {selectedDateFilter !== 'today' && selectedDate && (
                   <Badge
                     variant="secondary"
                     className="bg-blue-100 text-blue-800"
                   >
                     <CalendarIcon className="w-3 h-3 mr-1" />
-                    {formatDateForDisplay(selectedDate)}
+                    {selectedDateFilter === 'all' ? 'All Time' : 
+                     selectedDateFilter === 'yesterday' ? 'Yesterday' :
+                     selectedDateFilter === '7days' ? 'Last 7 Days' :
+                     selectedDateFilter === '30days' ? 'Last 30 Days' :
+                     formatDateForDisplay(selectedDate)}
                   </Badge>
                 )}
                 {selectedBranch !== 'all' && (
@@ -1109,7 +1236,6 @@ const VehicleSchedules = () => {
         </TabsContent>
 
         <TabsContent value="delivery" className="space-y-6">
-          <SummaryStats data={deliveryData} />
           <div className="space-y-4">
             {deliveryData?.schedules?.length > 0 ? (
               deliveryData.schedules.map((schedule, index) => (
