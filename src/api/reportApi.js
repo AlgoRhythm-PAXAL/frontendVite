@@ -311,13 +311,23 @@ apiClient.interceptors.response.use(
 export const dashboardApi = {
   /**
    * Get dashboard analytics data
-   * @param {string} period - Time period (1d, 7d, 30d, 90d, 1y)
+   * @param {string} period - Time period (1w, 1m, 2m, custom)
+   * @param {string} startDate - Start date for custom range (ISO string)
+   * @param {string} endDate - End date for custom range (ISO string)
    * @returns {Promise} Dashboard data
    */
-  getDashboardData: async (period = '0d') => {
+  getDashboardData: async (period = '1w', startDate = null, endDate = null) => {
     try {
+      const params = { period };
+      
+      // Add custom date range if provided
+      if (period === 'custom' && startDate && endDate) {
+        params.startDate = startDate;
+        params.endDate = endDate;
+      }
+      
       const response = await apiClient.get('/api/admin/reports/dashboard', {
-        params: { period }
+        params
       });
       return response.data;
     } catch (error) {
