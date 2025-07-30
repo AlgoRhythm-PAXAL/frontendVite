@@ -34,7 +34,7 @@ export default function NavItem({
         }
       }}
     >
-      <div className={`flex items-center gap-3 w-full h-12 rounded-lg px-4 py-2 transition-all duration-200 ${
+      <div className={`flex items-center gap-3 w-full min-h-[48px] lg:h-12 rounded-lg px-4 py-2 transition-all duration-200 ${
         active 
           ? "bg-Primary" 
           : "hover:bg-gray-100"
