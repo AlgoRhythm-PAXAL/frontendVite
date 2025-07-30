@@ -64,8 +64,6 @@ const StaffLogin = () => {
       console.log("Stored userCenter:", localStorage.getItem('userCenter'));
       console.log("Stored staffId:", localStorage.getItem('staffId'));
       console.log("Stored staffName:", localStorage.getItem('staffName'));
-
-      
       toast.success("Login Successful", {
         description: `Hello ${response.data.staff.name}`,
         duration: 4000,
