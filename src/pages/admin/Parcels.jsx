@@ -263,7 +263,8 @@ const Parcels = () => {
     'Delivered',
     'NotAccepted',
     'WrongAddress',
-    'Return'
+    'Return',
+    'Cancelled'
   ];
 
   const itemTypeOptions = ['Glass', 'Flowers', 'Document', 'Clothing', 'Electronics', 'Food', 'Other'];
@@ -1163,6 +1164,8 @@ const Parcels = () => {
               entryData={parcelData}
               columns={parcelColumns}
               enableRowClick={true}
+              disableDateFilter={true}
+              disablePagination={true}
             />
           </div>
         </div>

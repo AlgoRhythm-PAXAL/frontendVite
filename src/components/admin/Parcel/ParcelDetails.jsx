@@ -13,6 +13,9 @@ import {
   QrCode,
   CreditCard,
   Truck,
+  Edit,
+  XCircle,
+  RotateCcw,
 } from "lucide-react";
 import {
   capitalize,
@@ -22,6 +25,10 @@ import {
 } from "../../../utils/formatters";
 import TableDistributor from "../UserTables/DataTable/TableDistributor";
 import LoadingAnimation from "../../../utils/LoadingAnimation";
+import EditParcelDialog from "./EditParcelDialog";
+import CancelParcelDialog from "./CancelParcelDialog";
+import ReturnParcelDialog from "./ReturnParcelDialog";
+import ReactivateParcelDialog from "./ReactivateParcelDialog";
 import { toast } from "sonner";
 import axios from "axios";
 
@@ -113,9 +120,14 @@ const useParcelData = (entryId, backendURL) => {
         }),
       ]);
 
+      console.log("Parcel and tracking responses:", parcelResponse);
+      console.log("Parcel cancellation info:", parcelResponse.value?.data?.data?.cancellationInfo);
+      console.log("Parcel return info:", parcelResponse.value?.data?.data?.returnInfo);
+
       // Handle parcel data
       if (parcelResponse.status === "fulfilled") {
-        const parcelData = parcelResponse.value.data.data;
+        // Handle both old and new response formats for backwards compatibility
+        const parcelData = parcelResponse.value.data.data || parcelResponse.value.data.parcel;
         if (!parcelData || Object.keys(parcelData).length === 0) {
           throw new Error("No parcel data received");
         }
@@ -186,6 +198,11 @@ const useParcelData = (entryId, backendURL) => {
 
 const ParcelDetails = React.memo(({ entryId }) => {
   const backendURL = import.meta.env.VITE_BACKEND_URL;
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [isCancelDialogOpen, setIsCancelDialogOpen] = useState(false);
+  const [isReturnDialogOpen, setIsReturnDialogOpen] = useState(false);
+  const [isReactivateDialogOpen, setIsReactivateDialogOpen] = useState(false);
+  
   const { parcelData, trackingData, loading, error, retry } = useParcelData(
     entryId,
     backendURL
@@ -297,13 +314,64 @@ const ParcelDetails = React.memo(({ entryId }) => {
           </div>
         </div>
         
-        <Badge
-          variant="outline"
-          className={`${parcelSections.header.color} px-4 py-2 text-sm font-semibold`}
-        >
-          <span className="mr-2">{parcelSections.header.icon}</span>
-          {camelToSentenceCase(parcelSections.header.status)}
-        </Badge>
+        {/* Action Buttons */}
+        <div className="flex flex-wrap items-center gap-3">
+          <Button
+            onClick={() => setIsEditDialogOpen(true)}
+            variant="outline"
+            size="sm"
+            className="flex items-center gap-2"
+          >
+            <Edit className="h-4 w-4" />
+            Edit Details
+          </Button>
+          
+          {/* Show Cancel/Return buttons for active parcels */}
+          {parcelSections.header.status !== 'Cancelled' && parcelSections.header.status !== 'Return' && (
+            <>
+              <Button
+                onClick={() => setIsCancelDialogOpen(true)}
+                variant="outline"
+                size="sm"
+                className="flex items-center gap-2 text-red-600 hover:text-red-700 border-red-200 hover:border-red-300"
+              >
+                <XCircle className="h-4 w-4" />
+                Cancel
+              </Button>
+              
+              <Button
+                onClick={() => setIsReturnDialogOpen(true)}
+                variant="outline"
+                size="sm"
+                className="flex items-center gap-2 text-orange-600 hover:text-orange-700 border-orange-200 hover:border-orange-300"
+              >
+                <RotateCcw className="h-4 w-4" />
+                Return
+              </Button>
+            </>
+          )}
+          
+          {/* Show Reactivate button for cancelled/returned parcels */}
+          {(parcelSections.header.status === 'Cancelled' || parcelSections.header.status === 'Return') && (
+            <Button
+              onClick={() => setIsReactivateDialogOpen(true)}
+              variant="outline"
+              size="sm"
+              className="flex items-center gap-2 text-green-600 hover:text-green-700 border-green-200 hover:border-green-300"
+            >
+              <RotateCcw className="h-4 w-4" />
+              Reactivate
+            </Button>
+          )}
+          
+          <Badge
+            variant="outline"
+            className={`${parcelSections.header.color} px-4 py-2 text-sm font-semibold`}
+          >
+            <span className="mr-2">{parcelSections.header.icon}</span>
+            {camelToSentenceCase(parcelSections.header.status)}
+          </Badge>
+        </div>
       </div>
 
       {/* Main Content Grid */}
@@ -426,6 +494,146 @@ const ParcelDetails = React.memo(({ entryId }) => {
           )}
         </div>
       </div>
+
+      {/* Cancellation/Return Information */}
+      {(parcelData?.cancellationInfo || parcelData?.returnInfo) && (
+        <div className="bg-red-50 border border-red-200 rounded-lg p-6">
+          <h3 className="text-lg font-semibold text-red-800 mb-4 flex items-center gap-2">
+            {parcelData?.cancellationInfo ? (
+              <>
+                <XCircle className="h-5 w-5" />
+                Cancellation Information
+              </>
+            ) : (
+              <>
+                <RotateCcw className="h-5 w-5" />
+                Return Information
+              </>
+            )}
+          </h3>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {parcelData?.cancellationInfo && (
+              <>
+                <div>
+                  <dt className="text-sm font-medium text-red-700">Cancelled By (Administrator):</dt>
+                  <dd className="text-red-800">
+                    {parcelData.cancellationInfo.cancelledBy ? (
+                      <div className="flex flex-col">
+                        <span className="font-medium text-lg">
+                          {parcelData.cancellationInfo.cancelledBy.name}
+                          <span className="text-xs text-red-600">
+                          <span className="font-semibold text-purple-600 bg-purple-100 px-3 py-1 rounded-full">ADMINISTRATOR</span>
+                          {/* {parcelData.cancellationInfo.cancelledBy.adminId && (
+                            <span className="ml-2">ID: {parcelData.cancellationInfo.cancelledBy.adminId}</span>
+                          )} */}
+                        </span>
+                        </span>
+                        {/* <span className="text-xs text-red-600">
+                          <span className="font-semibold text-purple-600 bg-purple-100 px-3 py-1 rounded-full">ADMINISTRATOR</span>
+                          {parcelData.cancellationInfo.cancelledBy.adminId && (
+                            <span className="ml-2">ID: {parcelData.cancellationInfo.cancelledBy.adminId}</span>
+                          )}
+                        </span> */}
+                        {parcelData.cancellationInfo.cancelledBy.adminId && (
+                            <span className="text-xs text-red-600 mt-1">
+                              <strong>ID:</strong> {parcelData.cancellationInfo.cancelledBy.adminId}
+                            </span>
+                        )}
+                        {parcelData.cancellationInfo.cancelledBy.email && (
+                          <span className="text-xs text-red-600 mt-1">
+                            <strong>Email:</strong> {parcelData.cancellationInfo.cancelledBy.email}
+                          </span>
+                        )}
+                        {/* {parcelData.cancellationInfo.cancelledBy.nic && (
+                          <span className="text-xs text-red-600">
+                            <strong>NIC:</strong> {parcelData.cancellationInfo.cancelledBy.nic}
+                          </span>
+                        )} */}
+                        {parcelData.cancellationInfo.cancelledBy.contactNo && (
+                          <span className="text-xs text-red-600">
+                            <strong>Contact:</strong> {parcelData.cancellationInfo.cancelledBy.contactNo}
+                          </span>
+                        )}
+                      </div>
+                    ) : (
+                      <span className="text-red-600 italic">Administrator information not available</span>
+                    )}
+                  </dd>
+                </div>
+                <div>
+                  <dt className="text-sm font-medium text-red-700">Cancellation Date:</dt>
+                  <dd className="text-red-800">
+                    {formatDateTime(parcelData.cancellationInfo.cancelledAt)}
+                  </dd>
+                </div>
+                <div>
+                  <dt className="text-sm font-medium text-red-700">Reason:</dt>
+                  <dd className="text-red-800">{capitalize(parcelData.cancellationInfo.reason)}</dd>
+                </div>
+                <div className="md:col-span-2">
+                  <dt className="text-sm font-medium text-red-700">Description:</dt>
+                  <dd className="text-red-800">{parcelData.cancellationInfo.description || 'No description provided'}</dd>
+                </div>
+              </>
+            )}
+            
+            {parcelData?.returnInfo && (
+              <>
+                <div>
+                  <dt className="text-sm font-medium text-orange-700">Returned By (Administrator):</dt>
+                  <dd className="text-orange-800">
+                    {parcelData.returnInfo.returnedBy ? (
+                      <div className="flex flex-col">
+                        <span className="font-medium text-lg">
+                          {parcelData.returnInfo.returnedBy.name}
+                        </span>
+                        <span className="text-xs text-orange-600">
+                          <span className="font-semibold text-purple-600 bg-purple-100 px-3 py-1 rounded-full">ADMINISTRATOR</span>
+                          {parcelData.returnInfo.returnedBy.adminId && (
+                            <span className="ml-2">ID: {parcelData.returnInfo.returnedBy.adminId}</span>
+                          )}
+                        </span>
+                        {parcelData.returnInfo.returnedBy.email && (
+                          <span className="text-xs text-orange-600 mt-1">
+                            <strong>Email:</strong> {parcelData.returnInfo.returnedBy.email}
+                          </span>
+                        )}
+                        {parcelData.returnInfo.returnedBy.nic && (
+                          <span className="text-xs text-orange-600">
+                            <strong>NIC:</strong> {parcelData.returnInfo.returnedBy.nic}
+                          </span>
+                        )}
+                        {parcelData.returnInfo.returnedBy.contactNo && (
+                          <span className="text-xs text-orange-600">
+                            <strong>Contact:</strong> {parcelData.returnInfo.returnedBy.contactNo}
+                          </span>
+                        )}
+                      </div>
+                    ) : (
+                      <span className="text-orange-600 italic">Administrator information not available</span>
+                    )}
+                  </dd>
+                </div>
+                <div>
+                  <dt className="text-sm font-medium text-orange-700">Return Date:</dt>
+                  <dd className="text-orange-800">
+                    {formatDateTime(parcelData.returnInfo.returnedAt)}
+                  </dd>
+                </div>
+                <div>
+                  <dt className="text-sm font-medium text-orange-700">Reason:</dt>
+                  <dd className="text-orange-800">{capitalize(parcelData.returnInfo.reason)}</dd>
+                </div>
+                <div className="md:col-span-2">
+                  <dt className="text-sm font-medium text-orange-700">Description:</dt>
+                  <dd className="text-orange-800">{parcelData.returnInfo.description || 'No description provided'}</dd>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* People Information */}
       <div className="grid lg:grid-cols-2 gap-8">
@@ -559,6 +767,48 @@ const ParcelDetails = React.memo(({ entryId }) => {
           </span>
         </div>
       </div>
+
+      {/* Dialog Components */}
+      <EditParcelDialog
+        isOpen={isEditDialogOpen}
+        onClose={() => setIsEditDialogOpen(false)}
+        parcelData={parcelData}
+        onUpdate={() => {
+          retry();
+          setIsEditDialogOpen(false);
+          toast.success("Parcel details updated successfully");
+        }}
+      />
+
+      <CancelParcelDialog
+        isOpen={isCancelDialogOpen}
+        onClose={() => setIsCancelDialogOpen(false)}
+        parcelData={parcelData}
+        onUpdate={() => {
+          retry();
+          setIsCancelDialogOpen(false);
+        }}
+      />
+
+      <ReturnParcelDialog
+        isOpen={isReturnDialogOpen}
+        onClose={() => setIsReturnDialogOpen(false)}
+        parcelData={parcelData}
+        onUpdate={() => {
+          retry();
+          setIsReturnDialogOpen(false);
+        }}
+      />
+
+      <ReactivateParcelDialog
+        isOpen={isReactivateDialogOpen}
+        onClose={() => setIsReactivateDialogOpen(false)}
+        parcelData={parcelData}
+        onUpdate={() => {
+          retry();
+          setIsReactivateDialogOpen(false);
+        }}
+      />
     </div>
   );
 });
@@ -597,6 +847,25 @@ const Info = React.memo(({ label, value }) => (
 // PropTypes
 ParcelDetails.propTypes = {
   entryId: PropTypes.string.isRequired,
+};
+
+Section.propTypes = {
+  title: PropTypes.string.isRequired,
+  children: PropTypes.node.isRequired,
+  icon: PropTypes.node.isRequired,
+};
+
+InfoGrid.propTypes = {
+  children: PropTypes.node.isRequired,
+};
+
+Info.propTypes = {
+  label: PropTypes.string.isRequired,
+  value: PropTypes.oneOfType([
+    PropTypes.string,
+    PropTypes.number,
+    PropTypes.node
+  ]),
 };
 
 Section.displayName = "Section";
