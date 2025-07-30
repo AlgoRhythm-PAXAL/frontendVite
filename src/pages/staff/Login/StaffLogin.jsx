@@ -27,7 +27,10 @@ const StaffLogin = () => {
       );
 
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
 =======
+=======
+>>>>>>> Stashed changes
       console.log("=== STAFF LOGIN SUCCESS ===");
       console.log("Full response:", response);
       console.log("Response data:", response.data);
@@ -65,6 +68,9 @@ const StaffLogin = () => {
       console.log("Stored userCenter:", localStorage.getItem('userCenter'));
       console.log("Stored staffId:", localStorage.getItem('staffId'));
       console.log("Stored staffName:", localStorage.getItem('staffName'));
+<<<<<<< Updated upstream
+>>>>>>> Stashed changes
+=======
 >>>>>>> Stashed changes
       
       toast.success("Login Successful", {
