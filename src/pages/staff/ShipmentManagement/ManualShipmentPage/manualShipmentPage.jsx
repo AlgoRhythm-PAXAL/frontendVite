@@ -17,7 +17,7 @@ const districtDistanceMatrix = {
 
 const districtTimeMatrix = {
     'Colombo': { 'Gampaha': 1, 'Kalutara': 1.5, 'Kandy': 3, 'Galle': 3.5, 'Hambantota': 4.5, 'Matale': 3.5, 'Batticaloa': 7, 'Nuwara Eliya': 4, 'Monaragala': 6.5 },
-    'Gampaha': { 'Colombo': 1, 'Kalutara': 1.2, 'Kandy': 2.8, 'Galle': 3.2, 'Hambantota': 5, 'Matale': 3.2, 'Batticaloa': 7.5, 'Nuwara Eliya': 3.7, 'Monaragala': 7, 'Badulla': 7 },
+    'Gampaha': { 'Colombo': 1, 'Kalutara': 1.2, 'Kandy': 2.8, 'Galle': 3.2, 'Hambantota': 5, 'Matale': 3.2, 'Batticaloa': 7.5, 'Nuwara Eliya': 3.7, 'Monaragala': 7 },
     'Kalutara': { 'Colombo': 1.5, 'Gampaha': 1.2, 'Kandy': 2.5, 'Galle': 2.8, 'Hambantota': 3.8, 'Matale': 3, 'Batticaloa': 8, 'Nuwara Eliya': 4.2, 'Monaragala': 6 },
     'Kandy': { 'Colombo': 3, 'Gampaha': 2.8, 'Kalutara': 2.5, 'Galle': 3.5, 'Hambantota': 5.5, 'Matale': 0.8, 'Batticaloa': 4, 'Nuwara Eliya': 1, 'Monaragala': 3 },
     'Galle': { 'Colombo': 3.5, 'Gampaha': 3.2, 'Kalutara': 2.8, 'Kandy': 3.5, 'Hambantota': 1.8, 'Matale': 4.5, 'Batticaloa': 7.5, 'Nuwara Eliya': 4.8, 'Monaragala': 4.5 },
@@ -27,6 +27,7 @@ const districtTimeMatrix = {
     'Nuwara Eliya': { 'Colombo': 4, 'Gampaha': 3.7, 'Kalutara': 4.2, 'Kandy': 1, 'Galle': 4.8, 'Hambantota': 6.2, 'Matale': 1.3, 'Batticaloa': 5, 'Monaragala': 3.2 },
     'Monaragala': { 'Colombo': 6.5, 'Gampaha': 7, 'Kalutara': 6, 'Kandy': 3, 'Galle': 4.5, 'Hambantota': 2.2, 'Matale': 2.8, 'Batticaloa': 3.2, 'Nuwara Eliya': 3.2 }
 };
+
 
 // Buffer times configuration based on position in route
 const bufferTimeConfig = {
@@ -113,6 +114,23 @@ const B2BShipmentCreationPage = () => {
         }
     };
 
+    // const fetchStaffInfo =  async () => {
+    //     try {
+    //         const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/staff/get-user`, {
+    //             credentials: 'include' // Include cookies for staff authentication
+
+    //         });
+    //         if (response.ok) {
+    //             const data = await response.json();
+    //             console.log('Fetched staff info:', data);
+    //             fetchStaffInfo({ name: data.name || 'Staff Member' });
+    //         }
+    //     } catch (err) {
+    //         console.error('Error fetching staff info:', err);
+    //         // Keep default name if there's an error
+    //     }
+    // };
+
     // Fetch all branches for dropdown selections
     const fetchBranches = async () => {
         try {
@@ -172,6 +190,7 @@ const B2BShipmentCreationPage = () => {
     useEffect(() => {
         fetchUnassignedParcels();
         fetchBranches();
+       
     }, []);
 
     // Update filtered parcels when parcels or filters change
@@ -612,6 +631,7 @@ const B2BShipmentCreationPage = () => {
                 parcels: parcelIds,
                 status: 'Pending',
                 createdByCenter: shipmentData.sourceCenter, // Using source center as created by center
+            //    createdByStaff: staffInfo.name,
                 confirmed: false,
                 createdAt: new Date()
             };

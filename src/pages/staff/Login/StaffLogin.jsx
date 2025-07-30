@@ -26,18 +26,16 @@ const StaffLogin = () => {
         { withCredentials: true }
       );
 
-
-      console.log("=== STAFF LOGIN SUCCESS ===");
-      console.log("Full response:", response);
-      console.log("Response data:", response.data);
+      console.log("=== FRONTEND: STAFF LOGIN RESPONSE ===");
+      console.log("Full response:", response.data);
       console.log("Staff object:", response.data.staff);
       console.log("Staff branchId:", response.data.staff?.branchId);
-      console.log("Staff _id:", response.data.staff?._id);
-      console.log("Staff name:", response.data.staff?.name);
       
-      // Check if staff object and required fields exist
-      if (!response.data.staff) {
-        console.error("No staff object in response!");
+      // Store staff information in localStorage
+      const staffData = response.data.staff;
+      
+      if (!staffData) {
+        console.error("No staff data in response");
         toast.error("Login Error", {
           description: "Invalid response from server",
           duration: 4000,
@@ -45,27 +43,35 @@ const StaffLogin = () => {
         return;
       }
       
-      if (!response.data.staff.branchId) {
-        console.error("No branchId in staff object!");
+      // Extract branchId - handle both populated and non-populated cases
+      const userCenter = staffData.branchId?._id || staffData.branchId;
+      
+      console.log("=== STORING IN LOCALSTORAGE ===");
+      console.log("userCenter:", userCenter);
+      console.log("staffId:", staffData._id);
+      console.log("staffName:", staffData.name);
+      
+      if (!userCenter) {
+        console.error("No valid branchId found in staff data");
         toast.error("Login Error", {
-          description: "Staff center information missing",
+          description: "No branch assigned to this staff member",
           duration: 4000,
         });
         return;
       }
       
-      // Store staff information in localStorage
-      localStorage.setItem('userCenter', response.data.staff.branchId);
-      localStorage.setItem('staffId', response.data.staff._id);
-      localStorage.setItem('staffName', response.data.staff.name);
+      localStorage.setItem('userCenter', userCenter.toString());
+      localStorage.setItem('staffId', staffData._id.toString());
+      localStorage.setItem('staffName', staffData.name);
       
       // Verify storage
-      console.log("=== AFTER STORING IN LOCALSTORAGE ===");
+      console.log("=== VERIFICATION ===");
       console.log("Stored userCenter:", localStorage.getItem('userCenter'));
       console.log("Stored staffId:", localStorage.getItem('staffId'));
       console.log("Stored staffName:", localStorage.getItem('staffName'));
+      
       toast.success("Login Successful", {
-        description: `Hello ${response.data.staff.name}`,
+        description: `Hello ${staffData.name}`,
         duration: 4000,
       });
 

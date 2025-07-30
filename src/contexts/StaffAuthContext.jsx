@@ -78,11 +78,6 @@ export const StaffAuthProvider = ({ children }) => {
         } catch (error) {
             console.error('Logout error:', error);
         } finally {
-            // Clear localStorage
-            localStorage.removeItem('userCenter');
-            localStorage.removeItem('staffId');
-            localStorage.removeItem('staffName');
-            
             setStaff(null);
             setIsAuthenticated(false);
         }

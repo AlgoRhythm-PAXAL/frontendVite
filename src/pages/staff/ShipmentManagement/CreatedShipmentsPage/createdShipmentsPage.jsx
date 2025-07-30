@@ -401,7 +401,7 @@ const ShipmentManagement = () => {
                 )
             );
 
-            showPopup('success', 'Shipment verified and confirmed successfully! Ready for processing.');
+            showPopup('success', 'Shipment verified and confirmed successfully!');
         } catch (err) {
             showPopup('error', `Error verifying shipment: ${err.message}`);
         } finally {
@@ -456,7 +456,7 @@ const ShipmentManagement = () => {
                 )
             );
 
-            showPopup('success', 'Shipment dispatched successfully! Parcels have been updated to InTransit status.');
+            showPopup('success', 'Shipment dispatched successfully!');
             await fetchShipments(); // Refresh the list
         } catch (err) {
             showPopup('error', `Error dispatching shipment: ${err.message}`);
@@ -547,7 +547,7 @@ const ShipmentManagement = () => {
             newSelected.delete(shipmentId);
             setSelectedShipments(newSelected);
 
-            showPopup('success', `Shipment deleted successfully! ${data.updatedParcelsCount} parcels have been reset to ArrivedAtCollectionCenter status.`);
+            showPopup('success', `Shipment deleted successfully!`);
         } catch (err) {
             showPopup('error', `Error deleting shipment: ${err.message}`);
         } finally {
@@ -615,7 +615,7 @@ const ShipmentManagement = () => {
 
             if (data.success) {
                 // Vehicle assigned successfully
-                showPopup('success', 'Vehicle assigned successfully! Shipment is now In Transit and parcels updated to ShipmentAssigned status.');
+                showPopup('success', 'Vehicle assigned successfully!');
                 setVehicleSelectionModal(null);
                 
                 // Update local state with complete vehicle and driver information including current location
@@ -739,7 +739,7 @@ const ShipmentManagement = () => {
             }
 
             if (data.success) {
-                showPopup('success', 'Vehicle assigned successfully! Shipment is now In Transit and parcels updated to ShipmentAssigned status.');
+                showPopup('success', 'Vehicle assigned successfully!');
                 setVehicleSelectionModal(null);
                 setSmartSearchResult(null);
                 setAssignVehicleOnlyMode(false);
@@ -890,7 +890,7 @@ const ShipmentManagement = () => {
             if (data.success) {
                 const summary = calculateSelectedParcelsSummary();
                 
-                showPopup('success', `Successfully added ${summary.totalParcels} parcels to shipment! New totals: ${data.data.updatedTotals.totalWeight}kg, ${data.data.updatedTotals.totalVolume}m³`);
+                showPopup('success', `Successfully added parcels to shipment!`);
                 
                 setVehicleSelectionModal(null);
                 setSmartSearchResult(null);
@@ -990,7 +990,7 @@ const ShipmentManagement = () => {
             }
 
             if (data.success) {
-                showPopup('success', 'Vehicle assigned successfully! Shipment is now In Transit and parcels updated to ShipmentAssigned status.');
+                showPopup('success', 'Vehicle assigned successfully!');
                 setVehicleSelectionModal(null);
                 
                 // Update local state with complete vehicle and driver information including current location
@@ -1283,7 +1283,7 @@ const ShipmentManagement = () => {
                 throw new Error(data.error || 'Failed to add parcels');
             }
 
-            showPopup('success', `Successfully added ${smartParcelsResults.addedParcels.length} parcels!`);
+            showPopup('success', `Successfully added parcels!`);
             
             // Update local shipment state
             setShipments(prevShipments =>
@@ -1559,7 +1559,7 @@ const ShipmentManagement = () => {
             );
 
             // Show success message
-            showPopup('success', 'Vehicle assigned successfully! Shipment is now In Transit and parcels updated to ShipmentAssigned status.', 7000);
+            showPopup('success', 'Vehicle assigned successfully!', 7000);
 
             // Refresh shipments to get latest data
             setTimeout(() => {
@@ -1631,7 +1631,7 @@ const ShipmentManagement = () => {
                 );
 
                 if (failedCount === 0) {
-                    showPopup('success', `Successfully verified ${successCount} shipment${successCount > 1 ? 's' : ''}! All shipments are now confirmed and ready for processing.`);
+                    showPopup('success', `Successfully verified ${successCount} shipment${successCount > 1 ? 's' : ''}!`);
                 } else {
                     showPopup('warning', `${successCount} shipment${successCount > 1 ? 's' : ''} verified successfully,  ${failedCount} failed to verify.`);
                 }
@@ -1699,7 +1699,7 @@ const ShipmentManagement = () => {
                 setSelectedShipments(new Set());
 
                 if (failedCount === 0) {
-                    showPopup('success', `Successfully deleted ${successCount} shipment${successCount > 1 ? 's' : ''}! Associated parcels have been reset.`);
+                    showPopup('success', `Successfully deleted ${successCount} shipment${successCount > 1 ? 's' : ''}! `);
                 } else {
                     showPopup('warning', `${successCount} shipment${successCount > 1 ? 's' : ''} deleted successfully, ${failedCount} failed to delete.`);
                 }
@@ -4362,6 +4362,8 @@ const ShipmentManagement = () => {
                                                                                             <h6 className="font-medium text-gray-800 border-b pb-1">Basic Information</h6>
                                                                                             <div className="text-sm space-y-1">
                                                                                                 <div><span className="text-gray-600">Parcel ID:</span> <span className="font-medium">{parcel.parcelId || 'N/A'}</span></div>
+                                                                                                <div><span className="text-gray-600">From:</span> <span className="font-medium">{parcel.from.location || 'N/A'}</span></div>
+                                                                                                <div><span className="text-gray-600">To:</span> <span className="font-medium">{parcel.to.location || 'N/A'}</span></div>
                                                                                                 <div><span className="text-gray-600">Tracking No:</span> <span className="font-medium">{parcel.trackingNo || 'N/A'}</span></div>
                                                                                                 <div><span className="text-gray-600">QR Code:</span> 
                                                                                                     {parcel.qrCodeNo ? (
@@ -4401,8 +4403,7 @@ const ShipmentManagement = () => {
                                                                                                 <div><span className="text-gray-600">Submitting Type:</span> <span className="font-medium">{parcel.submittingType || 'N/A'}</span></div>
                                                                                                 <div><span className="text-gray-600">Receiving Type:</span> <span className="font-medium">{parcel.receivingType || 'N/A'}</span></div>
                                                                                                 <div><span className="text-gray-600">Special Instructions:</span> <span className="font-medium">{parcel.specialInstructions || 'None'}</span></div>
-                                                                                                <div><span className="text-gray-600">Pickup Date:</span> <span className="font-medium">{parcel.pickupInformation?.pickupDate ? new Date(parcel.pickupInformation.pickupDate).toLocaleDateString() : 'N/A'}</span></div>
-                                                                                                <div><span className="text-gray-600">Pickup Time:</span> <span className="font-medium">{parcel.pickupInformation?.pickupTime || 'N/A'}</span></div>
+                                                                                               
                                                                                             </div>
                                                                                         </div>
                                                                                     </div>

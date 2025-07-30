@@ -39,15 +39,7 @@ const ParcelListPage = () => {
     const fetchParcels = useCallback(async () => {
         try {
             setLoading(true);
-            const userCenter = localStorage.getItem('userCenter');
-            
-            // Check if userCenter exists
-            if (!userCenter) {
-                console.error('User center not found in localStorage');
-                setError('User center not found. Please log in again.');
-                setLoading(false);
-                return;
-            }
+            const userCenter = localStorage.getItem('userCenter') || '682e1059ce33c2a891c9b168';
             
             // Use the daily endpoint to get detailed parcel list
             const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/parcels/dashboard/daily/${userCenter}/${date}`, {

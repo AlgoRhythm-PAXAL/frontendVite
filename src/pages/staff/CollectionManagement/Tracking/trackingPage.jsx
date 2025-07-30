@@ -314,14 +314,7 @@ const TrackingPage = () => {
                                             <span className="text-blue-600">Location:</span>
                                             <span className="font-medium">{trackingResult.from?.location || 'N/A'}</span>
                                         </div>
-                                        <div className="flex justify-between">
-                                            <span className="text-blue-600">Branch ID:</span>
-                                            <span className="font-medium">{trackingResult.from?.branchId || 'N/A'}</span>
-                                        </div>
-                                        <div className="flex justify-between">
-                                            <span className="text-blue-600">Address:</span>
-                                            <span className="font-medium text-right">{trackingResult.from?.address || 'N/A'}</span>
-                                        </div>
+                                        
                                     </div>
                                 </div>
 
@@ -336,14 +329,7 @@ const TrackingPage = () => {
                                             <span className="text-green-600">Location:</span>
                                             <span className="font-medium">{trackingResult.to?.location || 'N/A'}</span>
                                         </div>
-                                        <div className="flex justify-between">
-                                            <span className="text-green-600">Branch ID:</span>
-                                            <span className="font-medium">{trackingResult.to?.branchId || 'N/A'}</span>
-                                        </div>
-                                        <div className="flex justify-between">
-                                            <span className="text-green-600">Address:</span>
-                                            <span className="font-medium text-right">{trackingResult.to?.address || 'N/A'}</span>
-                                        </div>
+                                       
                                     </div>
                                 </div>
                             </div>
