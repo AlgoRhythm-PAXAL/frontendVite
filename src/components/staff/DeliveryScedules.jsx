@@ -49,7 +49,6 @@ const DeliverySchedules = ({ onAssignmentChange, parcelId }) => {
         { parcelId, scheduleId },
         { withCredentials: true }
       );
-      console.log(response);
       setSelectedScheduleId(scheduleId);
       await getDeliverySchedules();
     } catch (error) {
@@ -65,7 +64,6 @@ const DeliverySchedules = ({ onAssignmentChange, parcelId }) => {
         { parcelId, scheduleId: selectedScheduleId },
         { withCredentials: true }
       );
-      console.log(response);
       setSelectedScheduleId(null);
       await getDeliverySchedules();
     } catch (error) {
@@ -81,7 +79,6 @@ const DeliverySchedules = ({ onAssignmentChange, parcelId }) => {
         { parcelId },
         { withCredentials: true }
       );
-      console.log(response);
       if (response.data.success) {
         const newSchedule = response.data.newDeliverySchedule;
         console.log("new schedule info", newSchedule);
@@ -118,7 +115,6 @@ const DeliverySchedules = ({ onAssignmentChange, parcelId }) => {
         },
         { withCredentials: true }
       );
-      console.log("Express Schedule response", response);
       if (response.data.success) {
         
         const newSchedule = response.data.newSchedule;

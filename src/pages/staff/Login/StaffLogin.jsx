@@ -26,7 +26,7 @@ const StaffLogin = () => {
         { withCredentials: true }
       );
 
-      console.log(response.data);
+      
       toast.success("Login Successful", {
         description: `Hello ${response.data.staff.name}`,
         duration: 4000,

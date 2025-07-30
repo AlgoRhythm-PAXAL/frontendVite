@@ -1,6 +1,7 @@
 import { Navigate, Outlet } from 'react-router-dom';
 import axios from 'axios';
 import { useEffect, useState } from 'react';
+import LoadingSpinner from './LoadingSpinner';
 
 const backendURL = import.meta.env.VITE_BACKEND_URL;
 
@@ -14,7 +15,6 @@ const ProtectedStaffRoute = () => {
         const response = await axios.get(`${backendURL}/staff/status`, {
           withCredentials: true,
         });
-        console.log('Token Verified!', response);
         setIsAuthenticated(true);
       } catch (error) {
         console.error('Token verification failed:', error);
@@ -25,7 +25,7 @@ const ProtectedStaffRoute = () => {
     verifyToken();
   }, []);
 
-  if (isAuthenticated === null) return <div>Loading...</div>;
+  if (isAuthenticated === null) return <LoadingSpinner/>;
   isAuthenticated ? console.log('Authenticated!') : console.log('Not verified');
 
   return isAuthenticated ? <Outlet /> : <Navigate to="/staff/login" />;

@@ -36,7 +36,6 @@ const [showPasswordReset, setShowPasswordReset] = useState(false);
         { email, resetCode }
       );
 
-      console.log(response.data.success, response.data.message);
        if (response.data.success) {
         toast.success("Code Verified", {
           description: response.data.message,
@@ -74,7 +73,6 @@ if (newPassword !== confirmPassword) {
     }
     setConfirm(true);
     try {
-      console.log("password updating");
       const response = await axios.post(
         `${backendURL}/staff/reset-password`,
         { newPassword: newPassword, resetCode: resetCode, email: email }

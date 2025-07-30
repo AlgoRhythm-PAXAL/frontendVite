@@ -55,7 +55,6 @@ const PickupSchedules = ({
         { parcelId, scheduleId },
         { withCredentials: true }
       );
-      console.log(response);
       setSelectedScheduleId(scheduleId);
       await getPickupSchedules();
     } catch (error) {
@@ -73,7 +72,6 @@ const PickupSchedules = ({
         { parcelId, scheduleId: selectedScheduleId },
         { withCredentials: true }
       );
-      console.log(response);
       setSelectedScheduleId(null);
       await getPickupSchedules();
     } catch (error) {
@@ -92,10 +90,8 @@ const PickupSchedules = ({
         { parcelId },
         { withCredentials: true }
       );
-      console.log(response);
       if (response.data.success) {
         const newSchedule = response.data.newSchedule;
-        console.log(newSchedule)
         setSelectedScheduleId(newSchedule._id);
         toast.success("New Schedule created", {
           description: response.data.message,

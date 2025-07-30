@@ -40,7 +40,7 @@ const StaffProfile = () => {
         `${backendURL}/staff/ui/get-staff-information`,
         { withCredentials: true }
       );
-      console.log(response.data);
+      
       setProfileData(response.data);
       setFormData(response.data);
     } catch (error) {

@@ -114,8 +114,9 @@ const SideBar = () => {
                         )}
                     </div>
                 ))}
-                <div className='mt-1 bg-white rounded-md shadow-lg py-2 px-3'>
+                
                     <button
+                    className='mt-1 bg-white rounded-md shadow-lg py-2 px-3 w-full text-left hover:bg-gray-100 '
                         onClick={() => setShowScanner(true)}
                     >
                         Scan Parcel QR Code
@@ -124,20 +125,13 @@ const SideBar = () => {
                     {showScanner && <QRScanner onClose={() => setShowScanner(false)} />}
 
 
-                </div>
+                
             </div>
 
             {/* Bottom Menu Options */}
-            <div className="mt-auto p-4 text-white">
-                <div className="flex items-center mb-3 space-x-2 cursor-pointer hover:text-gray-200">
-                    <Settings size={16} />
-                    <span>Settings</span>
-                </div>
-                <div className="flex items-center mb-3 space-x-2 cursor-pointer hover:text-gray-200">
-                    <HelpCircle size={16} />
-                    <span>Help</span>
-                </div>
-                <div className="flex items-center space-x-2 cursor-pointer text-red-300 hover:text-red-200"
+            <div className="mt-auto p-4">
+                
+                <div className="flex items-center space-x-2 cursor-pointer font-semibold  text-red-300 hover:text-red-200"
                     onClick={handleLogout}
                 >
                     <LogOut size={16} />
