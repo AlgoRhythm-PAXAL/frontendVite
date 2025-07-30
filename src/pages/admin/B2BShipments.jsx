@@ -17,7 +17,6 @@ import {
   Mail,
   Building,
   XCircle,
-  Loader,
   BarChart3,
   Calendar as CalendarIcon,
   ChevronDown,
@@ -36,12 +35,179 @@ import {
   SelectValue 
 } from '../../components/ui/select';
 import { Input } from '../../components/ui/input';
-import { Calendar as CalendarComponent } from '../../components/ui/calendar';
-import { Popover, PopoverContent, PopoverTrigger } from '../../components/ui/popover';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../../components/ui/tabs';
 import { Alert, AlertDescription } from '../../components/ui/alert';
 import SectionTitle from '../../components/admin/SectionTitle';
 import LoadingAnimation from '../../utils/LoadingAnimation';
+
+// Summary Stats Component with Date Filters for B2B Shipments
+/* eslint-disable react/prop-types */
+const SummaryStatsB2B = ({ summary, shipmentsForSelectedDate, onDateFilterChange, selectedDateFilter }) => {
+  if (!summary) return null;
+
+  // Date filter presets
+  const datePresets = [
+    {
+      label: 'Today',
+      value: 'today',
+      getDate: () => new Date().toISOString()
+    },
+    {
+      label: 'Yesterday',
+      value: 'yesterday',
+      getDate: () => {
+        const date = new Date();
+        date.setDate(date.getDate() - 1);
+        return date.toISOString();
+      }
+    },
+    {
+      label: 'Last 7 Days',
+      value: '7days',
+      getDate: () => {
+        const date = new Date();
+        date.setDate(date.getDate() - 7);
+        return date.toISOString();
+      }
+    },
+    {
+      label: 'Last 30 Days',
+      value: '30days',
+      getDate: () => {
+        const date = new Date();
+        date.setDate(date.getDate() - 30);
+        return date.toISOString();
+      }
+    },
+    {
+      label: 'All Time',
+      value: 'all',
+      getDate: () => null
+    }
+  ];
+
+  return (
+    <div className="space-y-4">
+      {/* Date Filter Presets */}
+      <Card className="shadow-sm border-gray-200">
+        <CardHeader className="pb-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-2">
+              <CalendarIcon className="w-5 h-5 text-gray-600" />
+              <span className="text-lg font-semibold text-gray-900">Quick Date Filters</span>
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent className="pt-0">
+          <div className="flex flex-wrap gap-2">
+            {datePresets.map((preset) => (
+              <Button
+                key={preset.value}
+                variant={selectedDateFilter === preset.value ? "default" : "outline"}
+                size="sm"
+                onClick={() => onDateFilterChange(preset.value, preset.getDate())}
+                className={`h-8 text-xs ${
+                  selectedDateFilter === preset.value
+                    ? 'bg-blue-600 text-white'
+                    : 'hover:bg-blue-50 hover:text-blue-600'
+                }`}
+              >
+                {preset.label}
+              </Button>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Statistics Cards - Less Colorful */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <Card className="hover:shadow-md transition-shadow border-gray-200">
+          <CardContent className="p-6">
+            <div className="flex items-center space-x-3">
+              <div className="p-3 bg-gray-100 rounded-full">
+                <Package className="w-6 h-6 text-gray-600" />
+              </div>
+              <div>
+                <div className="text-2xl font-bold text-gray-900">
+                  {summary.totalShipments || 0}
+                </div>
+                <div className="text-sm font-medium text-gray-600">
+                  Total Shipments
+                </div>
+                <div className="text-xs text-gray-500 mt-1">
+                  {shipmentsForSelectedDate?.length || 0} on selected date
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="hover:shadow-md transition-shadow border-gray-200">
+          <CardContent className="p-6">
+            <div className="flex items-center space-x-3">
+              <div className="p-3 bg-gray-100 rounded-full">
+                <FileText className="w-6 h-6 text-gray-600" />
+              </div>
+              <div>
+                <div className="text-2xl font-bold text-gray-900">
+                  {summary.totalParcels || 0}
+                </div>
+                <div className="text-sm font-medium text-gray-600">
+                  Total Parcels
+                </div>
+                <div className="text-xs text-gray-500 mt-1">
+                  Across all shipments
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="hover:shadow-md transition-shadow border-gray-200">
+          <CardContent className="p-6">
+            <div className="flex items-center space-x-3">
+              <div className="p-3 bg-gray-100 rounded-full">
+                <Weight className="w-6 h-6 text-gray-600" />
+              </div>
+              <div>
+                <div className="text-2xl font-bold text-gray-900">
+                  {(summary.totalWeight || 0).toFixed(1)} kg
+                </div>
+                <div className="text-sm font-medium text-gray-600">
+                  Total Weight
+                </div>
+                <div className="text-xs text-gray-500 mt-1">
+                  Combined weight
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="hover:shadow-md transition-shadow border-gray-200">
+          <CardContent className="p-6">
+            <div className="flex items-center space-x-3">
+              <div className="p-3 bg-gray-100 rounded-full">
+                <Truck className="w-6 h-6 text-gray-600" />
+              </div>
+              <div>
+                <div className="text-2xl font-bold text-gray-900">
+                  {summary.shipmentsWithVehicles || 0}
+                </div>
+                <div className="text-sm font-medium text-gray-600">
+                  With Vehicles
+                </div>
+                <div className="text-xs text-gray-500 mt-1">
+                  Assigned vehicles
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    </div>
+  );
+};
 
 const B2BShipments = () => {
   // State Management
@@ -53,20 +219,23 @@ const B2BShipments = () => {
   const [error, setError] = useState('');
   const [expandedShipment, setExpandedShipment] = useState(null);
   const [selectedDate, setSelectedDate] = useState(new Date());
-  const [isCalendarOpen, setIsCalendarOpen] = useState(false);
-  const backendURL = import.meta.env.VITE_BACKEND_URL ;;
+  const [selectedDateFilter, setSelectedDateFilter] = useState('today'); // New state for date filter presets
+  const backendURL = import.meta.env.VITE_BACKEND_URL ;
 
   // Filter States
-  const [filters, setFilters] = useState({
-    status: 'all',
-    deliveryType: 'all',
-    sourceCenter: 'all',
-    assignedVehicle: 'all',
-    assignedDriver: 'all',
-    startDate: '',
-    endDate: '',
-    page: 1,
-    limit: 20
+  const [filters, setFilters] = useState(() => {
+    const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD format
+    return {
+      status: 'all',
+      deliveryType: 'all',
+      sourceCenter: 'all',
+      assignedVehicle: 'all',
+      assignedDriver: 'all',
+      startDate: today,
+      endDate: today,
+      page: 1,
+      limit: 20
+    };
   });
 
   // Options for dropdowns
@@ -129,7 +298,7 @@ const B2BShipments = () => {
     } finally {
       setLoading(false);
     }
-  }, [filters]);
+  }, [filters, backendURL]);
 
   // Fetch dropdown options
   const fetchDropdownOptions = useCallback(async () => {
@@ -169,12 +338,52 @@ const B2BShipments = () => {
     setFilteredShipments(filtered);
   }, [shipments]);
 
-  // Handle date selection
-  const handleDateSelect = (date) => {
-    setSelectedDate(date);
-    setIsCalendarOpen(false);
-    filterShipmentsByDate(date);
-  };
+  // Handle date filter changes from presets
+  const handleDateFilterChange = useCallback((filterType, dateValue) => {
+    setSelectedDateFilter(filterType);
+    
+    if (filterType === 'all') {
+      // Clear date filters for "All Time"
+      setFilters(prev => ({
+        ...prev,
+        startDate: '',
+        endDate: '',
+        page: 1
+      }));
+      setSelectedDate(new Date());
+    } else if (dateValue) {
+      const selectedDate = new Date(dateValue);
+      setSelectedDate(selectedDate);
+      
+      // Set date range filters based on the selection
+      if (filterType === 'today' || filterType === 'yesterday') {
+        // For single day selections
+        const dateStr = selectedDate.toISOString().split('T')[0]; // YYYY-MM-DD format
+        setFilters(prev => ({
+          ...prev,
+          startDate: dateStr,
+          endDate: dateStr,
+          page: 1
+        }));
+      } else {
+        // For range selections (7days, 30days)
+        const endDate = new Date(); // Today
+        const startDate = selectedDate;
+        
+        setFilters(prev => ({
+          ...prev,
+          startDate: startDate.toISOString().split('T')[0],
+          endDate: endDate.toISOString().split('T')[0],
+          page: 1
+        }));
+      }
+      
+      filterShipmentsByDate(selectedDate);
+    } else {
+      setSelectedDate(new Date());
+      filterShipmentsByDate(new Date());
+    }
+  }, [filterShipmentsByDate]);
 
   // Handle filter changes
   const handleFilterChange = (key, value) => {
@@ -199,6 +408,7 @@ const B2BShipments = () => {
       limit: 20
     });
     setSelectedDate(new Date());
+    setSelectedDateFilter('today'); // Reset to today
     setFilteredShipments(shipments);
   };
 
@@ -273,79 +483,17 @@ const B2BShipments = () => {
               <RefreshCw className="h-4 w-4" />
               Refresh
             </Button>
-            <Popover open={isCalendarOpen} onOpenChange={setIsCalendarOpen}>
-              <PopoverTrigger asChild>
-                <Button
-                  variant="outline"
-                  className="w-[200px] justify-start text-left font-normal"
-                >
-                  <CalendarIcon className="mr-2 h-4 w-4" />
-                  {selectedDate ? format(selectedDate, 'PPP') : 'Select date'}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0" align="end">
-                <CalendarComponent
-                  mode="single"
-                  selected={selectedDate}
-                  onSelect={handleDateSelect}
-                  initialFocus
-                />
-              </PopoverContent>
-            </Popover>
           </div>
         </div>
       </div>
 
-      {/* Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <Card className=" border-blue-200">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-blue-800">Total Shipments</CardTitle>
-            <Package className="h-4 w-4 text-blue-600" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-blue-900">{summary.totalShipments || 0}</div>
-            <p className="text-xs text-blue-600 mt-1">
-              {shipmentsForSelectedDate.length} on selected date
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card className=" border-green-200">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-green-800">Total Parcels</CardTitle>
-            <FileText className="h-4 w-4 text-green-600" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-green-900">{summary.totalParcels || 0}</div>
-            <p className="text-xs text-green-600 mt-1">Across all shipments</p>
-          </CardContent>
-        </Card>
-
-        <Card className=" border-purple-200">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-purple-800">Total Weight</CardTitle>
-            <Weight className="h-4 w-4 text-purple-600" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-purple-900">
-              {(summary.totalWeight || 0).toFixed(1)} kg
-            </div>
-            <p className="text-xs text-purple-600 mt-1">Combined weight</p>
-          </CardContent>
-        </Card>
-
-        <Card className=" border-orange-200">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-orange-800">With Vehicles</CardTitle>
-            <Truck className="h-4 w-4 text-orange-600" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-orange-900">{summary.shipmentsWithVehicles || 0}</div>
-            <p className="text-xs text-orange-600 mt-1">Assigned vehicles</p>
-          </CardContent>
-        </Card>
-      </div>
+      {/* Enhanced Summary with Date Filters */}
+      <SummaryStatsB2B 
+        summary={summary}
+        shipmentsForSelectedDate={shipmentsForSelectedDate}
+        onDateFilterChange={handleDateFilterChange}
+        selectedDateFilter={selectedDateFilter}
+      />
 
       {/* Filters Section */}
       <Card className="bg-white shadow-sm border">
@@ -540,7 +688,7 @@ const B2BShipments = () => {
                         </div>
                       )}
 
-                      {shipment.assignedDriver && (
+                      {/* {shipment.assignedDriver && (
                         <div className="flex items-center gap-2 p-3 bg-green-50 rounded-lg">
                           <User className="h-4 w-4 text-green-600" />
                           <div>
@@ -550,7 +698,8 @@ const B2BShipments = () => {
                             </p>
                           </div>
                         </div>
-                      )}
+                      )} */}
+
                     </div>
                   </div>
 
@@ -667,6 +816,21 @@ const B2BShipments = () => {
                                     <div>
                                       <p className="font-medium">{parcel.trackingNo || parcel.parcelId}</p>
                                       <p className="text-sm text-gray-600">{parcel.itemType}</p>
+                                      <div className="flex items-center gap-2 mt-1">
+                                        <Badge variant="outline" className="text-xs">
+                                          {parcel.itemSize || 'N/A'}
+                                        </Badge>
+                                        {parcel.parcelWeight && (
+                                          <span className="text-xs text-gray-500">
+                                            {parcel.parcelWeight}kg
+                                          </span>
+                                        )}
+                                        {parcel.parcelVolume && (
+                                          <span className="text-xs text-gray-500">
+                                            {parcel.parcelVolume}m³
+                                          </span>
+                                        )}
+                                      </div>
                                     </div>
                                     <Badge variant={getStatusBadgeVariant(parcel.status)}>
                                       {parcel.status}
@@ -778,8 +942,48 @@ const B2BShipments = () => {
                               </div>
                             )}
 
+                            {/* Vehicle Driver Assignment - Display driver assigned to the vehicle */}
+                            {/* {shipment.vehicleDriver ? (
+                              <div className="bg-amber-50 p-4 rounded-lg">
+                                <div className="flex items-center gap-2 mb-3">
+                                  <User className="h-5 w-5 text-amber-600" />
+                                  <span className="font-medium text-amber-800">Vehicle Driver</span>
+                                </div>
+                                <div className="grid grid-cols-2 gap-2 text-sm">
+                                  <div>
+                                    <span className="text-amber-600">Name:</span>
+                                    <span className="ml-2 font-medium">{shipment.vehicleDriver.name}</span>
+                                  </div>
+                                  <div>
+                                    <span className="text-amber-600">Driver ID:</span>
+                                    <span className="ml-2 font-medium">{shipment.vehicleDriver.driverId}</span>
+                                  </div>
+                                  <div className="flex items-center gap-1">
+                                    <Phone className="h-3 w-3 text-amber-600" />
+                                    <span className="text-amber-600">Phone:</span>
+                                    <span className="ml-1 font-medium">{shipment.vehicleDriver.contactNo}</span>
+                                  </div>
+                                  <div>
+                                    <span className="text-amber-600">License:</span>
+                                    <span className="ml-2 font-medium">{shipment.vehicleDriver.licenseId}</span>
+                                  </div>
+                                  <div className="col-span-2">
+                                    <span className="text-amber-600">Branch:</span>
+                                    <span className="ml-2 font-medium">
+                                      {shipment.vehicleDriver.branchId?.location || 'N/A'}
+                                    </span>
+                                  </div>
+                                </div>
+                              </div>
+                            ) : shipment.assignedVehicle ? (
+                              <div className="bg-gray-50 p-4 rounded-lg text-center">
+                                <User className="h-8 w-8 text-gray-400 mx-auto mb-2" />
+                                <p className="text-gray-600">No driver assigned to this vehicle</p>
+                              </div>
+                            ) : null} */}
+
                             {/* Driver Assignment */}
-                            {shipment.assignedDriver ? (
+                            {/* {shipment.assignedDriver ? (
                               <div className="bg-green-50 p-4 rounded-lg">
                                 <div className="flex items-center gap-2 mb-3">
                                   <User className="h-5 w-5 text-green-600" />
@@ -811,7 +1015,7 @@ const B2BShipments = () => {
                                 <User className="h-8 w-8 text-gray-400 mx-auto mb-2" />
                                 <p className="text-gray-600">No driver assigned</p>
                               </div>
-                            )}
+                            )} */}
 
                             {/* Created By Info */}
                             {shipment.createdByStaff && (

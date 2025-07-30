@@ -41,7 +41,6 @@ const ViewOneCollectionCenterDeliveryparcel = () => {
         { withCredentials: true }
       );
 
-      console.log(response);
       if (response.data.success) {
         toast.success('Parcel Delivery Successful', {
           description: response.data.message,

@@ -212,8 +212,8 @@ const UserCount = () => {
       {globalStats.lastUpdated && (
         <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-xl p-4">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-            <div className="flex items-center gap-4">
-              
+            <div className="flex justify-between items-center gap-4 w-full">
+              <div className="font-bold  text-gray-600">Overall User Statistics</div>
               
               <div className="text-sm text-gray-600">
                 Last updated: {new Date(globalStats.lastUpdated).toLocaleTimeString('en-US', {

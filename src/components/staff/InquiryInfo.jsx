@@ -1,5 +1,7 @@
 import axios from "axios";
 import React, { useEffect, useState } from "react";
+import { ExclamationTriangleIcon } from '@heroicons/react/24/outline';
+
 
 const backendURL = import.meta.env.VITE_BACKEND_URL;
 
@@ -29,9 +31,19 @@ const InquiryInfo = ({ inquiryId, onInquiryLoad }) => {
     }
   }, [inquiryId]);
 
-  if (loading)
-    return <div className="m-20">Loading Inquiry Information...</div>;
-  if (!inquiry) return <div>No inquiry found</div>;
+ if (loading) return (
+    <div className="py-12 flex justify-center items-center">
+      <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-Primary"></div>
+    </div>
+  );
+  if (!inquiry) return (
+    <div className="text-center py-12">
+      <div className="inline-flex items-center p-4 bg-red-50 rounded-xl">
+        <ExclamationTriangleIcon className="h-6 w-6 text-red-600 mr-2" />
+        <span className="text-red-600 font-medium">No Inquiry found</span>
+      </div>
+    </div>
+  );
   return (
     <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
       <div className="flex justify-between items-start mb-6">

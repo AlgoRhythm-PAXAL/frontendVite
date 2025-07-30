@@ -3,6 +3,22 @@ import axios from "axios";
 import SectionTitle from "../../components/admin/SectionTitle";
 import TableDistributor from "../../components/admin/UserTables/DataTable/TableDistributor";
 import LoadingAnimation from "../../utils/LoadingAnimation";
+import { Calendar as CalendarIcon, MapPin, Filter, RefreshCw, Package, User, CreditCard } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Calendar } from "@/components/ui/calendar";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { cn } from "@/lib/utils";
 
 const backendURL = import.meta.env.VITE_BACKEND_URL;
 
@@ -163,6 +179,99 @@ const Parcels = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [retryCount, setRetryCount] = useState(0);
+  
+  // Filter states with default 30-day range
+  const getDefaultDateRange = useCallback(() => {
+    const today = new Date();
+    const thirtyDaysAgo = new Date(today);
+    thirtyDaysAgo.setDate(today.getDate() - 30);
+    return {
+      start: thirtyDaysAgo.toISOString(),
+      end: today.toISOString()
+    };
+  }, []);
+
+  const [startDate, setStartDate] = useState(() => getDefaultDateRange().start);
+  const [endDate, setEndDate] = useState(() => getDefaultDateRange().end);
+  const [selectedStatus, setSelectedStatus] = useState('all');
+  const [selectedFromBranch, setSelectedFromBranch] = useState('all');
+  const [selectedToBranch, setSelectedToBranch] = useState('all');
+  const [selectedItemType, setSelectedItemType] = useState('all');
+  const [selectedItemSize, setSelectedItemSize] = useState('all');
+  const [selectedShippingMethod, setSelectedShippingMethod] = useState('all');
+  const [selectedReceivingType, setSelectedReceivingType] = useState('all');
+  const [selectedSubmittingType, setSelectedSubmittingType] = useState('all');
+  const [selectedPreset, setSelectedPreset] = useState('30days');
+  
+  // Dropdown data
+  const [branches, setBranches] = useState([]);
+  const [startDatePickerOpen, setStartDatePickerOpen] = useState(false);
+  const [endDatePickerOpen, setEndDatePickerOpen] = useState(false);
+  
+  // Memoized safe branches array
+  const safeBranches = useMemo(() => {
+    return Array.isArray(branches) ? branches : [];
+  }, [branches]);
+  
+  // Pagination
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalCount, setTotalCount] = useState(0);
+  const [totalPages, setTotalPages] = useState(0);
+  const limit = 50;
+
+  // Helper functions for date formatting
+  const formatDateForAPI = (date) => {
+    if (!date) return null;
+    try {
+      const d = new Date(date);
+      if (isNaN(d.getTime())) return null;
+      const year = d.getFullYear();
+      const month = String(d.getMonth() + 1).padStart(2, '0');
+      const day = String(d.getDate()).padStart(2, '0');
+      return `${year}-${month}-${day}`;
+    } catch (error) {
+      console.warn('Error formatting date for API:', date, error);
+      return null;
+    }
+  };
+
+  const formatDateForDisplay = (dateInput) => {
+    if (!dateInput) return '';
+    try {
+      const date = new Date(dateInput);
+      if (isNaN(date.getTime())) return '';
+      return date.toLocaleDateString('en-US', {
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric'
+      });
+    } catch {
+      return '';
+    }
+  };
+
+  // Static options for filters
+  const statusOptions = [
+    'OrderPlaced',
+    'PendingPickup',
+    'PickedUp',
+    'ArrivedAtDistributionCenter',
+    'ShipmentAssigned',
+    'InTransit',
+    'ArrivedAtCollectionCenter',
+    'DeliveryDispatched',
+    'Delivered',
+    'NotAccepted',
+    'WrongAddress',
+    'Return',
+    'Cancelled'
+  ];
+
+  const itemTypeOptions = ['Glass', 'Flowers', 'Document', 'Clothing', 'Electronics', 'Food', 'Other'];
+  const itemSizeOptions = ['small', 'medium', 'large'];
+  const shippingMethodOptions = ['standard', 'express'];
+  const receivingTypeOptions = ['doorstep', 'collection_center'];
+  const submittingTypeOptions = ['pickup', 'drop-off', 'branch'];
 
   // Data transformation utility
   const transformParcelData = useMemo(() => (rawData) => {
@@ -212,22 +321,57 @@ const Parcels = () => {
   }, []);
 
   // Fetch data with retry logic
+  // Fetch branches for filter dropdown
+  const fetchBranches = useCallback(async () => {
+    try {
+      const response = await axios.get(`${backendURL}/api/admin/branches`, {
+        withCredentials: true,
+      });
+      const branchData = response.data.branches|| [];
+      console.log("Fetched branches:", branchData);
+      // Ensure branchData is always an array
+      setBranches(Array.isArray(branchData) ? branchData : []);
+    } catch (err) {
+      console.warn('Failed to fetch branches:', err);
+      setBranches([]);
+    }
+  }, []);
+
+  // Fetch data with filters
   const fetchParcelData = useCallback(async () => {
     try {
       setError(null);
       
-      const apiEndpoint = `${backendURL}/api/admin/parcels`;
+      // Build query parameters
+      const params = new URLSearchParams();
+      
+      // Add filter parameters
+      if (startDate) params.append('startDate', formatDateForAPI(startDate));
+      if (endDate) params.append('endDate', formatDateForAPI(endDate));
+      if (selectedStatus !== 'all') params.append('status', selectedStatus);
+      if (selectedFromBranch !== 'all') params.append('fromBranch', selectedFromBranch);
+      if (selectedToBranch !== 'all') params.append('toBranch', selectedToBranch);
+      if (selectedItemType !== 'all') params.append('itemType', selectedItemType);
+      if (selectedItemSize !== 'all') params.append('itemSize', selectedItemSize);
+      if (selectedShippingMethod !== 'all') params.append('shippingMethod', selectedShippingMethod);
+      if (selectedReceivingType !== 'all') params.append('receivingType', selectedReceivingType);
+      if (selectedSubmittingType !== 'all') params.append('submittingType', selectedSubmittingType);
+      
+      // Add pagination
+      params.append('page', currentPage);
+      params.append('limit', limit);
+
+      const apiEndpoint = `${backendURL}/api/admin/parcels?${params.toString()}`;
+      console.log('Fetching with filters:', params.toString());
 
       const response = await axios.get(apiEndpoint, {
         withCredentials: true,
-        timeout: 10000, // 10 second timeout
+        timeout: 15000,
       });
 
-      // Handle different response structures
-      const rawData = response.data?.userData || 
-                     response.data?.data || 
-                     response.data || 
-                     [];
+      // Handle new response structure with pagination
+      const responseData = response.data;
+      const rawData = responseData?.data || responseData?.userData || responseData || [];
 
       if (!Array.isArray(rawData)) {
         throw new Error("Invalid data format received from server");
@@ -235,7 +379,14 @@ const Parcels = () => {
 
       const transformedData = transformParcelData(rawData);
       setParcelData(transformedData);
-      setRetryCount(0); // Reset retry count on success
+      
+      // Update pagination info
+      if (responseData?.pagination) {
+        setTotalCount(responseData.pagination.totalCount);
+        setTotalPages(responseData.pagination.totalPages);
+      }
+      
+      setRetryCount(0);
       
     } catch (error) {
       console.error("Error fetching parcel data:", error);
@@ -259,12 +410,25 @@ const Parcels = () => {
       setError({
         message: errorMessage,
         details: error.message,
-        canRetry: error.response?.status !== 403, // Don't allow retry for forbidden
+        canRetry: error.response?.status !== 403,
       });
     } finally {
       setLoading(false);
     }
-  }, [transformParcelData]);
+  }, [
+    transformParcelData, 
+    startDate, 
+    endDate, 
+    selectedStatus, 
+    selectedFromBranch, 
+    selectedToBranch, 
+    selectedItemType, 
+    selectedItemSize, 
+    selectedShippingMethod, 
+    selectedReceivingType, 
+    selectedSubmittingType, 
+    currentPage
+  ]);
 
   // Retry handler
   const handleRetry = useCallback(() => {
@@ -274,6 +438,107 @@ const Parcels = () => {
       fetchParcelData();
     }
   }, [retryCount, fetchParcelData]);
+
+  // Date preset functions
+  const applyDatePreset = useCallback((preset) => {
+    const today = new Date();
+    let startDate, endDate;
+
+    switch (preset) {
+      case '7days':
+        startDate = new Date(today);
+        startDate.setDate(today.getDate() - 7);
+        endDate = new Date(today);
+        break;
+      case '30days':
+        startDate = new Date(today);
+        startDate.setDate(today.getDate() - 30);
+        endDate = new Date(today);
+        break;
+      case '2months':
+        startDate = new Date(today);
+        startDate.setMonth(today.getMonth() - 2);
+        endDate = new Date(today);
+        break;
+      case 'custom':
+        // Don't change dates for custom
+        return;
+      default:
+        return;
+    }
+
+    setStartDate(startDate.toISOString());
+    setEndDate(endDate.toISOString());
+    setSelectedPreset(preset);
+    setCurrentPage(1); // Reset to first page when filters change
+  }, []);
+
+  // Clear filters function
+  const clearFilters = useCallback(() => {
+    const defaultRange = getDefaultDateRange();
+    setStartDate(defaultRange.start);
+    setEndDate(defaultRange.end);
+    setSelectedStatus('all');
+    setSelectedFromBranch('all');
+    setSelectedToBranch('all');
+    setSelectedItemType('all');
+    setSelectedItemSize('all');
+    setSelectedShippingMethod('all');
+    setSelectedReceivingType('all');
+    setSelectedSubmittingType('all');
+    setSelectedPreset('30days');
+    setCurrentPage(1);
+  }, [getDefaultDateRange]);
+
+  // Check if any filters are active
+  const hasActiveFilters = useMemo(() => {
+    const defaultRange = getDefaultDateRange();
+    const hasCustomDateRange = startDate !== defaultRange.start || endDate !== defaultRange.end;
+    return hasCustomDateRange || 
+           selectedStatus !== 'all' || 
+           selectedFromBranch !== 'all' || 
+           selectedToBranch !== 'all' ||
+           selectedItemType !== 'all' || 
+           selectedItemSize !== 'all' || 
+           selectedShippingMethod !== 'all' ||
+           selectedReceivingType !== 'all' || 
+           selectedSubmittingType !== 'all';
+  }, [
+    startDate, endDate, selectedStatus, selectedFromBranch, selectedToBranch,
+    selectedItemType, selectedItemSize, selectedShippingMethod, 
+    selectedReceivingType, selectedSubmittingType, getDefaultDateRange
+  ]);
+
+  // Update preset when dates change manually
+  useEffect(() => {
+    if (!startDate || !endDate) return;
+
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+    const today = new Date();
+    const diffDays = Math.ceil((end - start) / (1000 * 60 * 60 * 24));
+
+    const todayStr = today.toDateString();
+    const endStr = end.toDateString();
+
+    if (endStr === todayStr) {
+      if (diffDays <= 7) {
+        setSelectedPreset('7days');
+      } else if (diffDays <= 30) {
+        setSelectedPreset('30days');
+      } else if (diffDays <= 62) {
+        setSelectedPreset('2months');
+      } else {
+        setSelectedPreset('custom');
+      }
+    } else {
+      setSelectedPreset('custom');
+    }
+  }, [startDate, endDate]);
+
+  useEffect(() => {
+    fetchBranches();
+  }, [fetchBranches]);
 
   useEffect(() => {
     fetchParcelData();
@@ -374,6 +639,451 @@ const Parcels = () => {
   return (
     <div className="flex flex-col mx-8">
       <SectionTitle title="Parcels" />
+      
+      {/* Filter Component */}
+      <div className="bg-white border border-gray-200 rounded-lg shadow-sm mb-6">
+        <div className="px-4 py-3 border-b border-gray-100 bg-gray-50/50 rounded-t-lg">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-2">
+              <Filter className="w-4 h-4 text-gray-600" />
+              <span className="text-sm font-semibold text-gray-900">Filter Parcels</span>
+              {hasActiveFilters && (
+                <span className="bg-blue-100 text-blue-700 text-xs font-medium px-2 py-1 rounded-full">
+                  {(() => {
+                    let count = 0;
+                    if (selectedStatus !== 'all') count++;
+                    if (selectedFromBranch !== 'all') count++;
+                    if (selectedToBranch !== 'all') count++;
+                    if (selectedItemType !== 'all') count++;
+                    if (selectedItemSize !== 'all') count++;
+                    if (selectedShippingMethod !== 'all') count++;
+                    if (selectedReceivingType !== 'all') count++;
+                    if (selectedSubmittingType !== 'all') count++;
+                    const defaultRange = getDefaultDateRange();
+                    if (startDate !== defaultRange.start || endDate !== defaultRange.end) count++;
+                    return count;
+                  })()} active
+                </span>
+              )}
+            </div>
+            {hasActiveFilters && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={clearFilters}
+                className="h-7 px-2 text-xs text-gray-600 hover:text-gray-900"
+              >
+                <RefreshCw className="w-3 h-3 mr-1" />
+                Reset Filters
+              </Button>
+            )}
+          </div>
+        </div>
+
+        <div className="p-4">
+          {/* Date Range Presets */}
+          <div className="mb-4">
+            <label className="text-xs font-medium text-gray-600 uppercase tracking-wide mb-2 block">
+              Quick Date Range
+            </label>
+            <div className="flex flex-wrap gap-2">
+              {[
+                { key: '7days', label: 'Last 7 Days' },
+                { key: '30days', label: 'Last 30 Days' },
+                { key: '2months', label: 'Last 2 Months' },
+                { key: 'custom', label: 'Custom Range' }
+              ].map((preset) => (
+                <Button
+                  key={preset.key}
+                  variant={selectedPreset === preset.key ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => applyDatePreset(preset.key)}
+                  className={cn(
+                    "h-7 px-3 text-xs transition-all",
+                    selectedPreset === preset.key 
+                      ? "bg-blue-600 text-white border-blue-600 shadow-sm" 
+                      : "hover:bg-gray-50 hover:border-gray-300"
+                  )}
+                >
+                  {preset.label}
+                </Button>
+              ))}
+            </div>
+          </div>
+
+          {/* Filter Controls Grid */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-3">
+            
+            {/* Start Date */}
+            <div className="space-y-1">
+              <label className="text-xs font-medium text-gray-600 uppercase tracking-wide">
+                Start Date
+              </label>
+              <Popover open={startDatePickerOpen} onOpenChange={setStartDatePickerOpen}>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className={cn(
+                      'w-full h-8 justify-start text-left font-normal text-xs',
+                      !startDate && 'text-muted-foreground'
+                    )}
+                  >
+                    <CalendarIcon className="mr-2 h-3 w-3 flex-shrink-0" />
+                    <span className="truncate">
+                      {startDate ? formatDateForDisplay(startDate) : 'Select start date'}
+                    </span>
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar
+                    mode="single"
+                    selected={startDate ? new Date(startDate) : undefined}
+                    onSelect={(newDate) => {
+                      if (newDate) {
+                        setStartDate(newDate.toISOString());
+                        setCurrentPage(1);
+                      }
+                      setStartDatePickerOpen(false);
+                    }}
+                    initialFocus
+                  />
+                </PopoverContent>
+              </Popover>
+            </div>
+
+            {/* End Date */}
+            <div className="space-y-1">
+              <label className="text-xs font-medium text-gray-600 uppercase tracking-wide">
+                End Date
+              </label>
+              <Popover open={endDatePickerOpen} onOpenChange={setEndDatePickerOpen}>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className={cn(
+                      'w-full h-8 justify-start text-left font-normal text-xs',
+                      !endDate && 'text-muted-foreground'
+                    )}
+                  >
+                    <CalendarIcon className="mr-2 h-3 w-3 flex-shrink-0" />
+                    <span className="truncate">
+                      {endDate ? formatDateForDisplay(endDate) : 'Select end date'}
+                    </span>
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar
+                    mode="single"
+                    selected={endDate ? new Date(endDate) : undefined}
+                    onSelect={(newDate) => {
+                      if (newDate) {
+                        setEndDate(newDate.toISOString());
+                        setCurrentPage(1);
+                      }
+                      setEndDatePickerOpen(false);
+                    }}
+                    initialFocus
+                  />
+                </PopoverContent>
+              </Popover>
+            </div>
+
+            {/* Status Filter */}
+            <div className="space-y-1">
+              <label className="text-xs font-medium text-gray-600 uppercase tracking-wide">
+                Status
+              </label>
+              <Select
+                value={selectedStatus}
+                onValueChange={(value) => {
+                  setSelectedStatus(value);
+                  setCurrentPage(1);
+                }}
+              >
+                <SelectTrigger className="w-full h-8 text-xs">
+                  <Package className="mr-2 h-3 w-3 flex-shrink-0 text-gray-500" />
+                  <SelectValue placeholder="Select status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">
+                    <span className="text-xs">All Statuses</span>
+                  </SelectItem>
+                  {statusOptions.map((status) => (
+                    <SelectItem key={status} value={status}>
+                      <span className="text-xs">{formatStatusText(status)}</span>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* From Branch Filter */}
+            <div className="space-y-1">
+              <label className="text-xs font-medium text-gray-600 uppercase tracking-wide">
+                From Branch
+              </label>
+              <Select
+                value={selectedFromBranch}
+                onValueChange={(value) => {
+                  setSelectedFromBranch(value);
+                  setCurrentPage(1);
+                }}
+              >
+                <SelectTrigger className="w-full h-8 text-xs">
+                  <MapPin className="mr-2 h-3 w-3 flex-shrink-0 text-gray-500" />
+                  <SelectValue placeholder="Select from branch" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">
+                    <span className="text-xs">All Branches</span>
+                  </SelectItem>
+                  {Array.isArray(branches) && branches.map((branch) => (
+                    <SelectItem key={branch._id} value={branch._id}>
+                      <span className="text-xs">{branch.branchId} - {branch.location}</span>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* To Branch Filter */}
+            <div className="space-y-1">
+              <label className="text-xs font-medium text-gray-600 uppercase tracking-wide">
+                To Branch
+              </label>
+              <Select
+                value={selectedToBranch}
+                onValueChange={(value) => {
+                  setSelectedToBranch(value);
+                  setCurrentPage(1);
+                }}
+              >
+                <SelectTrigger className="w-full h-8 text-xs">
+                  <MapPin className="mr-2 h-3 w-3 flex-shrink-0 text-gray-500" />
+                  <SelectValue placeholder="Select to branch" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">
+                    <span className="text-xs">All Branches</span>
+                  </SelectItem>
+                  {Array.isArray(branches) && branches.map((branch) => (
+                    <SelectItem key={branch._id} value={branch._id}>
+                      <span className="text-xs">{branch.branchId} - {branch.location}</span>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Item Type Filter */}
+            <div className="space-y-1">
+              <label className="text-xs font-medium text-gray-600 uppercase tracking-wide">
+                Item Type
+              </label>
+              <Select
+                value={selectedItemType}
+                onValueChange={(value) => {
+                  setSelectedItemType(value);
+                  setCurrentPage(1);
+                }}
+              >
+                <SelectTrigger className="w-full h-8 text-xs">
+                  <Package className="mr-2 h-3 w-3 flex-shrink-0 text-gray-500" />
+                  <SelectValue placeholder="Select item type" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">
+                    <span className="text-xs">All Types</span>
+                  </SelectItem>
+                  {itemTypeOptions.map((type) => (
+                    <SelectItem key={type} value={type}>
+                      <span className="text-xs">{type}</span>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Item Size Filter */}
+            <div className="space-y-1">
+              <label className="text-xs font-medium text-gray-600 uppercase tracking-wide">
+                Item Size
+              </label>
+              <Select
+                value={selectedItemSize}
+                onValueChange={(value) => {
+                  setSelectedItemSize(value);
+                  setCurrentPage(1);
+                }}
+              >
+                <SelectTrigger className="w-full h-8 text-xs">
+                  <Package className="mr-2 h-3 w-3 flex-shrink-0 text-gray-500" />
+                  <SelectValue placeholder="Select item size" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">
+                    <span className="text-xs">All Sizes</span>
+                  </SelectItem>
+                  {itemSizeOptions.map((size) => (
+                    <SelectItem key={size} value={size}>
+                      <span className="text-xs">{size.charAt(0).toUpperCase() + size.slice(1)}</span>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Shipping Method Filter */}
+            <div className="space-y-1">
+              <label className="text-xs font-medium text-gray-600 uppercase tracking-wide">
+                Shipping Method
+              </label>
+              <Select
+                value={selectedShippingMethod}
+                onValueChange={(value) => {
+                  setSelectedShippingMethod(value);
+                  setCurrentPage(1);
+                }}
+              >
+                <SelectTrigger className="w-full h-8 text-xs">
+                  <Package className="mr-2 h-3 w-3 flex-shrink-0 text-gray-500" />
+                  <SelectValue placeholder="Select shipping method" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">
+                    <span className="text-xs">All Methods</span>
+                  </SelectItem>
+                  {shippingMethodOptions.map((method) => (
+                    <SelectItem key={method} value={method}>
+                      <span className="text-xs">{method.charAt(0).toUpperCase() + method.slice(1)}</span>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Receiving Type Filter */}
+            <div className="space-y-1">
+              <label className="text-xs font-medium text-gray-600 uppercase tracking-wide">
+                Receiving Type
+              </label>
+              <Select
+                value={selectedReceivingType}
+                onValueChange={(value) => {
+                  setSelectedReceivingType(value);
+                  setCurrentPage(1);
+                }}
+              >
+                <SelectTrigger className="w-full h-8 text-xs">
+                  <User className="mr-2 h-3 w-3 flex-shrink-0 text-gray-500" />
+                  <SelectValue placeholder="Select receiving type" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">
+                    <span className="text-xs">All Types</span>
+                  </SelectItem>
+                  {receivingTypeOptions.map((type) => (
+                    <SelectItem key={type} value={type}>
+                      <span className="text-xs">{formatCamelCaseToReadable(type)}</span>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Submitting Type Filter */}
+            <div className="space-y-1">
+              <label className="text-xs font-medium text-gray-600 uppercase tracking-wide">
+                Submitting Type
+              </label>
+              <Select
+                value={selectedSubmittingType}
+                onValueChange={(value) => {
+                  setSelectedSubmittingType(value);
+                  setCurrentPage(1);
+                }}
+              >
+                <SelectTrigger className="w-full h-8 text-xs">
+                  <User className="mr-2 h-3 w-3 flex-shrink-0 text-gray-500" />
+                  <SelectValue placeholder="Select submitting type" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">
+                    <span className="text-xs">All Types</span>
+                  </SelectItem>
+                  {submittingTypeOptions.map((type) => (
+                    <SelectItem key={type} value={type}>
+                      <span className="text-xs">{formatCamelCaseToReadable(type)}</span>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            
+          </div>
+
+          {/* Active Filters Summary */}
+          {hasActiveFilters && (
+            <div className="mt-3 pt-3 border-t border-gray-100">
+              <div className="flex flex-wrap items-center gap-1 text-xs">
+                <span className="font-medium text-gray-700">Active:</span>
+                {(() => {
+                  const defaultRange = getDefaultDateRange();
+                  if (startDate !== defaultRange.start || endDate !== defaultRange.end) {
+                    return (
+                      <span className="bg-blue-50 text-blue-700 px-2 py-1 rounded border border-blue-200">
+                        {formatDateForDisplay(startDate)} - {formatDateForDisplay(endDate)}
+                      </span>
+                    );
+                  }
+                  return null;
+                })()}
+                {selectedStatus !== 'all' && (
+                  <span className="bg-green-50 text-green-700 px-2 py-1 rounded border border-green-200">
+                    Status: {formatStatusText(selectedStatus)}
+                  </span>
+                )}
+                {selectedFromBranch !== 'all' && (
+                  <span className="bg-purple-50 text-purple-700 px-2 py-1 rounded border border-purple-200">
+                    From: {Array.isArray(branches) ? branches.find(b => b._id === selectedFromBranch)?.location || selectedFromBranch : selectedFromBranch}
+                  </span>
+                )}
+                {selectedToBranch !== 'all' && (
+                  <span className="bg-indigo-50 text-indigo-700 px-2 py-1 rounded border border-indigo-200">
+                    To: {Array.isArray(branches) ? branches.find(b => b._id === selectedToBranch)?.location || selectedToBranch : selectedToBranch}
+                  </span>
+                )}
+                {selectedItemType !== 'all' && (
+                  <span className="bg-orange-50 text-orange-700 px-2 py-1 rounded border border-orange-200">
+                    Type: {selectedItemType}
+                  </span>
+                )}
+                {selectedItemSize !== 'all' && (
+                  <span className="bg-red-50 text-red-700 px-2 py-1 rounded border border-red-200">
+                    Size: {selectedItemSize}
+                  </span>
+                )}
+                {selectedShippingMethod !== 'all' && (
+                  <span className="bg-yellow-50 text-yellow-700 px-2 py-1 rounded border border-yellow-200">
+                    Method: {selectedShippingMethod}
+                  </span>
+                )}
+                {selectedReceivingType !== 'all' && (
+                  <span className="bg-teal-50 text-teal-700 px-2 py-1 rounded border border-teal-200">
+                    Receiving: {formatCamelCaseToReadable(selectedReceivingType)}
+                  </span>
+                )}
+                {selectedSubmittingType !== 'all' && (
+                  <span className="bg-pink-50 text-pink-700 px-2 py-1 rounded border border-pink-200">
+                    Submitting: {formatCamelCaseToReadable(selectedSubmittingType)}
+                  </span>
+                )}
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+      
       <div className="flex flex-col">
         <div className="my-8">
           <div className="mb-4 flex items-center justify-between bg-gray-50 border border-gray-200 rounded-lg p-4">
@@ -381,9 +1091,23 @@ const Parcels = () => {
               <div className="flex items-center space-x-2">
                 <div className="w-2 h-2 bg-gray-500 rounded-full"></div>
                 <span className="text-sm font-medium text-gray-700">
-                  Total Parcels: <span className="font-semibold text-gray-900">{parcelData.length}</span>
+                  Showing: <span className="font-semibold text-gray-900">{parcelData.length}</span>
+                  {totalCount > 0 && (
+                    <span className="text-gray-500"> of {totalCount} total</span>
+                  )}
                 </span>
               </div>
+              {totalPages > 1 && (
+                <div className="flex items-center space-x-2 text-xs text-gray-500">
+                  <span>Page {currentPage} of {totalPages}</span>
+                </div>
+              )}
+              {hasActiveFilters && (
+                <div className="flex items-center space-x-1 text-xs text-blue-600">
+                  <Filter className="w-3 h-3" />
+                  <span>Filtered results</span>
+                </div>
+              )}
               {parcelData.length > 0 && (
                 <div className="flex items-center space-x-1 text-xs text-gray-500">
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -393,18 +1117,46 @@ const Parcels = () => {
                 </div>
               )}
             </div>
-            <button
-              onClick={() => {
-                setLoading(true);
-                fetchParcelData();
-              }}
-              className="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
-            >
-              <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-              </svg>
-              Refresh
-            </button>
+            <div className="flex items-center space-x-2">
+              {/* Pagination Controls */}
+              {totalPages > 1 && (
+                <div className="flex items-center space-x-1">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                    disabled={currentPage === 1}
+                    className="h-8 px-3 text-xs"
+                  >
+                    Previous
+                  </Button>
+                  <span className="text-xs text-gray-500 px-2">
+                    {currentPage}/{totalPages}
+                  </span>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                    disabled={currentPage === totalPages}
+                    className="h-8 px-3 text-xs"
+                  >
+                    Next
+                  </Button>
+                </div>
+              )}
+              <button
+                onClick={() => {
+                  setLoading(true);
+                  fetchParcelData();
+                }}
+                className="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
+              >
+                <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                </svg>
+                Refresh
+              </button>
+            </div>
           </div>
           <div className="bg-white rounded-lg shadow border border-gray-200 overflow-hidden">
             <TableDistributor
@@ -412,6 +1164,8 @@ const Parcels = () => {
               entryData={parcelData}
               columns={parcelColumns}
               enableRowClick={true}
+              disableDateFilter={true}
+              disablePagination={true}
             />
           </div>
         </div>

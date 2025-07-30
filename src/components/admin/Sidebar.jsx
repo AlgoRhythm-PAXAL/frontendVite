@@ -7,6 +7,7 @@ import axios from "axios";
 import { useAdminAuth } from "../../hooks/useAdminAuth";
 import NavItem from "./NavItem";
 import LOGO from "../../assets/Velox-Logo.png";
+import PropTypes from 'prop-types';
 import {
   faTachometerAlt,
   faUser,
@@ -18,14 +19,16 @@ import {
   faUserCircle,
   faSync,
   faChartBar,
-  faCalendarWeek
+  faCalendarWeek,
+  faTimes
 } from "@fortawesome/free-solid-svg-icons";
 
 /**
  * Professional Admin Sidebar Component
  * Provides navigation for the admin panel with proper error handling and loading states
+ * Now includes responsive design with mobile slide-in functionality
  */
-export default function Sidebar() {
+export default function Sidebar({ onClose }) {
   const location = useLocation();
   const navigate = useNavigate();
   const backendURL = import.meta.env.VITE_BACKEND_URL;
@@ -191,7 +194,20 @@ export default function Sidebar() {
     if (admin) {
       fetchUserProfile();
     }
-  }, []); // Empty dependency array for initial fetch only
+  }, [admin, fetchUserProfile]); // Include dependencies
+
+  // Add keyboard navigation for mobile
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      // Close sidebar on Escape key for mobile
+      if (e.key === 'Escape' && onClose) {
+        onClose();
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [onClose]);
 
   /**
    * Handle user logout with proper error handling and confirmation
@@ -234,12 +250,15 @@ export default function Sidebar() {
   }, [location.pathname]);
 
   /**
-   * Handle navigation item click with analytics
+   * Handle navigation item click with analytics and mobile menu closing
    */
-  // const handleNavItemClick = useCallback((path) => {
-   
-  //   console.log(`Navigation: ${path}`);
-  // }, []);
+  const handleNavItemClick = useCallback((path) => {
+    // Close mobile menu when navigating
+    if (onClose) {
+      onClose();
+    }
+    console.log(`Navigation: ${path}`);
+  }, [onClose]);
 
   /**
    * Refresh user data
@@ -251,16 +270,27 @@ export default function Sidebar() {
   }, [isLoading, isOnline, fetchUserProfile]);
 
   return (
-    <div className="w-full h-screen bg-white flex flex-col py-6 rounded-xl shadow-lg border border-gray-200 relative">
+    <div className="w-full h-screen bg-white flex flex-col py-4 lg:py-6 rounded-none lg:rounded-xl shadow-lg border-r lg:border border-gray-200 relative">
+      {/* Mobile Close Button */}
+      {onClose && (
+        <button
+          onClick={onClose}
+          className="lg:hidden absolute top-4 right-4 p-2 hover:bg-gray-100 rounded-lg transition-colors duration-200 z-10 touch-manipulation"
+          aria-label="Close sidebar"
+        >
+          <FontAwesomeIcon icon={faTimes} className="w-4 h-4 text-gray-600" />
+        </button>
+      )}
+
       {/* Online/Offline Status Indicator */}
       {!isOnline && (
-        <div className="absolute top-2 right-2 w-3 h-3 bg-red-500 rounded-full animate-pulse" 
+        <div className="absolute top-2 left-2 lg:right-2 lg:left-auto w-3 h-3 bg-red-500 rounded-full animate-pulse" 
              title="Offline" />
       )}
       
       {/* Header Section */}
-      <header className="flex flex-col items-center mb-8 px-4">
-        <div className="w-20 h-20 mb-4 rounded-full overflow-hidden bg-gray-50 flex items-center justify-center shadow-md">
+      <header className="flex flex-col items-center mb-8 px-4 pt-2 lg:pt-0">
+        <div className="w-16 h-16 lg:w-20 lg:h-20 mb-4 rounded-full overflow-hidden bg-gray-50 flex items-center justify-center shadow-md">
           <img 
             src={LOGO} 
             alt="Paxal Logo" 
@@ -272,7 +302,7 @@ export default function Sidebar() {
           />
           <div className="hidden text-gray-400 text-2xl font-bold">P</div>
         </div>
-        <h1 className="text-xl font-semibold text-gray-800 font-mulish">
+        <h1 className="text-lg lg:text-xl font-semibold text-gray-800 font-mulish text-center">
           Admin Panel
         </h1>
         <div className={`text-xs mt-1 px-2 py-1 rounded-full ${
@@ -288,7 +318,7 @@ export default function Sidebar() {
           <Link 
             key={item.path} 
             to={item.path}
-            className="block"
+            className="block touch-manipulation"
             onClick={() => handleNavItemClick(item.path)}
           >
             <NavItem
@@ -308,7 +338,7 @@ export default function Sidebar() {
           <button
             onClick={refreshUserData}
             disabled={isLoading || !isOnline}
-            className="w-full flex items-center gap-3 px-4 py-2 text-left text-gray-600 hover:text-gray-800 hover:bg-gray-50 rounded-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full flex items-center gap-3 px-4 py-3 lg:py-2 text-left text-gray-600 hover:text-gray-800 hover:bg-gray-50 rounded-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed touch-manipulation"
             title="Refresh user data"
           >
             <FontAwesomeIcon 
@@ -321,32 +351,35 @@ export default function Sidebar() {
           </button>
 
           {/* User Profile */}
-          <Link to="/admin/profile" className="block">
-            <NavItem
-              title={isLoading ? "Loading..." : (userData.name || "Admin User")}
-              avatar={userData.avatar}
-              icon={!userData.avatar ? faUserCircle : undefined}
-              active={isPathActive("/admin/profile")}
-              disabled={isLoading || !isOnline}
-            />
-            {/* Debug info - remove in production */}
-            {/* {import.meta.env.DEV && (
-              <div className="text-xs text-gray-500 px-4 py-1">
-                Avatar: {userData.avatar ? userData.avatar : 'null'}
-              </div>
-            )} */}
+          <Link to="/admin/profile" className="block touch-manipulation" onClick={() => handleNavItemClick('/admin/profile')}>
+            <div className="py-1 lg:py-0">
+              <NavItem
+                title={isLoading ? "Loading..." : (userData.name || "Admin User")}
+                avatar={userData.avatar}
+                icon={!userData.avatar ? faUserCircle : undefined}
+                active={isPathActive("/admin/profile")}
+                disabled={isLoading || !isOnline}
+              />
+            </div>
           </Link>
 
           {/* Logout Button */}
-          <NavItem
-            title={isLoggingOut ? "Logging out..." : "Logout"}
-            onClick={handleLogout}
-            icon={faSignOutAlt}
-            disabled={isLoggingOut || !isOnline}
-            className="text-red-600 hover:text-red-700 hover:bg-red-50 focus:bg-red-50 focus:text-red-700"
-          />
+          <div className="py-1 lg:py-0">
+            <NavItem
+              title={isLoggingOut ? "Logging out..." : "Logout"}
+              onClick={handleLogout}
+              icon={faSignOutAlt}
+              disabled={isLoggingOut || !isOnline}
+              className="text-red-600 hover:text-red-700 hover:bg-red-50 focus:bg-red-50 focus:text-red-700"
+            />
+          </div>
         </div>
       </footer>
     </div>
   );
 }
+
+// PropTypes validation
+Sidebar.propTypes = {
+  onClose: PropTypes.func,
+};

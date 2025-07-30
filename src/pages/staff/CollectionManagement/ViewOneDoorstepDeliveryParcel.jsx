@@ -31,7 +31,6 @@ const ViewOneDoorStepDeliveryParcel = () => {
           },
         
         );
-        console.log("Assignment check response:", response.data);
         setHasAssignedSchedule(response.data.isAssigned);
       } catch (error) {
         console.error("Assignment check failed:", error);

@@ -470,7 +470,7 @@
 
 
 
-import React, { useState, useMemo, useCallback } from "react";
+import { useState, useMemo, useCallback } from "react";
 import {
   flexRender,
   getCoreRowModel,
@@ -480,7 +480,6 @@ import {
 } from "@tanstack/react-table";
 import {
   Dialog,
-  DialogTrigger,
   DialogContent,
   DialogHeader,
   DialogTitle,
@@ -499,6 +498,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Badge } from "@/components/ui/badge";
 import { DatePickerWithPresets } from "../../DatePicker";
 import { format, isSameDay } from "date-fns";
 import {
@@ -507,6 +507,7 @@ import {
   Calendar,
   AlertTriangle,
   Loader2,
+  X,
 } from "lucide-react";
 import { toast } from "sonner";
 import axios from "axios";
@@ -524,6 +525,7 @@ export function DataTable({
   updateText = "Update",
   showAllLabel = "Show All Entries",
   disableDateFilter = false,
+  disablePagination = false, // New prop to disable internal pagination
   sorting = true,
   enableRowClick = true,
   onRowClick,
@@ -771,8 +773,40 @@ export function DataTable({
           id: "rowNumber",
           header: "#",
           cell: ({ row, table }) => {
+            // If pagination is disabled, just use row index + 1
+            if (disablePagination) {
+              const rowNumber = row.index + 1;
+              
+              // Enhanced debug logging
+              if (row.index === 0) {
+                console.log('🔍 Pagination Debug - First row (DISABLED pagination):', { 
+                  rowIndex: row.index, 
+                  calculatedNumber: rowNumber,
+                  totalRows: table.getRowModel().rows.length,
+                  filteredDataLength: filteredData.length
+                });
+              }
+              
+              return rowNumber;
+            }
+            
+            // Standard pagination calculation
             const { pageIndex, pageSize } = table.getState().pagination;
-            return pageIndex * pageSize + row.index + 1;
+            const rowNumber = pageIndex * pageSize + row.index + 1;
+            
+            // Enhanced debug logging
+            if (row.index === 0) {
+              console.log('🔍 Pagination Debug - First row (ENABLED pagination):', { 
+                pageIndex, 
+                pageSize, 
+                rowIndex: row.index, 
+                calculatedNumber: rowNumber,
+                totalRows: table.getRowModel().rows.length,
+                filteredDataLength: filteredData.length
+              });
+            }
+            
+            return rowNumber;
           },
         },
         ...columns,
@@ -792,6 +826,8 @@ export function DataTable({
     handleEditClick,
     isDeleting,
     isUpdating,
+    filteredData.length,
+    disablePagination,
   ]);
 
   const table = useReactTable({
@@ -799,14 +835,21 @@ export function DataTable({
     columns: enhancedColumns,
     state: {
       globalFilter,
-      pagination,
+      ...(disablePagination ? {} : { pagination }),
     },
-    onPaginationChange: setPagination,
+    initialState: {
+      pagination: {
+        pageIndex: 0,
+        pageSize: disablePagination ? filteredData.length : 20,
+      },
+    },
+    ...(disablePagination ? {} : { onPaginationChange: setPagination }),
     onGlobalFilterChange: setGlobalFilter,
     getCoreRowModel: getCoreRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
+    ...(disablePagination ? {} : { getPaginationRowModel: getPaginationRowModel() }),
     getFilteredRowModel: getFilteredRowModel(),
     globalFilterFn: "includesString",
+    manualPagination: false,
   });
 
   // Error state
@@ -835,24 +878,68 @@ export function DataTable({
           {title && (
             <h2 className="text-2xl font-semibold text-gray-900">{title}</h2>
           )}
+          
+          {/* Active Date Filter Display */}
           {!disableDateFilter && !showAll && (
+            <div className="flex items-center space-x-3">
+              <div className="flex items-center space-x-2 text-sm">
+                <Calendar className="h-4 w-4 text-gray-500" />
+                <span className="font-medium text-gray-500">Filtered by date:</span>
+              </div>
+              <Badge 
+                variant="secondary" 
+                className="bg-blue-50 text-blue-700 border-blue-200 hover:bg-blue-100 transition-colors"
+              >
+                <Calendar className="h-3 w-3 mr-1" />
+                {format(selectedDate, "MMM do, yyyy")}
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-4 w-4 p-0 ml-2 hover:bg-blue-200 rounded-full"
+                  onClick={() => setShowAll(true)}
+                  title="Remove date filter"
+                >
+                  <X className="h-3 w-3" />
+                </Button>
+              </Badge>
+            </div>
+          )}
+          
+          {/* Show All Status */}
+          {!disableDateFilter && showAll && (
             <div className="flex items-center space-x-2 text-sm">
-              <Calendar className="h-4 w-4 text-gray-500" />
-              <span className="font-medium text-gray-500">Showing entries from:</span>
-              <span className="font-semibold text-gray-700">
-                {format(selectedDate, "MMMM do, yyyy")}
-              </span>
+              <Badge variant="outline" className="text-green-700 border-green-200 bg-green-50">
+                Showing all entries
+              </Badge>
             </div>
           )}
         </div>
 
         <div className="flex flex-col space-y-2 sm:flex-row sm:space-y-0 sm:space-x-2">
-          {!disableDateFilter && !showAll && (
-            <DatePickerWithPresets
-              onDateChange={setSelectedDate}
-              className="w-full sm:w-48"
-            />
+          {/* Date Picker - Always show unless completely disabled */}
+          {!disableDateFilter && (
+            <div className="flex items-center space-x-2">
+              <DatePickerWithPresets
+                onDateChange={(date) => {
+                  setSelectedDate(date);
+                  setShowAll(false); // Automatically enable date filter when date is selected
+                }}
+                className="w-full sm:w-48"
+              />
+              {!showAll && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setShowAll(true)}
+                  className="whitespace-nowrap"
+                  title="Show all entries"
+                >
+                  Show All
+                </Button>
+              )}
+            </div>
           )}
+          
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
             <Input
@@ -868,22 +955,30 @@ export function DataTable({
       {/* Controls Section */}
       <div className="flex flex-col sm:flex-row justify-between gap-4 bg-gray-50 px-4 py-3 rounded-lg border">
         <div className="flex items-center gap-6">
+          {/* Quick toggle for date filter */}
           {!disableDateFilter && (
             <div className="flex items-center space-x-2">
               <Switch
                 id="show-all"
                 checked={showAll}
-                onCheckedChange={setShowAll}
+                onCheckedChange={(checked) => {
+                  setShowAll(checked);
+                  if (!checked) {
+                    // When turning off "show all", set date to today
+                    setSelectedDate(new Date());
+                  }
+                }}
               />
               <label
                 htmlFor="show-all"
-                className="text-sm font-medium text-gray-700 cursor-pointer"
+                className="text-sm font-medium text-gray-700 cursor-pointer select-none"
               >
                 {showAllLabel}
               </label>
             </div>
           )}
 
+          {/* Sorting controls */}
           {(showAll || disableDateFilter) && sorting && (
             <div className="flex items-center space-x-2">
               <ArrowDownUp className="h-4 w-4 text-gray-500" />
@@ -899,7 +994,7 @@ export function DataTable({
               />
               <label
                 htmlFor="sort-order"
-                className="text-sm font-medium text-gray-700 cursor-pointer"
+                className="text-sm font-medium text-gray-700 cursor-pointer select-none"
               >
                 {sortOrder === "desc" ? "Newest First" : "Oldest First"}
               </label>
@@ -907,8 +1002,27 @@ export function DataTable({
           )}
         </div>
 
-        <div className="text-sm text-gray-500 font-medium">
-          Showing {filteredData.length} of {data.length} entries
+        <div className="flex items-center space-x-4 text-sm">
+          {/* Filter status indicators */}
+          <div className="text-gray-500 font-medium">
+            Showing {filteredData.length} of {data.length} entries
+          </div>
+          
+          {/* Quick filter reset */}
+          {(globalFilter || (!showAll && !disableDateFilter)) && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => {
+                setGlobalFilter("");
+                if (!disableDateFilter) setShowAll(true);
+              }}
+              className="text-xs text-gray-500 hover:text-gray-700"
+            >
+              <X className="h-3 w-3 mr-1" />
+              Clear Filters
+            </Button>
+          )}
         </div>
       </div>
 
@@ -976,33 +1090,48 @@ export function DataTable({
         </Table>
       </div>
 
-      {/* Enhanced Pagination */}
-      <div className="flex items-center justify-between px-2 py-4 border-t bg-gray-50 rounded-b-lg">
-        <div className="text-sm text-gray-700">
-          Page {table.getState().pagination.pageIndex + 1} of{" "}
-          {table.getPageCount() || 1}
+      {/* Enhanced Pagination - Only show if pagination is enabled */}
+      {!disablePagination && (
+        <div className="flex items-center justify-between px-2 py-4 border-t bg-gray-50 rounded-b-lg">
+          <div className="text-sm text-gray-700">
+            Page {table.getState().pagination.pageIndex + 1} of{" "}
+            {table.getPageCount() || 1}
+            <span className="ml-4 text-xs text-gray-500">
+              (Showing {table.getState().pagination.pageIndex * table.getState().pagination.pageSize + 1}-
+              {Math.min((table.getState().pagination.pageIndex + 1) * table.getState().pagination.pageSize, filteredData.length)} of {filteredData.length})
+            </span>
+          </div>
+          <div className="flex space-x-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => table.previousPage()}
+              disabled={!table.getCanPreviousPage()}
+              className="px-4 py-2"
+            >
+              Previous
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => table.nextPage()}
+              disabled={!table.getCanNextPage()}
+              className="px-4 py-2"
+            >
+              Next
+            </Button>
+          </div>
         </div>
-        <div className="flex space-x-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => table.previousPage()}
-            disabled={!table.getCanPreviousPage()}
-            className="px-4 py-2"
-          >
-            Previous
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => table.nextPage()}
-            disabled={!table.getCanNextPage()}
-            className="px-4 py-2"
-          >
-            Next
-          </Button>
+      )}
+
+      {/* Show total count when pagination is disabled */}
+      {disablePagination && (
+        <div className="flex items-center justify-center px-2 py-2 border-t bg-gray-50 rounded-b-lg">
+          <div className="text-sm text-gray-600">
+            Showing all {filteredData.length} entries
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Enhanced Delete Dialog */}
       <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>

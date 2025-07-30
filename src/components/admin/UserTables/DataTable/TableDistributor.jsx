@@ -247,6 +247,7 @@ export default function TableDistributor({
   deleteEnabled = false,
   updateEnabled = false,
   disableDateFilter = false,
+  disablePagination = false, // New prop
   enableRowClick = true,
   updateText = "Update",
   deleteText = "Delete",
@@ -370,6 +371,7 @@ export default function TableDistributor({
         updateText={updateText}
         deleteText={deleteText}
         disableDateFilter={disableDateFilter}
+        disablePagination={disablePagination}
         enableRowClick={enableRowClick}
         onRowClick={handleRowClick}
         sorting={sorting}

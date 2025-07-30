@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import DetailItem from "./DetailItem";
 import axios from "axios";
+import { ExclamationTriangleIcon } from '@heroicons/react/24/outline';
 
 const backendURL = import.meta.env.VITE_BACKEND_URL;
 
@@ -17,7 +18,6 @@ const ParcelInformation = ({ parcelId, onParcelLoad }) => {
       );
 
       setParcel(res.data);
-      console.log(res.data)
       onParcelLoad(res.data);
       setLoading(false);
     } catch (error) {
