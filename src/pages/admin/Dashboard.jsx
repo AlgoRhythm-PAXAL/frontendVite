@@ -157,25 +157,25 @@ const Dashboard = () => {
   return (
     <div className="flex flex-col mx-3 md:mx-5 mb-10 min-h-screen">
       {/* Header Section */}
-      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-6">
-        <div className="flex flex-col gap-2">
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
+    
           <SectionTitle title="Dashboard" />
           {/* {admin && (
             <p className="text-gray-600 text-sm">
               Welcome back, <span className="font-medium text-Primary">{admin.name}</span>
             </p>
           )} */}
-        </div>
+   
         <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4">
           {/* Connection Status */}
-          <div className={`flex items-center gap-2 px-3 py-1 rounded-full text-sm ${
+          {/* <div className={`flex items-center gap-2 px-3 py-1 rounded-full text-sm ${
             isOnline 
               ? 'bg-green-100 text-green-700' 
               : 'bg-red-100 text-red-700'
           }`}>
             <FontAwesomeIcon icon={faWifi} className="w-4 h-4" />
             {isOnline ? 'Online' : 'Offline'}
-          </div>
+          </div> */}
           
           {/* Last Refresh */}
           <span className="text-sm text-gray-500">
@@ -186,7 +186,7 @@ const Dashboard = () => {
           <button
             onClick={handleRefresh}
             disabled={!isOnline}
-            className="flex items-center gap-2 px-4 py-2 bg-Primary text-white rounded-lg hover:bg-primary-dark transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed text-sm"
+            className="flex items-center gap-2 px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-primary-dark transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed text-sm"
           >
             <FontAwesomeIcon icon={faSync} className="w-4 h-4" />
             Refresh

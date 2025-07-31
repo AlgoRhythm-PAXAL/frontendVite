@@ -19,7 +19,7 @@ import LoadingAnimation from "../../utils/LoadingAnimation";
 const chartConfig = {
   parcels: {
     label: "Daily Parcels",
-    color: "hsl(var(--chart-1))",
+    color: "hsl(186, 63%, 33%)"
   },
 };
 

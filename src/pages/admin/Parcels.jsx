@@ -648,7 +648,7 @@ const Parcels = () => {
               <Filter className="w-4 h-4 text-gray-600" />
               <span className="text-sm font-semibold text-gray-900">Filter Parcels</span>
               {hasActiveFilters && (
-                <span className="bg-blue-100 text-blue-700 text-xs font-medium px-2 py-1 rounded-full">
+                <span className="bg-gray-100 text-gray-700 text-xs font-medium px-2 py-1 rounded-full">
                   {(() => {
                     let count = 0;
                     if (selectedStatus !== 'all') count++;
@@ -701,7 +701,7 @@ const Parcels = () => {
                   className={cn(
                     "h-7 px-3 text-xs transition-all",
                     selectedPreset === preset.key 
-                      ? "bg-blue-600 text-white border-blue-600 shadow-sm" 
+                      ? "bg-gray-600 text-white border-gray-600 shadow-sm" 
                       : "hover:bg-gray-50 hover:border-gray-300"
                   )}
                 >
@@ -1031,7 +1031,7 @@ const Parcels = () => {
                   const defaultRange = getDefaultDateRange();
                   if (startDate !== defaultRange.start || endDate !== defaultRange.end) {
                     return (
-                      <span className="bg-blue-50 text-blue-700 px-2 py-1 rounded border border-blue-200">
+                      <span className="bg-blue-50 text-gray-700 px-2 py-1 rounded border border-gray-200">
                         {formatDateForDisplay(startDate)} - {formatDateForDisplay(endDate)}
                       </span>
                     );
@@ -1103,7 +1103,7 @@ const Parcels = () => {
                 </div>
               )}
               {hasActiveFilters && (
-                <div className="flex items-center space-x-1 text-xs text-blue-600">
+                <div className="flex items-center space-x-1 text-xs text-gray-600">
                   <Filter className="w-3 h-3" />
                   <span>Filtered results</span>
                 </div>

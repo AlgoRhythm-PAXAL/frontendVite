@@ -305,11 +305,11 @@ export default function Sidebar({ onClose }) {
         <h1 className="text-lg lg:text-xl font-semibold text-gray-800 font-mulish text-center">
           Admin Panel
         </h1>
-        <div className={`text-xs mt-1 px-2 py-1 rounded-full ${
+        {/* <div className={`text-xs mt-1 px-2 py-1 rounded-full ${
           isOnline ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
         }`}>
           {isOnline ? 'Online' : 'Offline'}
-        </div>
+        </div> */}
       </header>
 
       {/* Navigation Section */}

@@ -108,8 +108,8 @@ const SummaryStatsB2B = ({ summary, shipmentsForSelectedDate, onDateFilterChange
                 onClick={() => onDateFilterChange(preset.value, preset.getDate())}
                 className={`h-8 text-xs ${
                   selectedDateFilter === preset.value
-                    ? 'bg-blue-600 text-white'
-                    : 'hover:bg-blue-50 hover:text-blue-600'
+                    ? 'bg-gray-600 text-white'
+                    : 'hover:bg-gray-50 hover:text-gray-600'
                 }`}
               >
                 {preset.label}

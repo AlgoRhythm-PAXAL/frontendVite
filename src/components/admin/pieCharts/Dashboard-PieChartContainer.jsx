@@ -330,7 +330,7 @@ const PieChartContainer = () => {
               <Filter className="w-4 h-4 text-gray-600" />
               <span className="text-sm font-semibold text-gray-900">Filter Charts</span>
               {hasActiveFilters && (
-                <span className="bg-blue-100 text-blue-700 text-xs font-medium px-2 py-1 rounded-full">
+                <span className="bg-gray-100 text-gray-800 text-xs font-medium px-2 py-1 rounded-full">
                   {(() => {
                     const defaultRange = getDefaultDateRange();
                     const hasCustomDate = startDate !== defaultRange.start || endDate !== defaultRange.end;
@@ -376,7 +376,7 @@ const PieChartContainer = () => {
                   className={cn(
                     "h-7 px-3 text-xs transition-all",
                     selectedPreset === preset.key 
-                      ? "bg-blue-600 text-white border-blue-600 shadow-sm" 
+                      ? "bg-gray-500 text-white border-gray-500 shadow-sm" 
                       : "hover:bg-gray-50 hover:border-gray-300"
                   )}
                 >
@@ -552,7 +552,7 @@ const PieChartContainer = () => {
                         '2months': 'Last 2 Months'
                       };
                       return (
-                        <span className="bg-blue-50 text-blue-700 px-2 py-1 rounded border border-blue-200">
+                        <span className="bg-gray-50 text-gray-800 px-2 py-1 rounded border border-gray-200">
                           {presetLabels[selectedPreset] || 'Custom Range'}
                         </span>
                       );
@@ -561,7 +561,7 @@ const PieChartContainer = () => {
                   return null;
                 })()}
                 {selectedBranch !== 'all' && (
-                  <span className="bg-blue-50 text-blue-700 px-2 py-1 rounded border border-blue-200">
+                  <span className="bg-gray-50 text-gray-800 px-2 py-1 rounded border border-gray-200">
                     {branches.find(b => b._id === selectedBranch)?.location || selectedBranch}
                   </span>
                 )}
@@ -576,7 +576,7 @@ const PieChartContainer = () => {
         {processedChartData.map((processedData, index) => (
           <div 
             key={`${processedData.groupName}-${index}`} 
-            className="bg-white rounded-lg border border-gray-200 p-4 shadow-sm hover:shadow-md transition-shadow"
+            className=" hover: transition-shadow"
           >
             <PieChart
               labels={processedData.labels}

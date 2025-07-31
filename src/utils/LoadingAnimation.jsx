@@ -14,7 +14,7 @@ const LoadingAnimation = ({ message = "Loading..." }) => {
     // </div>
 
     <div className="flex items-center justify-center h-64">
-        <Loader className="h-8 w-8 animate-spin text-blue-600" />
+        <Loader className="h-8 w-8 animate-spin text-gray-600" />
         <span className="ml-2 text-gray-600">{message}</span>
       </div>
   );

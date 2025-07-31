@@ -908,7 +908,7 @@ const Reports = () => {
       <Card>
         <CardContent className="flex items-center justify-between p-6">
           <div className="flex items-center space-x-2">
-            {Icon && <Icon className="h-8 w-8 text-blue-600" />}
+            {Icon && <Icon className="h-8 w-8 text-gray-600" />}
             <div>
               <p className="text-sm font-medium text-gray-600">{title}</p>
               <div className="text-2xl font-bold">{formatValue(value)}</div>
