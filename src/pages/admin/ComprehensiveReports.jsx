@@ -71,7 +71,7 @@ const Reports = () => {
     { label: 'Last week', value: '1w', days: 7 },
     { label: 'Last month', value: '1m', days: 30 },
     { label: 'Last 2 months', value: '2m', days: 60 },
-    { label: 'Custom range', value: 'custom' }
+    // { label: 'Custom range', value: 'custom' }
   ];
 
   const COLORS = [
