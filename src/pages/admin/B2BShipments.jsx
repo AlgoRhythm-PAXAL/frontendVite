@@ -261,8 +261,6 @@ const B2BShipments = () => {
     { value: 'all', label: 'All Types' },
     { value: 'Standard', label: 'Standard' },
     { value: 'Express', label: 'Express' },
-    { value: 'Priority', label: 'Priority' },
-    { value: 'Overnight', label: 'Overnight' }
   ];
 
 
@@ -303,15 +301,56 @@ const B2BShipments = () => {
   // Fetch dropdown options
   const fetchDropdownOptions = useCallback(async () => {
     try {
-      const [branchesRes, vehiclesRes] = await Promise.all([
-        axios.get('/api/admin/branches'),
-        axios.get('/api/admin/vehicles')
-      ]);
+      console.log('=== FETCHING DROPDOWN OPTIONS ===');
+      
+      // Fetch branches
+      try {
+        const branchesRes = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/api/admin/branches`, {withCredentials: true});
+        console.log('Raw branches response:', branchesRes);
+        console.log('Branches data:', branchesRes.data);
+        
+        if (branchesRes.data?.branches && Array.isArray(branchesRes.data.branches)) {
+          setBranches(branchesRes.data.branches);
+          console.log('✅ Branches set successfully:', branchesRes.data.branches.length, 'items');
+        } else {
+          console.warn('❌ Invalid branches response structure:', branchesRes.data);
+        }
+      } catch (branchError) {
+        console.error('❌ Error fetching branches:', branchError);
+      }
 
-      if (branchesRes.data.success) setBranches(branchesRes.data.data);
-      if (vehiclesRes.data.success) setVehicles(vehiclesRes.data.data);
+      // Fetch vehicles
+      try {
+        const vehiclesRes = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/api/admin/vehicles`, {withCredentials: true});
+        console.log('Raw vehicles response:', vehiclesRes);
+        console.log('Vehicles data:', vehiclesRes.data);
+        
+        // Try different possible response structures
+        let vehicleData = null;
+        
+        if (vehiclesRes.data?.userData && Array.isArray(vehiclesRes.data.userData)) {
+          vehicleData = vehiclesRes.data.userData;
+        } else if (vehiclesRes.data?.data && Array.isArray(vehiclesRes.data.data)) {
+          vehicleData = vehiclesRes.data.data;
+        } else if (vehiclesRes.data?.vehicles && Array.isArray(vehiclesRes.data.vehicles)) {
+          vehicleData = vehiclesRes.data.vehicles;
+        } else if (Array.isArray(vehiclesRes.data)) {
+          vehicleData = vehiclesRes.data;
+        }
+        
+        if (vehicleData && Array.isArray(vehicleData)) {
+          setVehicles(vehicleData);
+          console.log('✅ Vehicles set successfully:', vehicleData.length, 'items');
+          console.log('First vehicle:', vehicleData[0]);
+        } else {
+          console.warn('❌ Invalid vehicles response structure:', vehiclesRes.data);
+        }
+      } catch (vehicleError) {
+        console.error('❌ Error fetching vehicles:', vehicleError);
+      }
+      
     } catch (err) {
-      console.error('Error fetching dropdown options:', err);
+      console.error('❌ General error fetching dropdown options:', err);
     }
   }, []);
   // Fetch initial data
@@ -319,6 +358,15 @@ const B2BShipments = () => {
     fetchB2BShipments();
     fetchDropdownOptions();
   }, [fetchB2BShipments, fetchDropdownOptions]);
+
+  // Debug state changes
+  useEffect(() => {
+    console.log('Branches state updated:', branches);
+  }, [branches]);
+
+  useEffect(() => {
+    console.log('Vehicles state updated:', vehicles);
+  }, [vehicles]);
 
 
 
@@ -550,11 +598,15 @@ const B2BShipments = () => {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Centers</SelectItem>
-                  {branches.map((branch) => (
-                    <SelectItem key={branch._id} value={branch._id}>
-                      {branch.location}
-                    </SelectItem>
-                  ))}
+                  {branches && branches.length > 0 ? (
+                    branches.map((branch) => (
+                      <SelectItem key={branch._id} value={branch._id}>
+                        {branch.location}
+                      </SelectItem>
+                    ))
+                  ) : (
+                    <SelectItem value="loading" disabled>Loading centers...</SelectItem>
+                  )}
                 </SelectContent>
               </Select>
             </div>
@@ -567,11 +619,15 @@ const B2BShipments = () => {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Vehicles</SelectItem>
-                  {vehicles.map((vehicle) => (
-                    <SelectItem key={vehicle._id} value={vehicle._id}>
-                      {vehicle.registrationNo} - {vehicle.vehicleType}
-                    </SelectItem>
-                  ))}
+                  {vehicles && vehicles.length > 0 ? (
+                    vehicles.map((vehicle) => (
+                      <SelectItem key={vehicle._id} value={vehicle._id}>
+                        {vehicle.registrationNo} - {vehicle.vehicleType}
+                      </SelectItem>
+                    ))
+                  ) : (
+                    <SelectItem value="loading" disabled>Loading vehicles...</SelectItem>
+                  )}
                 </SelectContent>
               </Select>
             </div>
