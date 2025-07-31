@@ -44,10 +44,17 @@ const StaffLogin = () => {
       }
       
       // Extract branchId - handle both populated and non-populated cases
-      const userCenter = staffData.branchId?._id || staffData.branchId;
+      let userCenter;
+      if (typeof staffData.branchId === 'object' && staffData.branchId !== null) {
+        userCenter = staffData.branchId._id;
+      } else {
+        userCenter = staffData.branchId;
+      }
       
       console.log("=== STORING IN LOCALSTORAGE ===");
-      console.log("userCenter:", userCenter);
+      console.log("staffData.branchId:", staffData.branchId);
+      console.log("typeof staffData.branchId:", typeof staffData.branchId);
+      console.log("extracted userCenter:", userCenter);
       console.log("staffId:", staffData._id);
       console.log("staffName:", staffData.name);
       
@@ -97,12 +104,7 @@ const StaffLogin = () => {
         return;
       }
       
-      // Store staff information in localStorage
-      localStorage.setItem('userCenter', response.data.staff.branchId);
-      localStorage.setItem('staffId', response.data.staff._id);
-      localStorage.setItem('staffName', response.data.staff.name);
-      
-      // Verify storage
+      // Verify storage (userCenter already set above)
       console.log("=== AFTER STORING IN LOCALSTORAGE ===");
       console.log("Stored userCenter:", localStorage.getItem('userCenter'));
       console.log("Stored staffId:", localStorage.getItem('staffId'));

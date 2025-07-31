@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Package, TrendingUp, ArrowLeft, ArrowRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { getUserCenter, clearAuthData } from '../../../../utils/auth';
 
 const DashboardPage = () => {
     const navigate = useNavigate();
@@ -73,13 +74,16 @@ const DashboardPage = () => {
         const fetchParcelStats = async () => {
             try {
                 setLoading(true);
-                // Get user's center from localStorage
-                const userCenter = localStorage.getItem('userCenter');
+                // Get user's center from localStorage using utility function
+                const userCenter = getUserCenter();
                 
-                // Check if userCenter exists
+                // Check if userCenter exists and is valid
                 if (!userCenter) {
-                    console.error('User center not found in localStorage');
-                    showNotificationMessage('User center not found. Please log in again.', 'error');
+                    console.error('User center not found or invalid in localStorage');
+                    console.log('Clearing corrupted localStorage...');
+                    clearAuthData();
+                    
+                    showNotificationMessage('Invalid session data. Please log in again.', 'error');
                     setLoading(false);
                     // Redirect to login after a short delay
                     setTimeout(() => {
@@ -136,12 +140,15 @@ const DashboardPage = () => {
 
         const fetchDriverStats = async () => {
             try {
-                const userCenter = localStorage.getItem('userCenter');
+                const userCenter = getUserCenter();
                 
-                // Check if userCenter exists
+                // Check if userCenter exists and is valid
                 if (!userCenter) {
-                    console.error('User center not found in localStorage');
-                    showNotificationMessage('User center not found. Please log in again.', 'error');
+                    console.error('User center not found or invalid in localStorage');
+                    console.log('Clearing corrupted localStorage...');
+                    clearAuthData();
+                    
+                    showNotificationMessage('Invalid session data. Please log in again.', 'error');
                     return;
                 }
                 
