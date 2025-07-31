@@ -311,13 +311,23 @@ apiClient.interceptors.response.use(
 export const dashboardApi = {
   /**
    * Get dashboard analytics data
-   * @param {string} period - Time period (1d, 7d, 30d, 90d, 1y)
+   * @param {string} period - Time period (1w, 1m, 2m, custom)
+   * @param {string} startDate - Start date for custom range (ISO string)
+   * @param {string} endDate - End date for custom range (ISO string)
    * @returns {Promise} Dashboard data
    */
-  getDashboardData: async (period = '0d') => {
+  getDashboardData: async (period = '1w', startDate = null, endDate = null) => {
     try {
+      const params = { period };
+      
+      // Add custom date range if provided
+      if (period === 'custom' && startDate && endDate) {
+        params.startDate = startDate;
+        params.endDate = endDate;
+      }
+      
       const response = await apiClient.get('/api/admin/reports/dashboard', {
-        params: { period }
+        params
       });
       return response.data;
     } catch (error) {
@@ -400,31 +410,6 @@ export const branchApi = {
 // AI Insights API
 export const aiApi = {
   /**
-   * Get business metrics for AI analysis
-   * @param {Object} params - Parameters for metrics
-   * @param {string} params.dateRange - JSON string of date range
-   * @param {string} params.branchId - Branch ID or 'all'
-   * @returns {Promise} Business metrics data
-   */
-  getBusinessMetrics: async (params = {}) => {
-    try {
-      const response = await apiClient.get('/api/admin/ai/metrics', {
-        params: {
-          dateRange: params.dateRange || JSON.stringify({
-            startDate: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(),
-            endDate: new Date().toISOString()
-          }),
-          branchId: params.branchId || 'all'
-        }
-      });
-      return response.data;
-    } catch (error) {
-      console.error('Error fetching business metrics:', error);
-      throw error;
-    }
-  },
-
-  /**
    * Generate AI-powered business report
    * @param {Object} params - Report parameters
    * @param {string} params.reportType - Type of report (comprehensive, performance, etc.)
@@ -451,47 +436,19 @@ export const aiApi = {
 
   /**
    * Get AI insights for custom data
-   * @param {Object} params - Parameters for insights
-   * @param {Object} params.reportData - Custom data to analyze
-   * @param {string} params.reportType - Type of analysis
+   * @param {Object} reportData - Custom data to analyze
+   * @param {string} reportType - Type of analysis
    * @returns {Promise} AI insights and recommendations
    */
-  getAIInsights: async (params = {}) => {
+  getAIInsights: async (reportData, reportType = 'comprehensive') => {
     try {
       const response = await apiClient.post('/api/admin/ai/insights', {
-        reportData: params.reportData,
-        reportType: params.reportType || 'comprehensive'
+        reportData,
+        reportType
       });
       return response.data;
     } catch (error) {
       console.error('Error getting AI insights:', error);
-      throw error;
-    }
-  },
-
-  /**
-   * Get performance analysis data
-   * @param {Object} params - Parameters for performance analysis
-   * @param {string} params.analysisType - Type of analysis
-   * @param {string} params.dateRange - JSON string of date range
-   * @param {string} params.branchId - Branch ID or 'all'
-   * @returns {Promise} Performance analysis data
-   */
-  getPerformanceAnalysis: async (params = {}) => {
-    try {
-      const response = await apiClient.get('/api/admin/ai/performance', {
-        params: {
-          analysisType: params.analysisType || 'comprehensive',
-          dateRange: params.dateRange || JSON.stringify({
-            startDate: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(),
-            endDate: new Date().toISOString()
-          }),
-          branchId: params.branchId || 'all'
-        }
-      });
-      return response.data;
-    } catch (error) {
-      console.error('Error getting performance analysis:', error);
       throw error;
     }
   }
