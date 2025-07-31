@@ -4,7 +4,6 @@ import {
   Download,
   TrendingUp,
   Package,
-  Truck,
   DollarSign,
   RefreshCw,
   ArrowUp,
@@ -14,6 +13,7 @@ import {
   Lightbulb,
   Target,
   AlertTriangle,
+  Clock,
 } from 'lucide-react';
 import {
   ResponsiveContainer,
@@ -58,22 +58,19 @@ const Reports = () => {
   // AI Insights state
   const [aiInsights, setAiInsights] = useState(null);
   const [loadingAI, setLoadingAI] = useState(false);
-  const [businessMetrics, setBusinessMetrics] = useState(null);
   
-  // Date range state
+  // Date range state - Default to 1 week
   const [dateRange, setDateRange] = useState({
-    startDate: format(subDays(new Date(), 30), 'yyyy-MM-dd'), // Default to last 30 days
+    startDate: format(subDays(new Date(), 7), 'yyyy-MM-dd'),
     endDate: format(new Date(), 'yyyy-MM-dd')
   });
-  const [selectedPreset, setSelectedPreset] = useState('30d');
+  const [selectedPreset, setSelectedPreset] = useState('1w');
 
-  // Preset date ranges
+  // Preset date ranges for dashboard
   const datePresets = [
-    { label: 'Last 7 days', value: '7d', days: 7 },
-    { label: 'Last 30 days', value: '30d', days: 30 },
-    { label: 'Last 3 months', value: '3m', months: 3 },
-    { label: 'Last 6 months', value: '6m', months: 6 },
-    { label: 'Last year', value: '1y', years: 1 },
+    { label: 'Last week', value: '1w', days: 7 },
+    { label: 'Last month', value: '1m', days: 30 },
+    { label: 'Last 2 months', value: '2m', days: 60 },
     { label: 'Custom range', value: 'custom' }
   ];
 
@@ -89,25 +86,32 @@ const Reports = () => {
   ];
 
   useEffect(() => {
-    fetchDashboardData();
-  }, []);
-
-  const fetchDashboardData = async () => {
-    try {
-      setLoading(true);
-      const data = await dashboardApi.getDashboardData('0d');
-      if (data.status === 'success') {
-        // Dashboard data fetched successfully but not used in this component
-        setDashboardData(data.data);
-        console.log('Dashboard data available:', data.data);
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        
+        // Determine if we're using custom dates
+        const isCustom = selectedPreset === 'custom';
+        const startDate = isCustom ? dateRange.startDate : null;
+        const endDate = isCustom ? dateRange.endDate : null;
+        
+        const data = await dashboardApi.getDashboardData(selectedPreset, startDate, endDate);
+        if (data.status === 'success') {
+          setDashboardData(data.data);
+          console.log('Dashboard data available:', data.data);
+        } else {
+          toast.error('Failed to fetch dashboard data');
+        }
+      } catch (error) {
+        console.error('Error fetching dashboard data:', error);
+        toast.error('Failed to fetch dashboard data');
+      } finally {
+        setLoading(false);
       }
-    } catch (error) {
-      console.error('Error fetching dashboard data:', error);
-      toast.error('Failed to fetch dashboard data');
-    } finally {
-      setLoading(false);
-    }
-  };
+    };
+    
+    fetchData();
+  }, [selectedPreset, dateRange]);
 
   // Handle preset date range selection
   const handlePresetChange = (preset) => {
@@ -178,44 +182,16 @@ const Reports = () => {
   };
 
   // AI Insights Functions
-  const fetchBusinessMetrics = async () => {
-    try {
-      setLoadingAI(true);
-      const params = {
-        dateRange: JSON.stringify({
-          startDate: dateRange.startDate,
-          endDate: dateRange.endDate
-        }),
-        branchId: 'all'
-      };
-
-      const data = await aiApi.getBusinessMetrics(params);
-      
-      if (data.success) {
-        setBusinessMetrics(data.data.metrics);
-        return data.data.metrics;
-      } else {
-        throw new Error(data.message || 'Failed to fetch business metrics');
-      }
-    } catch (error) {
-      console.error('Error fetching business metrics:', error);
-      toast.error('Failed to fetch business metrics');
-      return null;
-    }
-  };
-
   const generateAIInsights = async () => {
     try {
       setLoadingAI(true);
       
-      // First, get business metrics if not already available
-      let metrics = businessMetrics;
-      if (!metrics) {
-        metrics = await fetchBusinessMetrics();
-        if (!metrics) return;
+      if (!reportData) {
+        toast.error('Please generate a report first');
+        return;
       }
 
-      // Generate AI insights using the metrics
+      // Generate AI insights using the current report data
       const params = {
         reportType: 'comprehensive',
         dateRange: JSON.stringify({
@@ -243,30 +219,7 @@ const Reports = () => {
     }
   };
 
-  const getPerformanceAnalysis = async () => {
-    try {
-      const params = {
-        analysisType: 'comprehensive',
-        dateRange: JSON.stringify({
-          startDate: dateRange.startDate,
-          endDate: dateRange.endDate
-        }),
-        branchId: 'all'
-      };
 
-      const data = await aiApi.getPerformanceAnalysis(params);
-      
-      if (data.success) {
-        return data.data;
-      } else {
-        throw new Error(data.message || 'Failed to get performance analysis');
-      }
-    } catch (error) {
-      console.error('Error getting performance analysis:', error);
-      toast.error('Failed to get performance analysis');
-      return null;
-    }
-  };
 
   const downloadComprehensiveCSV = () => {
     if (!reportData) {
@@ -303,6 +256,26 @@ const Reports = () => {
       };
 
       let csvContent = '';
+
+      // Add Title and Metadata Section
+      const currentDate = new Date();
+      const reportTitle = 'Comprehensive Business Analytics Report';
+      const dateRange = dashboardData?.dateRange ? 
+        `${format(new Date(dashboardData.dateRange.startDate), 'MMM dd, yyyy')} - ${format(new Date(dashboardData.dateRange.endDate), 'MMM dd, yyyy')}` :
+        'N/A';
+      
+      csvContent += `"${reportTitle}"\n`;
+      csvContent += `"Generated on ${currentDate.toLocaleString('en-US', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: true
+      })}"\n`;
+      csvContent += `"Date Range: ${dateRange}"\n`;
+      csvContent += `"Branch Scope: All Branches"\n`;
+      csvContent += '\n';
 
       // 1. System Overview Section
       if (reportData.systemOverview) {
@@ -388,16 +361,6 @@ const Reports = () => {
         csvContent += '\n';
       }
 
-      // 9. Trends Data
-      if (reportData.trends) {
-        csvContent += 'TREND ANALYSIS\n';
-        csvContent += '"Trend Type","Growth","Period"\n';
-        Object.entries(reportData.trends).forEach(([trendType, trendData]) => {
-          csvContent += `"${trendType}","${trendData.growth || 0}","${trendData.period || ''}"\n`;
-        });
-        csvContent += '\n';
-      }
-
       // Debug: Log the CSV content to see if it's being generated
       console.log('CSV Content Length:', csvContent.length);
       console.log('CSV Content Preview:', csvContent.substring(0, 500));
@@ -409,9 +372,23 @@ const Reports = () => {
       const url = URL.createObjectURL(blob);
       console.log('URL created:', url);
       
+      // Create filename with date range
+      const formatDateForFilename = (date) => {
+        return format(new Date(date), 'MMM-dd-yyyy');
+      };
+      
+      const startDateFormatted = dashboardData?.dateRange ? 
+        formatDateForFilename(dashboardData.dateRange.startDate) : 
+        format(new Date(), 'MMM-dd-yyyy');
+      const endDateFormatted = dashboardData?.dateRange ? 
+        formatDateForFilename(dashboardData.dateRange.endDate) : 
+        format(new Date(), 'MMM-dd-yyyy');
+      
+      const filename = `Comprehensive_Business_Analytics_Report_${startDateFormatted}_to_${endDateFormatted}.csv`;
+      
       const link = document.createElement('a');
       link.href = url;
-      link.setAttribute('download', `comprehensive_report_${new Date().toISOString().split('T')[0]}.csv`);
+      link.setAttribute('download', filename);
       
       // Add link to DOM and trigger click
       document.body.appendChild(link);
@@ -445,6 +422,7 @@ const Reports = () => {
     const formatValue = (val) => {
       if (format === 'currency') return `Rs. ${Number(val).toLocaleString()}`;
       if (format === 'percentage') return `${val}%`;
+      if (format === 'text' || isNaN(val)) return val; // For text values like delivery time
       return Number(val).toLocaleString();
     };
 
@@ -456,7 +434,7 @@ const Reports = () => {
             <div>
               <p className="text-sm font-medium text-gray-600">{title}</p>
               <div className="text-2xl font-bold">{formatValue(value)}</div>
-              {change !== undefined && (
+              {change !== undefined && !isNaN(change) && (
                 <p className="text-xs text-muted-foreground flex items-center mt-1">
                   {trend === 'up' ? (
                     <ArrowUp className="h-3 w-3 text-green-500 mr-1" />
@@ -480,20 +458,45 @@ const Reports = () => {
     change: PropTypes.number,
     trend: PropTypes.oneOf(['up', 'down']),
     icon: PropTypes.elementType,
-    format: PropTypes.oneOf(['number', 'currency', 'percentage']),
+    format: PropTypes.oneOf(['number', 'currency', 'percentage', 'text']),
   };
 
   return (
     <div className="container mx-auto p-6 space-y-6">
       {/* Header */}
       <div className="flex flex-col lg:flex-row lg:justify-between lg:items-center gap-4">
-        <div>
+        <div className="space-y-2">
           <h1 className="text-3xl font-bold text-gray-900">
-            Comprehensive Reports
+            Comprehensive Business Analytics Report
           </h1>
-          <p className="text-gray-600 mt-1">
-            Complete system analytics and insights
-          </p>
+          <div className="space-y-1">
+            <p className="text-gray-600">
+              Complete system analytics and insights
+            </p>
+            <div className="flex flex-wrap items-center gap-4 text-sm text-gray-500">
+              <div className="flex items-center gap-1">
+                <Clock className="h-4 w-4" />
+                <span>Generated: {new Date().toLocaleString('en-US', {
+                  year: 'numeric',
+                  month: 'long',
+                  day: 'numeric',
+                  hour: '2-digit',
+                  minute: '2-digit',
+                  hour12: true
+                })}</span>
+              </div>
+              {dashboardData?.dateRange && (
+                <div className="flex items-center gap-1">
+                  <span>•</span>
+                  <span>Period: {format(new Date(dashboardData.dateRange.startDate), 'MMM dd, yyyy')} - {format(new Date(dashboardData.dateRange.endDate), 'MMM dd, yyyy')}</span>
+                </div>
+              )}
+              <div className="flex items-center gap-1">
+                <span>•</span>
+                <span>All Branches</span>
+              </div>
+            </div>
+          </div>
         </div>
         
         {/* Date Range Selection */}
@@ -551,19 +554,6 @@ const Reports = () => {
           Generate Report
         </Button>
         <Button
-          onClick={generateAIInsights}
-          disabled={loadingAI}
-          variant="outline"
-          className="flex items-center gap-2 bg-gradient-to-r from-blue-50 to-purple-50 border-blue-200 hover:from-blue-100 hover:to-purple-100"
-        >
-          {loadingAI ? (
-            <Loader className="h-4 w-4 animate-spin text-blue-600" />
-          ) : (
-            <Brain className="h-4 w-4 text-blue-600" />
-          )}
-          <span className="text-blue-700">AI Insights</span>
-        </Button>
-        <Button
           onClick={downloadComprehensiveCSV}
           disabled={downloadingCSV || !reportData}
           className="flex items-center gap-2"
@@ -577,33 +567,82 @@ const Reports = () => {
         </Button>
       </div>
 
+      {/* Dashboard Period Info */}
+      {dashboardData && (
+        <Card className="bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200">
+          <CardContent className="p-4">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+              <div className="flex items-center gap-4">
+                <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                  <span className="text-sm font-medium text-blue-900">
+                    Dashboard Period: {dashboardData.periodLabel}
+                  </span>
+                </div>
+                <div className="text-xs text-blue-700 bg-blue-100 px-2 py-1 rounded">
+                  {dashboardData.dateRange.startDate && (
+                    <>
+                      {format(new Date(dashboardData.dateRange.startDate), 'MMM dd, yyyy')} - {' '}
+                      {format(new Date(dashboardData.dateRange.endDate), 'MMM dd, yyyy')}
+                    </>
+                  )}
+                </div>
+              </div>
+              <div className="flex items-center gap-2 text-xs text-blue-600">
+                <RefreshCw className="h-3 w-3" />
+                Last updated: {format(new Date(dashboardData.lastUpdated), 'HH:mm:ss')}
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* KPI Cards */}
       {dashboardData?.kpi && (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           <KPICard
             title="Total Parcels"
             value={dashboardData.kpi.totalParcels?.value || 0}
+            change={dashboardData.kpi.totalParcels?.change}
+            trend={dashboardData.kpi.totalParcels?.trend}
             icon={Package}
           />
 
           <KPICard
             title="Total Revenue"
             value={dashboardData.kpi.totalRevenue?.value || 0}
+            change={dashboardData.kpi.totalRevenue?.change}
+            trend={dashboardData.kpi.totalRevenue?.trend}
             format="currency"
             icon={DollarSign}
           />
 
           <KPICard
-            title="Total Shipments"
-            value={dashboardData.kpi.totalShipments?.value || 0}
-            icon={Truck}
-          />
-          <KPICard
-            title="Delivery Rate"
-            value={dashboardData.kpi.deliverySuccessRate.value || 0}
+            title="Delivery Success Rate"
+            value={dashboardData.kpi.deliverySuccessRate?.value || 0}
             format="percentage"
             icon={TrendingUp}
           />
+
+          <KPICard
+            title="Avg Delivery Time"
+            value={dashboardData.kpi.avgDeliveryTime?.value ? `${dashboardData.kpi.avgDeliveryTime.value} ` : "No data"}
+            icon={Clock}
+          />
+
+          {/* <KPICard
+            title="On-Time Delivery"
+            value={dashboardData.kpi.onTimeDeliveryRate?.value || 0}
+            format="percentage"
+            icon={TrendingUp}
+          />
+
+          <KPICard
+            title="Customer Satisfaction"
+            value={dashboardData.kpi.customerSatisfaction?.value || 0}
+            format="percentage"
+            icon={TrendingUp}
+          /> */}
         </div>
       )}
 
@@ -1089,18 +1128,8 @@ const Reports = () => {
                     </div>
                     <div className="flex gap-2">
                       <Button
-                        onClick={fetchBusinessMetrics}
-                        disabled={loadingAI}
-                        variant="outline"
-                        size="sm"
-                        className="flex items-center gap-2"
-                      >
-                        <RefreshCw className={`h-4 w-4 ${loadingAI ? 'animate-spin' : ''}`} />
-                        Fetch Metrics
-                      </Button>
-                      <Button
                         onClick={generateAIInsights}
-                        disabled={loadingAI}
+                        disabled={loadingAI || !reportData}
                         className="flex items-center gap-2"
                       >
                         {loadingAI ? (
@@ -1127,50 +1156,6 @@ const Reports = () => {
                       </p>
                       <div className="w-full max-w-xs bg-gray-200 rounded-full h-2">
                         <div className="bg-blue-600 h-2 rounded-full animate-pulse" style={{width: '70%'}}></div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                )}
-
-                {/* Business Metrics Summary */}
-                {businessMetrics && (
-                  <Card>
-                    <CardHeader>
-                      <CardTitle className="flex items-center gap-2">
-                        <Target className="h-5 w-5 text-green-600" />
-                        Business Metrics Overview
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                        {businessMetrics.overview && (
-                          <>
-                            <div className="text-center p-3 bg-blue-50 rounded-lg">
-                              <div className="text-2xl font-bold text-blue-600">
-                                {businessMetrics.overview.totalUsers?.toLocaleString() || 0}
-                              </div>
-                              <div className="text-sm text-gray-600">Total Users</div>
-                            </div>
-                            <div className="text-center p-3 bg-green-50 rounded-lg">
-                              <div className="text-2xl font-bold text-green-600">
-                                {businessMetrics.overview.totalParcels?.toLocaleString() || 0}
-                              </div>
-                              <div className="text-sm text-gray-600">Total Parcels</div>
-                            </div>
-                            <div className="text-center p-3 bg-purple-50 rounded-lg">
-                              <div className="text-2xl font-bold text-purple-600">
-                                Rs. {businessMetrics.overview.totalRevenue?.toLocaleString() || 0}
-                              </div>
-                              <div className="text-sm text-gray-600">Total Revenue</div>
-                            </div>
-                            <div className="text-center p-3 bg-orange-50 rounded-lg">
-                              <div className="text-2xl font-bold text-orange-600">
-                                {businessMetrics.overview.totalBranches?.toLocaleString() || 0}
-                              </div>
-                              <div className="text-sm text-gray-600">Branches</div>
-                            </div>
-                          </>
-                        )}
                       </div>
                     </CardContent>
                   </Card>
