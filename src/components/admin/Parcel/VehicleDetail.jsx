@@ -341,7 +341,7 @@ const VehicleDetail = ({ entryId }) => {
 
       {/* Quick Stats */}
       {vehicleStats && (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-4">
           <StatCard
             icon={Calendar}
             title="Total Schedules"
@@ -349,21 +349,21 @@ const VehicleDetail = ({ entryId }) => {
             subtitle="All time"
             color="blue"
           />
-          <StatCard
+          {/* <StatCard
             icon={TrendingUp}
             title="Completion Rate"
             value={`${vehicleStats.utilizationRate}%`}
             subtitle="Success rate"
             color="green"
             progress={parseFloat(vehicleStats.utilizationRate)}
-          />
-          <StatCard
+          /> */}
+          {/* <StatCard
             icon={Package}
             title="Total Parcels"
             value={vehicleStats.totalParcelsAssigned}
             subtitle="Assigned parcels"
             color="purple"
-          />
+          /> */}
           <StatCard
             icon={Activity}
             title="This Month"
@@ -378,9 +378,9 @@ const VehicleDetail = ({ entryId }) => {
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="schedules">Schedules</TabsTrigger>
-          <TabsTrigger value="parcels">Parcels</TabsTrigger>
-          <TabsTrigger value="analytics">Analytics</TabsTrigger>
+          {/* <TabsTrigger value="schedules">Schedules</TabsTrigger> */}
+          {/* <TabsTrigger value="parcels">Parcels</TabsTrigger>
+          <TabsTrigger value="analytics">Analytics</TabsTrigger> */}
         </TabsList>
 
         {/* Overview Tab */}
@@ -447,7 +447,7 @@ const VehicleDetail = ({ entryId }) => {
           )}
 
           {/* Recent Activity */}
-          {vehicleData.recentActivity && vehicleData.recentActivity.length > 0 && (
+          {/* {vehicleData.recentActivity && vehicleData.recentActivity.length > 0 && (
             <Section title="Recent Activity" icon={Activity}>
               <div className="space-y-3">
                 {vehicleData.recentActivity.slice(0, 5).map((activity, index) => (
@@ -468,7 +468,7 @@ const VehicleDetail = ({ entryId }) => {
                 ))}
               </div>
             </Section>
-          )}
+          )} */}
         </TabsContent>
 
         {/* Schedules Tab */}

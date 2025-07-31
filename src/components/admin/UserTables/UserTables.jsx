@@ -90,27 +90,27 @@ const columnDefinitions = {
       header: "Joined Date",
       cell: ({ getValue }) => getValue() || "N/A",
     },
-    {
-      accessorKey: "status",
-      header: "Status",
-      cell: ({ getValue }) => {
-        const status = getValue();
-        return (
-          <Badge 
-            variant="outline"
-            className={`${
-              status === "active"
-                ? "bg-green-50 text-green-700 border-green-200"
-                : status === "inactive"
-                ? "bg-red-50 text-red-700 border-red-200"
-                : "bg-gray-50 text-gray-700 border-gray-200"
-            }`}
-          >
-            {status || "N/A"}
-          </Badge>
-        );
-      },
-    },
+      // {
+      //   accessorKey: "status",
+      //   header: "Status",
+      //   cell: ({ getValue }) => {
+      //     const status = getValue();
+      //     return (
+      //       <Badge 
+      //         variant="outline"
+      //         className={`${
+      //           status === "active"
+      //             ? "bg-green-50 text-green-700 border-green-200"
+      //             : status === "inactive"
+      //             ? "bg-red-50 text-red-700 border-red-200"
+      //             : "bg-gray-50 text-gray-700 border-gray-200"
+      //         }`}
+      //       >
+      //         {status || "N/A"}
+      //       </Badge>
+      //     );
+      //   },
+      // },
     {
       accessorKey: "branchLocation",
       header: "Branch",
