@@ -158,10 +158,16 @@ const ParcelTablePage = () => {
         setExpandedParcelId(expandedParcelId === id ? null : id);
     };
 
+    const openHowItWorksModal = () => {
+        navigate('/staff/shipment-management/how-it-works');
+    };
+
     const openShipmentModal = () => {
 
         setIsShipmentModalOpen(true);
     };
+
+
 
     const closeShipmentModal = () => {
         setIsShipmentModalOpen(false);
@@ -189,7 +195,7 @@ const ParcelTablePage = () => {
 
             // Validate shipping method compatibility
             const selectedParcelObjects = parcels.filter(parcel => selectedParcels.includes(parcel._id));
-            const incompatibleParcels = selectedParcelObjects.filter(parcel => 
+            const incompatibleParcels = selectedParcelObjects.filter(parcel =>
                 parcel.shippingMethod?.toLowerCase() !== type.toLowerCase()
             );
 
@@ -202,9 +208,9 @@ const ParcelTablePage = () => {
                 );
                 return;
             }
-            
+
             setLoading(true);
-            
+
             // Use staff's branch ID 
             const branchId = staffInfo?.branchId; // fallback for backward compatibility
             const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/shipments/process/${type}/${branchId}`, {
@@ -219,7 +225,7 @@ const ParcelTablePage = () => {
             });
 
             if (response.ok) {
-                await response.json(); 
+                await response.json();
                 showNotificationMessage(`${type.charAt(0).toUpperCase() + type.slice(1)} shipment created successfully!`, 'success');
                 setParcels(parcels.filter(parcel => !selectedParcels.includes(parcel._id)));
                 setSelectedParcels([]);
@@ -235,7 +241,7 @@ const ParcelTablePage = () => {
         }
         closeAutoShipmentModal();
         closeShipmentModal();
-    };    const toggleParcelSelection = (id, e) => {
+    }; const toggleParcelSelection = (id, e) => {
         e.stopPropagation();
 
         setParcels(parcels.map(parcel =>
@@ -270,8 +276,8 @@ const ParcelTablePage = () => {
             {/* Notification will be positioned relative to modals when they're open */}
             {showNotification && !isShipmentModalOpen && !isAutoShipmentModalOpen && (
                 <div className={`fixed top-4 right-4 z-50 p-4 rounded-lg shadow-lg border-l-4 transform transition-all duration-300 ease-in-out ${successMessage
-                        ? 'bg-green-50 border-green-400 text-green-800'
-                        : 'bg-red-50 border-red-400 text-red-800'
+                    ? 'bg-green-50 border-green-400 text-green-800'
+                    : 'bg-red-50 border-red-400 text-red-800'
                     }`}>
                     <div className="flex items-center">
                         <div className="flex-shrink-0">
@@ -298,8 +304,8 @@ const ParcelTablePage = () => {
                                     setErrorMessage('');
                                 }}
                                 className={`inline-flex rounded-md p-1.5 focus:outline-none focus:ring-2 focus:ring-offset-2 ${successMessage
-                                        ? 'text-green-500 hover:bg-green-100 focus:ring-green-600'
-                                        : 'text-red-500 hover:bg-red-100 focus:ring-red-600'
+                                    ? 'text-green-500 hover:bg-green-100 focus:ring-green-600'
+                                    : 'text-red-500 hover:bg-red-100 focus:ring-red-600'
                                     }`}
                             >
                                 <span className="sr-only">Dismiss</span>
@@ -339,6 +345,31 @@ const ParcelTablePage = () => {
                         )}
                     </button>
                 </div>
+                <button
+                    onClick={openHowItWorksModal}
+                    className="flex items-center gap-2 px-6 py-3 bg-[#1F818C] text-white rounded-lg shadow-md hover:bg-cyan-700 focus:outline-none focus:ring-2 focus:ring-cyan-400 focus:ring-offset-1 font-semibold animate-breathe transition-all duration-300"
+                >
+                   
+                    How make Shipment?
+                </button>
+
+                <style>
+                    {`
+    @keyframes breathe {
+      0%, 100% {
+        transform: scale(1);
+        box-shadow: 0 0 0 0 rgba(6, 182, 212, 0.7);
+      }
+      50% {
+        transform: scale(1.03);
+        box-shadow: 0 0 12px 4px rgba(6, 182, 212, 0.5);
+      }
+    }
+    .animate-breathe {
+      animation: breathe 3s ease-in-out infinite;
+    }
+  `}
+                </style>
 
                 <button
                     onClick={openShipmentModal}
@@ -567,7 +598,7 @@ const ParcelTablePage = () => {
                                                                         <span className="text-gray-600 w-36">Tracking Number:</span>
                                                                         <span className="font-medium text-gray-800">{parcel.trackingNo || 'Not assigned'}</span>
                                                                     </div>
-                                                                    
+
                                                                     <div className="flex">
                                                                         <span className="text-gray-600 w-36">Item Type:</span>
                                                                         <span className="font-medium text-gray-800">{parcel.itemType}</span>
@@ -575,9 +606,9 @@ const ParcelTablePage = () => {
                                                                     <div className="flex">
                                                                         <span className="text-gray-600 w-36">Status:</span>
                                                                         <span className={`font-medium px-2 py-1 rounded-full text-xs ${parcel.status === 'InTransit' ? 'bg-blue-100 text-blue-800' :
-                                                                                parcel.status === 'Delivered' ? 'bg-green-100 text-green-800' :
-                                                                                    parcel.status === 'Processing' ? 'bg-yellow-100 text-yellow-800' :
-                                                                                        'bg-gray-100 text-gray-800'
+                                                                            parcel.status === 'Delivered' ? 'bg-green-100 text-green-800' :
+                                                                                parcel.status === 'Processing' ? 'bg-yellow-100 text-yellow-800' :
+                                                                                    'bg-gray-100 text-gray-800'
                                                                             }`}>
                                                                             {parcel.status}
                                                                         </span>
@@ -608,8 +639,8 @@ const ParcelTablePage = () => {
                         {/* Notification at top of modal */}
                         {showNotification && (
                             <div className={`mb-4 p-4 rounded-lg shadow-lg border-l-4 transform transition-all duration-300 ease-in-out ${successMessage
-                                    ? 'bg-green-50 border-green-400 text-green-800'
-                                    : 'bg-red-50 border-red-400 text-red-800'
+                                ? 'bg-green-50 border-green-400 text-green-800'
+                                : 'bg-red-50 border-red-400 text-red-800'
                                 }`}>
                                 <div className="flex items-center">
                                     <div className="flex-shrink-0">
@@ -636,8 +667,8 @@ const ParcelTablePage = () => {
                                                 setErrorMessage('');
                                             }}
                                             className={`inline-flex rounded-md p-1.5 focus:outline-none focus:ring-2 focus:ring-offset-2 ${successMessage
-                                                    ? 'text-green-500 hover:bg-green-100 focus:ring-green-600'
-                                                    : 'text-red-500 hover:bg-red-100 focus:ring-red-600'
+                                                ? 'text-green-500 hover:bg-green-100 focus:ring-green-600'
+                                                : 'text-red-500 hover:bg-red-100 focus:ring-red-600'
                                                 }`}
                                         >
                                             <span className="sr-only">Dismiss</span>
@@ -685,7 +716,7 @@ const ParcelTablePage = () => {
                             {/* PAXAL Smart Algorithm */}
                             <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl p-6 border-2 border-green-200 hover:border-green-400 transition-colors cursor-pointer"
                                 onClick={openAutoShipmentModal}>
-                                
+
                                 <h3 className="text-xl font-bold text-green-800 mb-3 text-center">PAXAL Automated Shipment Creation</h3>
                                 <div className="text-green-700 text-sm">
                                     <p className="mb-3">Automated shipment creation:</p>
@@ -717,8 +748,8 @@ const ParcelTablePage = () => {
                         {/* Notification at top of modal */}
                         {showNotification && (
                             <div className={`mb-4 p-4 rounded-lg shadow-lg border-l-4 transform transition-all duration-300 ease-in-out ${successMessage
-                                    ? 'bg-green-50 border-green-400 text-green-800'
-                                    : 'bg-red-50 border-red-400 text-red-800'
+                                ? 'bg-green-50 border-green-400 text-green-800'
+                                : 'bg-red-50 border-red-400 text-red-800'
                                 }`}>
                                 <div className="flex items-center">
                                     <div className="flex-shrink-0">
@@ -745,8 +776,8 @@ const ParcelTablePage = () => {
                                                 setErrorMessage('');
                                             }}
                                             className={`inline-flex rounded-md p-1.5 focus:outline-none focus:ring-2 focus:ring-offset-2 ${successMessage
-                                                    ? 'text-green-500 hover:bg-green-100 focus:ring-green-600'
-                                                    : 'text-red-500 hover:bg-red-100 focus:ring-red-600'
+                                                ? 'text-green-500 hover:bg-green-100 focus:ring-green-600'
+                                                : 'text-red-500 hover:bg-red-100 focus:ring-red-600'
                                                 }`}
                                         >
                                             <span className="sr-only">Dismiss</span>
@@ -827,7 +858,7 @@ const ParcelTablePage = () => {
                             {/* Express Shipment */}
                             <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-2xl p-6 border-2 border-purple-200 hover:border-purple-400 transition-all duration-300 cursor-pointer transform hover:scale-105"
                                 onClick={() => createAutomaticShipment('express')}>
-                               
+
                                 <h3 className="text-xl font-bold text-purple-800 mb-3 text-center">Create Express Shipment</h3>
 
                                 {/* Constraints */}

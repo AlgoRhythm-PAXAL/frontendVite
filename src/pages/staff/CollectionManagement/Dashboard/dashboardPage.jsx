@@ -5,12 +5,14 @@ import { useNavigate } from 'react-router-dom';
 const DashboardPage = () => {
     const navigate = useNavigate();
     
-    // // Debug localStorage on component mount
-    // console.log("=== FRONTEND: COMPONENT MOUNTED ===");
-    // console.log("LocalStorage contents:");
-    // console.log("- token:", localStorage.getItem('token') ? "EXISTS" : "MISSING");
-    // console.log("- userCenter:", localStorage.getItem('userCenter'));
-    // console.log("- All localStorage keys:", Object.keys(localStorage));
+    // Debug localStorage on component mount
+    console.log("=== FRONTEND: COMPONENT MOUNTED ===");
+    console.log("LocalStorage contents:");
+    console.log("- token:", localStorage.getItem('token') ? "EXISTS" : "MISSING");
+    console.log("- userCenter:", localStorage.getItem('userCenter'));
+    console.log("- staffId:", localStorage.getItem('staffId'));
+    console.log("- staffName:", localStorage.getItem('staffName'));
+    console.log("- All localStorage keys:", Object.keys(localStorage));
     
     // Set default date to current date
     const [selectedDate, setSelectedDate] = useState(new Date());
@@ -73,19 +75,32 @@ const DashboardPage = () => {
                 setLoading(true);
                 // Get user's center from localStorage
                 const userCenter = localStorage.getItem('userCenter');
+                
+                // Check if userCenter exists
+                if (!userCenter) {
+                    console.error('User center not found in localStorage');
+                    showNotificationMessage('User center not found. Please log in again.', 'error');
+                    setLoading(false);
+                    // Redirect to login after a short delay
+                    setTimeout(() => {
+                        navigate('/staff/login');
+                    }, 2000);
+                    return;
+                }
+                
                 // Format date as YYYY-MM-DD in local timezone
                 const formattedDate = selectedDate.getFullYear() + '-' + 
                     String(selectedDate.getMonth() + 1).padStart(2, '0') + '-' + 
                     String(selectedDate.getDate()).padStart(2, '0');
                 
-                // console.log("=== FRONTEND: FETCHING PARCEL STATS ===");
-                // console.log("User center:", userCenter);
-                // console.log("Selected date:", selectedDate);
-                // console.log("Formatted date:", formattedDate);
-                // console.log("Auth token exists:", !!localStorage.getItem('token'));
+                console.log("=== FRONTEND: FETCHING PARCEL STATS ===");
+                console.log("User center:", userCenter);
+                console.log("Selected date:", selectedDate);
+                console.log("Formatted date:", formattedDate);
+                console.log("Auth token exists:", !!localStorage.getItem('token'));
                 
                 const url = `${import.meta.env.VITE_BACKEND_URL}/parcels/dashboard/stats/${userCenter}/${formattedDate}`;
-                // console.log("API URL:", url);
+                console.log("API URL:", url);
                 
                 const response = await fetch(url, {
                     method: 'GET',
@@ -96,14 +111,14 @@ const DashboardPage = () => {
                     credentials: 'include'
                 });
                 
-                // console.log("Response status:", response.status);
-                // console.log("Response ok:", response.ok);
+                console.log("Response status:", response.status);
+                console.log("Response ok:", response.ok);
 
                 if (response.ok) {
                     const data = await response.json();
-                    // console.log("Response data:", data);
+                    console.log("Response data:", data);
                     setParcelStats(data.stats);
-                    // console.log("Parcel stats set:", data.stats);
+                    console.log("Parcel stats set:", data.stats);
                     showNotificationMessage('Dashboard data loaded successfully', 'success');
                 } else {
                     const errorText = await response.text();
@@ -122,6 +137,14 @@ const DashboardPage = () => {
         const fetchDriverStats = async () => {
             try {
                 const userCenter = localStorage.getItem('userCenter');
+                
+                // Check if userCenter exists
+                if (!userCenter) {
+                    console.error('User center not found in localStorage');
+                    showNotificationMessage('User center not found. Please log in again.', 'error');
+                    return;
+                }
+                
                 // Format date as YYYY-MM-DD in local timezone
                 const formattedDate = selectedDate.getFullYear() + '-' + 
                     String(selectedDate.getMonth() + 1).padStart(2, '0') + '-' + 
@@ -156,7 +179,7 @@ const DashboardPage = () => {
             await fetchDriverStats();
         };
         fetchData();
-    }, [selectedDate]);
+    }, [selectedDate, navigate]);
 
     // Handle parcel details view
     const handleViewParcels = async (scheduleId) => {

@@ -70,6 +70,44 @@ const StaffLogin = () => {
       console.log("Stored staffId:", localStorage.getItem('staffId'));
       console.log("Stored staffName:", localStorage.getItem('staffName'));
       
+      console.log("=== STAFF LOGIN SUCCESS ===");
+      console.log("Full response:", response);
+      console.log("Response data:", response.data);
+      console.log("Staff object:", response.data.staff);
+      console.log("Staff branchId:", response.data.staff?.branchId);
+      console.log("Staff _id:", response.data.staff?._id);
+      console.log("Staff name:", response.data.staff?.name);
+      
+      // Check if staff object and required fields exist
+      if (!response.data.staff) {
+        console.error("No staff object in response!");
+        toast.error("Login Error", {
+          description: "Invalid response from server",
+          duration: 4000,
+        });
+        return;
+      }
+      
+      if (!response.data.staff.branchId) {
+        console.error("No branchId in staff object!");
+        toast.error("Login Error", {
+          description: "Staff center information missing",
+          duration: 4000,
+        });
+        return;
+      }
+      
+      // Store staff information in localStorage
+      localStorage.setItem('userCenter', response.data.staff.branchId);
+      localStorage.setItem('staffId', response.data.staff._id);
+      localStorage.setItem('staffName', response.data.staff.name);
+      
+      // Verify storage
+      console.log("=== AFTER STORING IN LOCALSTORAGE ===");
+      console.log("Stored userCenter:", localStorage.getItem('userCenter'));
+      console.log("Stored staffId:", localStorage.getItem('staffId'));
+      console.log("Stored staffName:", localStorage.getItem('staffName'));
+      
       toast.success("Login Successful", {
         description: `Hello ${staffData.name}`,
         duration: 4000,

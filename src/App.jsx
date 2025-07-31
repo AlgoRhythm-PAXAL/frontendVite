@@ -94,7 +94,9 @@ import ManualShipmentPage from "./pages/staff/ShipmentManagement/ManualShipmentP
 import CreatedShipmentsPage from "./pages/staff/ShipmentManagement/CreatedShipmentsPage/createdShipmentsPage";
 import ViewShipmentsPage from "./pages/staff/ShipmentManagement/ViewShipmentsPage/viewShipmentsPage";
 import ManifestPage from "./pages/staff/ShipmentManagement/ManifestPage/manifestPage";
-
+import HowItWorksPageOne from "./pages/staff/ShipmentManagement/ParcelTablePage/howItWorks";
+import HowItWorksPageTwo from "./pages/staff/ShipmentManagement/CreatedShipmentsPage/howItWorksTwo";
+import HowItWorksPageThree from "./pages/staff/ShipmentManagement/CreatedShipmentsPage/howItWorksThree"; // Import the new page
  // You'll need to create this
 
 const App = () => {
@@ -192,12 +194,16 @@ const App = () => {
             <Route path="inquiry-management/reply-to-inquiry/:inquiryId" element={<ReplyToInquiry/>}/>
             <Route path="inquiry-management/view-replied-inquiries/:inquiryId" element={<ViewOneRepliedInquiry/>}/>
             <Route path="shipment-management/parcel-table-page" element={<ParcelTablePage />} />
+            <Route path="shipment-management/how-it-works" element={<HowItWorksPageOne />} />
           <Route path="shipment-management/manual-shipment-page" element={<ManualShipmentPage />} />
                     {/* Collection Management routes */}
           <Route path="collection-management/dashboard" element={<DashboardPage />} />
           <Route path="collection-management/dashboard/parcels/:type/:date" element={<ParcelListPage />} />
           <Route path="collection-management/tracking" element={<TrackingPageStaff />} />
-                 <Route path="shipment-management/created-shipments-page" element={<CreatedShipmentsPage />}/>
+            <Route path="shipment-management/created-shipments-page" element={<CreatedShipmentsPage />} />
+            <Route path="shipment-management/how-it-works-two" element={<HowItWorksPageTwo />} />
+            <Route path="shipment-management/how-it-works-three" element={<HowItWorksPageThree />} />
+            
           <Route path="shipment-management/view-shipments" element={<ViewShipmentsPage />} />
           <Route path="shipment-management/manifest/:shipmentId" element={<ManifestPage />} />
           {/* Add other staff routes here */}
