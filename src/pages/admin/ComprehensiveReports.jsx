@@ -4,7 +4,6 @@ import {
   Download,
   TrendingUp,
   Package,
-  Truck,
   DollarSign,
   RefreshCw,
   ArrowUp,
@@ -59,7 +58,6 @@ const Reports = () => {
   // AI Insights state
   const [aiInsights, setAiInsights] = useState(null);
   const [loadingAI, setLoadingAI] = useState(false);
-  const [businessMetrics, setBusinessMetrics] = useState(null);
   
   // Date range state - Default to 1 week
   const [dateRange, setDateRange] = useState({
@@ -184,44 +182,16 @@ const Reports = () => {
   };
 
   // AI Insights Functions
-  const fetchBusinessMetrics = async () => {
-    try {
-      setLoadingAI(true);
-      const params = {
-        dateRange: JSON.stringify({
-          startDate: dateRange.startDate,
-          endDate: dateRange.endDate
-        }),
-        branchId: 'all'
-      };
-
-      const data = await aiApi.getBusinessMetrics(params);
-      
-      if (data.success) {
-        setBusinessMetrics(data.data.metrics);
-        return data.data.metrics;
-      } else {
-        throw new Error(data.message || 'Failed to fetch business metrics');
-      }
-    } catch (error) {
-      console.error('Error fetching business metrics:', error);
-      toast.error('Failed to fetch business metrics');
-      return null;
-    }
-  };
-
   const generateAIInsights = async () => {
     try {
       setLoadingAI(true);
       
-      // First, get business metrics if not already available
-      let metrics = businessMetrics;
-      if (!metrics) {
-        metrics = await fetchBusinessMetrics();
-        if (!metrics) return;
+      if (!reportData) {
+        toast.error('Please generate a report first');
+        return;
       }
 
-      // Generate AI insights using the metrics
+      // Generate AI insights using the current report data
       const params = {
         reportType: 'comprehensive',
         dateRange: JSON.stringify({
@@ -249,30 +219,7 @@ const Reports = () => {
     }
   };
 
-  const getPerformanceAnalysis = async () => {
-    try {
-      const params = {
-        analysisType: 'comprehensive',
-        dateRange: JSON.stringify({
-          startDate: dateRange.startDate,
-          endDate: dateRange.endDate
-        }),
-        branchId: 'all'
-      };
 
-      const data = await aiApi.getPerformanceAnalysis(params);
-      
-      if (data.success) {
-        return data.data;
-      } else {
-        throw new Error(data.message || 'Failed to get performance analysis');
-      }
-    } catch (error) {
-      console.error('Error getting performance analysis:', error);
-      toast.error('Failed to get performance analysis');
-      return null;
-    }
-  };
 
   const downloadComprehensiveCSV = () => {
     if (!reportData) {
@@ -607,19 +554,6 @@ const Reports = () => {
           Generate Report
         </Button>
         <Button
-          onClick={generateAIInsights}
-          disabled={loadingAI}
-          variant="outline"
-          className="flex items-center gap-2 bg-gradient-to-r from-blue-50 to-purple-50 border-blue-200 hover:from-blue-100 hover:to-purple-100"
-        >
-          {loadingAI ? (
-            <Loader className="h-4 w-4 animate-spin text-blue-600" />
-          ) : (
-            <Brain className="h-4 w-4 text-blue-600" />
-          )}
-          <span className="text-blue-700">AI Insights</span>
-        </Button>
-        <Button
           onClick={downloadComprehensiveCSV}
           disabled={downloadingCSV || !reportData}
           className="flex items-center gap-2"
@@ -665,7 +599,7 @@ const Reports = () => {
 
       {/* KPI Cards */}
       {dashboardData?.kpi && (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           <KPICard
             title="Total Parcels"
             value={dashboardData.kpi.totalParcels?.value || 0}
@@ -684,15 +618,7 @@ const Reports = () => {
           />
 
           <KPICard
-            title="Total Shipments"
-            value={dashboardData.kpi.totalShipments?.value || 0}
-            change={dashboardData.kpi.totalShipments?.change}
-            trend={dashboardData.kpi.totalShipments?.trend}
-            icon={Truck}
-          />
-
-          <KPICard
-            title="Delivery Rate"
+            title="Delivery Success Rate"
             value={dashboardData.kpi.deliverySuccessRate?.value || 0}
             format="percentage"
             icon={TrendingUp}
@@ -700,9 +626,23 @@ const Reports = () => {
 
           <KPICard
             title="Avg Delivery Time"
-            value={dashboardData.kpi.avgDeliveryTime?.value || "No data"}
+            value={dashboardData.kpi.avgDeliveryTime?.value ? `${dashboardData.kpi.avgDeliveryTime.value} ` : "No data"}
             icon={Clock}
           />
+
+          {/* <KPICard
+            title="On-Time Delivery"
+            value={dashboardData.kpi.onTimeDeliveryRate?.value || 0}
+            format="percentage"
+            icon={TrendingUp}
+          />
+
+          <KPICard
+            title="Customer Satisfaction"
+            value={dashboardData.kpi.customerSatisfaction?.value || 0}
+            format="percentage"
+            icon={TrendingUp}
+          /> */}
         </div>
       )}
 
@@ -1187,19 +1127,9 @@ const Reports = () => {
                       </div>
                     </div>
                     <div className="flex gap-2">
-                      {/* <Button
-                        onClick={fetchBusinessMetrics}
-                        disabled={loadingAI}
-                        variant="outline"
-                        size="sm"
-                        className="flex items-center gap-2"
-                      >
-                        <RefreshCw className={`h-4 w-4 ${loadingAI ? 'animate-spin' : ''}`} />
-                        Fetch Metrics
-                      </Button> */}
                       <Button
                         onClick={generateAIInsights}
-                        disabled={loadingAI}
+                        disabled={loadingAI || !reportData}
                         className="flex items-center gap-2"
                       >
                         {loadingAI ? (
@@ -1226,50 +1156,6 @@ const Reports = () => {
                       </p>
                       <div className="w-full max-w-xs bg-gray-200 rounded-full h-2">
                         <div className="bg-blue-600 h-2 rounded-full animate-pulse" style={{width: '70%'}}></div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                )}
-
-                {/* Business Metrics Summary */}
-                {businessMetrics && (
-                  <Card>
-                    <CardHeader>
-                      <CardTitle className="flex items-center gap-2">
-                        <Target className="h-5 w-5 text-green-600" />
-                        Business Metrics Overview
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                        {businessMetrics.overview && (
-                          <>
-                            <div className="text-center p-3 bg-blue-50 rounded-lg">
-                              <div className="text-2xl font-bold text-blue-600">
-                                {businessMetrics.overview.totalUsers?.toLocaleString() || 0}
-                              </div>
-                              <div className="text-sm text-gray-600">Total Users</div>
-                            </div>
-                            <div className="text-center p-3 bg-green-50 rounded-lg">
-                              <div className="text-2xl font-bold text-green-600">
-                                {businessMetrics.overview.totalParcels?.toLocaleString() || 0}
-                              </div>
-                              <div className="text-sm text-gray-600">Total Parcels</div>
-                            </div>
-                            <div className="text-center p-3 bg-purple-50 rounded-lg">
-                              <div className="text-2xl font-bold text-purple-600">
-                                Rs. {businessMetrics.overview.totalRevenue?.toLocaleString() || 0}
-                              </div>
-                              <div className="text-sm text-gray-600">Total Revenue</div>
-                            </div>
-                            <div className="text-center p-3 bg-orange-50 rounded-lg">
-                              <div className="text-2xl font-bold text-orange-600">
-                                {businessMetrics.overview.totalBranches?.toLocaleString() || 0}
-                              </div>
-                              <div className="text-sm text-gray-600">Branches</div>
-                            </div>
-                          </>
-                        )}
                       </div>
                     </CardContent>
                   </Card>

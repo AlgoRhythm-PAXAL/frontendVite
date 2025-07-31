@@ -1,34 +1,34 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Check, X, Truck, AlertCircle, CheckCircle, XCircle, ChevronDown, ChevronUp, Car, Package, Loader, Info, ArrowLeftRight, MapPin, Plus, Edit, Zap, Search, Send } from 'lucide-react';
-
+import { useNavigate } from 'react-router-dom';
 const ShipmentManagement = () => {
     // Core state management
     const [shipments, setShipments] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [popup, setPopup] = useState(null);
-    
+
     // Confirmation modal state
-    const [confirmationModal, setConfirmationModal] = useState({ 
-        isOpen: false, 
-        type: '', 
-        title: '', 
-        message: '', 
+    const [confirmationModal, setConfirmationModal] = useState({
+        isOpen: false,
+        type: '',
+        title: '',
+        message: '',
         action: null,
         processing: false
     });
-    
+
     // UI state
     const [selectedShipments, setSelectedShipments] = useState(new Set());
     const [expandedShipmentId, setExpandedShipmentId] = useState(null);
     const [expandedParcelId, setExpandedParcelId] = useState(null);
     const [processingShipment, setProcessingShipment] = useState(null);
-    
+
     // Filters and search
     const [deliveryTypeFilter, setDeliveryTypeFilter] = useState('all');
     const [statusFilter, setStatusFilter] = useState('All');
     const [searchTerm, setSearchTerm] = useState('');
-    
+
     // Vehicle assignment state
     const [vehicleSelectionModal, setVehicleSelectionModal] = useState(null);
     const [vehicleAssignmentModal, setVehicleAssignmentModal] = useState(null);
@@ -41,27 +41,27 @@ const ShipmentManagement = () => {
     const [findingVehicle, setFindingVehicle] = useState(false);
     const [assigningVehicle, setAssigningVehicle] = useState(false);
     const [assignVehicleOnlyMode, setAssignVehicleOnlyMode] = useState(false);
-    
+
     // Parcel management state
     const [selectedParcelGroups, setSelectedParcelGroups] = useState({});
     const [showParcelSelection, setShowParcelSelection] = useState(false);
-    
+
     // Standard shipment add more parcels state
     const [standardParcelsModal, setStandardParcelsModal] = useState({ isOpen: false, shipmentId: null });
     const [loadingStandardParcels, setLoadingStandardParcels] = useState(false);
     const [addingStandardParcels, setAddingStandardParcels] = useState(false);
-    
+
     // Enhanced add more parcels modal states
-    const [addMoreParcelsModal, setAddMoreParcelsModal] = useState({ 
-        isOpen: false, 
-        shipmentId: null, 
+    const [addMoreParcelsModal, setAddMoreParcelsModal] = useState({
+        isOpen: false,
+        shipmentId: null,
         step: 'selection' // 'selection', 'manual', 'smart', 'smart-results'
     });
     const [manualParcelId, setManualParcelId] = useState('');
     const [validatingParcel, setValidatingParcel] = useState(false);
     const [smartParcelsResults, setSmartParcelsResults] = useState(null);
     const [processingSmart, setProcessingSmart] = useState(false);
-    
+
     // Reverse shipment state
     const [foundParcels, setFoundParcels] = useState(null);
     const [selectedParcelsForReverse, setSelectedParcelsForReverse] = useState([]);
@@ -70,19 +70,30 @@ const ShipmentManagement = () => {
     // Staff information state
     const [staffInfo, setStaffInfo] = useState(null);
     const [staffBranchId, setStaffBranchId] = useState(null);
-    
+
     // Branch cache state for dynamic branch name resolution
     const [branchCache, setBranchCache] = useState({});
     const [fetchingBranches, setFetchingBranches] = useState(false);
 
+
+
+    const navigate = useNavigate();
+    const PaxelLogisticsWorkflow = () => {
+        navigate('/staff/shipment-management/how-it-works-two');
+    };
+
+    const PaxelAddMoreParcels = () => {  
+        navigate('/staff/shipment-management/how-it-works-three');
+    }
+
     // Function to fetch branch details from database
     const fetchBranchDetails = useCallback(async (branchIds) => {
         if (!branchIds || branchIds.length === 0) return {};
-        
+
         // Filter out IDs that are already in cache
         const uncachedIds = branchIds.filter(id => !branchCache[id]);
         if (uncachedIds.length === 0) return branchCache;
-        
+
         try {
             setFetchingBranches(true);
             const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/branches/details`, {
@@ -100,7 +111,7 @@ const ShipmentManagement = () => {
 
             const data = await response.json();
             const newBranchData = {};
-            
+
             if (data.success && data.branches) {
                 data.branches.forEach(branch => {
                     newBranchData[branch._id] = branch.location;
@@ -110,7 +121,7 @@ const ShipmentManagement = () => {
             // Update cache
             setBranchCache(prev => ({ ...prev, ...newBranchData }));
             return { ...branchCache, ...newBranchData };
-            
+
         } catch (error) {
             console.error('Error fetching branch details:', error);
             return branchCache;
@@ -122,27 +133,27 @@ const ShipmentManagement = () => {
     // Synchronous version for immediate use (returns cached value or ID)
     const getCenterNameSync = (centerData) => {
         if (!centerData) return 'N/A';
-        
+
         // If already a populated object with location
         if (typeof centerData === 'object' && centerData.location) {
             return centerData.location;
         }
-        
+
         // If already a populated object with branchId as location name
         if (typeof centerData === 'object' && centerData.branchId) {
             return centerData.branchId;
         }
-        
+
         // If it's an object but location is inside another property
         if (typeof centerData === 'object' && centerData.center?.location) {
             return centerData.center.location;
         }
-        
+
         // If it's just a string (object ID), return cached value or ID
         if (typeof centerData === 'string') {
             return branchCache[centerData] || centerData;
         }
-        
+
         return 'Unknown Center';
     };
 
@@ -152,12 +163,12 @@ const ShipmentManagement = () => {
         if (group.destination && typeof group.destination === 'string' && !group.destination.match(/^[0-9a-fA-F]{24}$/)) {
             return group.destination;
         }
-        
+
         // If destination is an ObjectId, return cached value or ID
         if (group.destinationId) {
             return branchCache[group.destinationId] || group.destinationId;
         }
-        
+
         // Fallback to the destination field
         return group.destination || 'Unknown Destination';
     };
@@ -168,11 +179,11 @@ const ShipmentManagement = () => {
             const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/staff/ui/get-staff-information`, {
                 credentials: 'include'
             });
-            
+
             if (!response.ok) {
                 throw new Error(`Failed to fetch staff info: ${response.status}`);
             }
-            
+
             const data = await response.json();
             setStaffInfo(data);
             setStaffBranchId(data.branchId?._id);
@@ -188,13 +199,13 @@ const ShipmentManagement = () => {
     const fetchShipments = useCallback(async () => {
         try {
             setLoading(true);
-            
+
             // Get staff branch if not already available
             let branchId = staffBranchId;
             if (!branchId) {
                 branchId = await fetchStaffInfo();
             }
-            
+
             if (!branchId) {
                 throw new Error('Staff branch information not available');
             }
@@ -207,19 +218,19 @@ const ShipmentManagement = () => {
                 queryParams.append('status', statusFilter);
             }
             queryParams.append('branchId', branchId);
-            
+
             // Try fetching shipments for the staff's branch
             let url = `${import.meta.env.VITE_BACKEND_URL}/vehicles/b2b/shipments/branch/${branchId}?${queryParams.toString()}`;
-           // console.log('Fetching shipments from:', import.meta.env.VITE_BACKEND_URL);
+            // console.log('Fetching shipments from:', import.meta.env.VITE_BACKEND_URL);
             let response = await fetch(url, { credentials: 'include' });
-            
+
             // Fallback to original endpoints if branch-specific endpoint doesn't exist
             if (response.status === 404) {
                 // Use staff ID from staffInfo if available, otherwise use branch-based approach
                 const staffId = staffInfo?._id || branchId;
                 url = `${import.meta.env.VITE_BACKEND_URL}/vehicles/b2b/shipments/${staffId}?${queryParams.toString()}`;
                 response = await fetch(url, { credentials: 'include' });
-                
+
                 if (response.status === 404) {
                     url = `${import.meta.env.VITE_BACKEND_URL}/shipments/active/${staffId}`;
                     response = await fetch(url, { credentials: 'include' });
@@ -232,7 +243,7 @@ const ShipmentManagement = () => {
 
             const data = await response.json();
             let shipmentsData = [];
-            
+
             if (data.success && data.shipments) {
                 shipmentsData = data.shipments;
             } else if (Array.isArray(data)) {
@@ -244,7 +255,7 @@ const ShipmentManagement = () => {
             }
 
             setShipments(shipmentsData);
-            
+
             // Extract all branch IDs from shipments data for pre-fetching
             const branchIds = new Set();
             shipmentsData.forEach(shipment => {
@@ -258,14 +269,14 @@ const ShipmentManagement = () => {
                         }
                     });
                 }
-                
+
                 // Extract from sourceCenter
                 if (typeof shipment.sourceCenter === 'string') {
                     branchIds.add(shipment.sourceCenter);
                 } else if (shipment.sourceCenter && shipment.sourceCenter._id) {
                     branchIds.add(shipment.sourceCenter._id);
                 }
-                
+
                 // Extract from arrivalTimes
                 if (shipment.arrivalTimes && Array.isArray(shipment.arrivalTimes)) {
                     shipment.arrivalTimes.forEach(arrival => {
@@ -277,12 +288,12 @@ const ShipmentManagement = () => {
                     });
                 }
             });
-            
+
             // Pre-fetch branch details for all found IDs
             if (branchIds.size > 0) {
                 await fetchBranchDetails(Array.from(branchIds));
             }
-            
+
             setError(null);
         } catch (err) {
             setError(err.message);
@@ -363,7 +374,7 @@ const ShipmentManagement = () => {
     // Function to verify shipment - updates status and confirmed flag
     const handleVerifyShipment = async (shipmentId) => {
         const shipment = shipments.find(s => (s._id || s.id) === shipmentId);
-        
+
         // Show beautiful confirmation modal for individual verification
         showConfirmation(
             'verify',
@@ -372,6 +383,8 @@ const ShipmentManagement = () => {
             async () => await performSingleVerify(shipmentId)
         );
     };
+
+    
 
     // Separated single verify logic
     const performSingleVerify = async (shipmentId) => {
@@ -401,7 +414,7 @@ const ShipmentManagement = () => {
                 )
             );
 
-            showPopup('success', 'Shipment verified and confirmed successfully! Ready for processing.');
+            showPopup('success', 'Shipment verified and confirmed successfully!');
         } catch (err) {
             showPopup('error', `Error verifying shipment: ${err.message}`);
         } finally {
@@ -432,7 +445,7 @@ const ShipmentManagement = () => {
     const handleInformDispatch = async (shipmentId) => {
         try {
             setProcessingShipment(shipmentId);
-            
+
             const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/shipments/${shipmentId}/dispatch`, {
                 method: 'PUT',
                 credentials: 'include', // Include cookies for authentication
@@ -456,7 +469,7 @@ const ShipmentManagement = () => {
                 )
             );
 
-            showPopup('success', 'Shipment dispatched successfully! Parcels have been updated to InTransit status.');
+            showPopup('success', 'Shipment dispatched successfully!');
             await fetchShipments(); // Refresh the list
         } catch (err) {
             showPopup('error', `Error dispatching shipment: ${err.message}`);
@@ -469,7 +482,7 @@ const ShipmentManagement = () => {
     const handleFinishDelivery = async (shipmentId) => {
         try {
             setProcessingShipment(shipmentId);
-            
+
             const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/shipments/${shipmentId}/complete`, {
                 method: 'PUT',
                 credentials: 'include', // Include cookies for authentication
@@ -504,13 +517,13 @@ const ShipmentManagement = () => {
 
     const handleDeleteShipment = async (shipmentId) => {
         const shipment = shipments.find(s => (s._id || s.id) === shipmentId);
-        
+
         // Prevent deletion of shipments in certain stages
         if (shipment && ['In Transit', 'Dispatched', 'Completed'].includes(shipment.status)) {
             showPopup('warning', `Cannot delete shipment in "${shipment.status}" status. Only Pending and Verified shipments can be deleted.`);
             return;
         }
-        
+
         // Show beautiful confirmation modal for individual deletion
         showConfirmation(
             'delete',
@@ -547,7 +560,7 @@ const ShipmentManagement = () => {
             newSelected.delete(shipmentId);
             setSelectedShipments(newSelected);
 
-            showPopup('success', `Shipment deleted successfully! ${data.updatedParcelsCount} parcels have been reset to ArrivedAtCollectionCenter status.`);
+            showPopup('success', `Shipment deleted successfully!`);
         } catch (err) {
             showPopup('error', `Error deleting shipment: ${err.message}`);
         } finally {
@@ -558,7 +571,7 @@ const ShipmentManagement = () => {
     // PHASE 2 - Vehicle Assignment Function - Show selection modal (Manual vs Smart)
     const handleAssignVehicle = async (shipmentId) => {
         const shipment = shipments.find(s => (s._id || s.id) === shipmentId);
-        
+
         if (!shipment) {
             showPopup('error', 'Shipment not found');
             return;
@@ -615,15 +628,15 @@ const ShipmentManagement = () => {
 
             if (data.success) {
                 // Vehicle assigned successfully
-                showPopup('success', 'Vehicle assigned successfully! Shipment is now In Transit and parcels updated to ShipmentAssigned status.');
+                showPopup('success', 'Vehicle assigned successfully!');
                 setVehicleSelectionModal(null);
-                
+
                 // Update local state with complete vehicle and driver information including current location
                 setShipments(prevShipments =>
                     prevShipments.map(s =>
                         (s._id || s.id) === shipmentId
-                            ? { 
-                                ...s, 
+                            ? {
+                                ...s,
                                 status: data.data.shipment.status,
                                 assignedVehicle: {
                                     ...data.data.shipment.assignedVehicle,
@@ -654,7 +667,7 @@ const ShipmentManagement = () => {
 
         const { shipmentId } = vehicleSelectionModal;
         setSearchingVehicle(true);
-        
+
         try {
             const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/vehicles/b2b/shipments/${shipmentId}/${vehicleSelectionModal.deliveryType}/enhanced-find-vehicle`, {
                 method: 'GET',
@@ -679,19 +692,19 @@ const ShipmentManagement = () => {
             if (data.success) {
                 // Update the modal with enhanced search results
                 setSmartSearchResult(data);
-                
+
                 if (data.step === 'vehicle_at_source') {
                     // Vehicle found at source - show direct assignment confirmation
-                    setVehicleSelectionModal(prev => ({ 
-                        ...prev, 
+                    setVehicleSelectionModal(prev => ({
+                        ...prev,
                         step: 'confirm_direct_assignment',
                         enhancedResult: data
                     }));
                     showPopup('success', 'Vehicle found at source location! Ready for assignment.');
                 } else if (data.step === 'vehicle_from_other_center') {
                     // Vehicle found from another center - show parcel options
-                    setVehicleSelectionModal(prev => ({ 
-                        ...prev, 
+                    setVehicleSelectionModal(prev => ({
+                        ...prev,
                         step: 'parcel_selection_options',
                         enhancedResult: data
                     }));
@@ -711,15 +724,15 @@ const ShipmentManagement = () => {
     // Handle "Assign Vehicle Only" option
     const handleAssignVehicleOnly = async () => {
         if (!vehicleSelectionModal?.enhancedResult) return;
-        
+
         // Set the mode to indicate user chose "Assign Vehicle Only"
         setAssignVehicleOnlyMode(true);
         setConfirmingAssignment(true);
-        
+
         try {
             const { shipmentId } = vehicleSelectionModal;
             const { vehicle } = vehicleSelectionModal.enhancedResult;
-            
+
             const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/vehicles/b2b/shipments/${shipmentId}/assign-vehicle/confirm`, {
                 method: 'POST',
                 headers: {
@@ -739,11 +752,11 @@ const ShipmentManagement = () => {
             }
 
             if (data.success) {
-                showPopup('success', 'Vehicle assigned successfully! Shipment is now In Transit and parcels updated to ShipmentAssigned status.');
+                showPopup('success', 'Vehicle assigned successfully!');
                 setVehicleSelectionModal(null);
                 setSmartSearchResult(null);
                 setAssignVehicleOnlyMode(false);
-                
+
                 // Update local state
                 updateShipmentInState(shipmentId, data.shipment);
                 fetchShipments();
@@ -761,13 +774,13 @@ const ShipmentManagement = () => {
     // Handle "Check for Parcels" option
     const handleCheckForParcels = () => {
         if (!vehicleSelectionModal?.enhancedResult) return;
-        
+
         // Move to parcel selection view
         setVehicleSelectionModal(prev => ({
             ...prev,
             step: 'parcel_group_selection'
         }));
-        
+
         // Reset selection states
         setSelectedParcelGroups({});
     };
@@ -781,7 +794,7 @@ const ShipmentManagement = () => {
         // SAFE EXTRACTION: Get parcel groups with multiple fallback strategies
         let parcelGroups = null;
         const result = vehicleSelectionModal.enhancedResult;
-        
+
         if (result.availableParcelGroups?.parcelGroups) {
             parcelGroups = result.availableParcelGroups.parcelGroups;
         } else if (result.availableParcelGroups && typeof result.availableParcelGroups === 'object') {
@@ -817,23 +830,23 @@ const ShipmentManagement = () => {
     // Handle adding parcels to current shipment
     const handleAddParcelsToCurrentShipment = async () => {
         if (!vehicleSelectionModal?.enhancedResult) return;
-        
+
         setConfirmingAssignment(true);
-        
+
         try {
             const { shipmentId } = vehicleSelectionModal;
             const { vehicle } = vehicleSelectionModal.enhancedResult;
-            
+
             // Safe extraction: Handle different parcel group structures
             let parcelGroups = null;
             const result = vehicleSelectionModal.enhancedResult;
-            
+
             if (result.availableParcelGroups?.parcelGroups) {
                 parcelGroups = result.availableParcelGroups.parcelGroups;
             } else if (result.availableParcelGroups && typeof result.availableParcelGroups === 'object') {
                 const keys = Object.keys(result.availableParcelGroups);
                 const groupKeys = keys.filter(key => key !== 'totalParcels' && key !== 'summary' && key !== 'constraints' && key !== 'totalGroupsFound' && key !== 'totalParcelsFound');
-                
+
                 if (groupKeys.length > 0) {
                     const filteredGroups = {};
                     groupKeys.forEach(key => {
@@ -844,14 +857,14 @@ const ShipmentManagement = () => {
             } else if (result.parcelGroups) {
                 parcelGroups = result.parcelGroups;
             }
-            
+
             if (!parcelGroups) {
                 throw new Error('No parcel groups found in the enhanced result');
             }
-            
+
             // Collect selected parcel IDs
             const selectedParcelIds = [];
-            
+
             Object.entries(selectedParcelGroups).forEach(([groupId, isSelected]) => {
                 if (isSelected && parcelGroups[groupId]) {
                     if (parcelGroups[groupId].parcels && Array.isArray(parcelGroups[groupId].parcels)) {
@@ -864,11 +877,11 @@ const ShipmentManagement = () => {
                     }
                 }
             });
-            
+
             if (selectedParcelIds.length === 0) {
                 throw new Error('No parcels selected for addition to shipment');
             }
-            
+
             const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/vehicles/b2b/shipments/${shipmentId}/add-parcels-to-current`, {
                 method: 'POST',
                 credentials: 'include', // Include cookies for authentication
@@ -889,13 +902,13 @@ const ShipmentManagement = () => {
 
             if (data.success) {
                 const summary = calculateSelectedParcelsSummary();
-                
-                showPopup('success', `Successfully added ${summary.totalParcels} parcels to shipment! New totals: ${data.data.updatedTotals.totalWeight}kg, ${data.data.updatedTotals.totalVolume}m³`);
-                
+
+                showPopup('success', `Successfully added parcels to shipment!`);
+
                 setVehicleSelectionModal(null);
                 setSmartSearchResult(null);
                 setSelectedParcelGroups({});
-                
+
                 // Update local state
                 updateShipmentInState(shipmentId, {
                     status: 'In Transit',
@@ -904,7 +917,7 @@ const ShipmentManagement = () => {
                     totalVolume: data.data.updatedTotals.totalVolume,
                     parcelCount: data.data.updatedTotals.parcelCount
                 });
-                
+
                 fetchShipments();
             }
 
@@ -955,7 +968,7 @@ const ShipmentManagement = () => {
 
         const { shipmentId } = vehicleSelectionModal;
         const { vehicle } = smartSearchResult;
-        
+
         setConfirmingAssignment(true);
 
         try {
@@ -990,15 +1003,15 @@ const ShipmentManagement = () => {
             }
 
             if (data.success) {
-                showPopup('success', 'Vehicle assigned successfully! Shipment is now In Transit and parcels updated to ShipmentAssigned status.');
+                showPopup('success', 'Vehicle assigned successfully!');
                 setVehicleSelectionModal(null);
-                
+
                 // Update local state with complete vehicle and driver information including current location
                 setShipments(prevShipments =>
                     prevShipments.map(s =>
                         (s._id || s.id) === shipmentId
-                            ? { 
-                                ...s, 
+                            ? {
+                                ...s,
                                 status: data.data.shipmentDetails.status,
                                 assignedVehicle: {
                                     ...data.data.shipmentDetails.assignedVehicle,
@@ -1070,8 +1083,8 @@ const ShipmentManagement = () => {
         }
 
         // Open the enhanced add more parcels modal
-        setAddMoreParcelsModal({ 
-            isOpen: true, 
+        setAddMoreParcelsModal({
+            isOpen: true,
             shipmentId,
             step: 'selection'
         });
@@ -1080,7 +1093,7 @@ const ShipmentManagement = () => {
     // Add more parcels to standard shipment
     const addMoreParcelsToStandardShipment = async (shipmentId) => {
         setAddingStandardParcels(true);
-        
+
         try {
             const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/shipments/b2b/standard-shipments/${shipmentId}/add-more`, {
                 method: 'POST',
@@ -1098,7 +1111,7 @@ const ShipmentManagement = () => {
 
             if (data.success) {
                 showPopup('success', `${data.message}`);
-                
+
                 // Update local shipment state with new totals
                 setShipments(prevShipments =>
                     prevShipments.map(s =>
@@ -1116,12 +1129,12 @@ const ShipmentManagement = () => {
                 // Close modal and refresh data
                 closeStandardParcelsModal();
                 fetchShipments();
-                
+
                 // Show detailed information about added parcels
-                const addedInfo = data.data.addedParcels.map(p => 
+                const addedInfo = data.data.addedParcels.map(p =>
                     `${p.parcelId} (${p.from} → ${p.to})`
                 ).join(', ');
-                
+
                 if (addedInfo) {
                     setTimeout(() => {
                         showPopup('info', `Added parcels: ${addedInfo}`, 5000);
@@ -1145,7 +1158,7 @@ const ShipmentManagement = () => {
         }
 
         setValidatingParcel(true);
-        
+
         try {
             const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/parcels/validate-for-shipment`, {
                 method: 'POST',
@@ -1200,7 +1213,7 @@ const ShipmentManagement = () => {
 
             if (data.success) {
                 showPopup('success', `Parcel added successfully!`);
-                
+
                 // Update local shipment state
                 setShipments(prevShipments =>
                     prevShipments.map(s =>
@@ -1229,7 +1242,7 @@ const ShipmentManagement = () => {
     // Process smart parcel assignment
     const processSmartParcelAssignment = async () => {
         setProcessingSmart(true);
-        
+
         try {
             const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/shipments/b2b/standard-shipments/${addMoreParcelsModal.shipmentId}/add-more`, {
                 method: 'POST',
@@ -1283,8 +1296,8 @@ const ShipmentManagement = () => {
                 throw new Error(data.error || 'Failed to add parcels');
             }
 
-            showPopup('success', `Successfully added ${smartParcelsResults.addedParcels.length} parcels!`);
-            
+            showPopup('success', `Successfully added parcels!`);
+
             // Update local shipment state
             setShipments(prevShipments =>
                 prevShipments.map(s =>
@@ -1331,7 +1344,7 @@ const ShipmentManagement = () => {
         if (!vehicleAssignmentModal) return;
 
         const { shipmentId, deliveryType } = vehicleAssignmentModal;
-        
+
         setFindingVehicle(true);
         showPopup('info', 'Searching for available vehicles...', 5000);
 
@@ -1390,9 +1403,9 @@ const ShipmentManagement = () => {
 
         const { deliveryType } = vehicleAssignmentModal;
         const { vehicle } = foundVehicle;
-        
-       // setFindingParcels(true);
-        
+
+        // setFindingParcels(true);
+
         try {
             showPopup('info', 'Finding parcels for reverse shipment...', 3000);
 
@@ -1410,7 +1423,7 @@ const ShipmentManagement = () => {
             });
 
             const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/vehicles/findParcelsForReverseShipment?fromCenterId=${fromCenterId}&toCenterId=${toCenterId}&shipmentType=${deliveryType}&vehicleId=${vehicleId}`);
-            
+
             const data = await response.json();
             console.log('Parcel finding response:', data);
 
@@ -1419,7 +1432,7 @@ const ShipmentManagement = () => {
             }
 
             setFoundParcels(data);
-            
+
             if (data.success) {
                 if (data.parcels && data.parcels.length > 0) {
                     // Show parcels found - let user confirm
@@ -1465,7 +1478,7 @@ const ShipmentManagement = () => {
         }
 
         setCreatingReverseShipment(true);
-        
+
         try {
             showPopup('info', 'Creating reverse shipment...', 3000);
 
@@ -1512,7 +1525,7 @@ const ShipmentManagement = () => {
         if (!vehicleAssignmentModal || !foundVehicle) return;
 
         const { shipmentId, deliveryType } = vehicleAssignmentModal;
-        
+
         setAssigningVehicle(true);
         setProcessingShipment(shipmentId);
 
@@ -1523,7 +1536,7 @@ const ShipmentManagement = () => {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    
+
                 },
                 credentials: 'include' // Include cookies for authentication
             });
@@ -1549,8 +1562,8 @@ const ShipmentManagement = () => {
             setShipments(prevShipments =>
                 prevShipments.map(shipment =>
                     (shipment._id || shipment.id) === shipmentId
-                        ? { 
-                            ...shipment, 
+                        ? {
+                            ...shipment,
                             assignedVehicle: data.data.vehicle,
                             status: data.data.success ? 'In Transit' : shipment.status
                         }
@@ -1559,7 +1572,7 @@ const ShipmentManagement = () => {
             );
 
             // Show success message
-            showPopup('success', 'Vehicle assigned successfully! Shipment is now In Transit and parcels updated to ShipmentAssigned status.', 7000);
+            showPopup('success', 'Vehicle assigned successfully!', 7000);
 
             // Refresh shipments to get latest data
             setTimeout(() => {
@@ -1588,7 +1601,7 @@ const ShipmentManagement = () => {
     // Bulk verify operation for selected shipments
     const handleBulkVerify = async () => {
         const pendingShipments = shipments.filter(s =>
-            selectedShipments.has(s._id || s.id) && s.status === 'Pending' 
+            selectedShipments.has(s._id || s.id) && s.status === 'Pending'
         );
 
         if (pendingShipments.length === 0) {
@@ -1611,7 +1624,7 @@ const ShipmentManagement = () => {
             const promises = pendingShipments.map(shipment =>
                 fetch(`${import.meta.env.VITE_BACKEND_URL}/shipments/${shipment._id || shipment.id}/verify`, {
                     method: 'PUT',
-                    headers: {'Content-Type': 'application/json'},
+                    headers: { 'Content-Type': 'application/json' },
                     credentials: 'include' // Include cookies for authentication
                 })
             );
@@ -1631,11 +1644,11 @@ const ShipmentManagement = () => {
                 );
 
                 if (failedCount === 0) {
-                    showPopup('success', `Successfully verified ${successCount} shipment${successCount > 1 ? 's' : ''}! All shipments are now confirmed and ready for processing.`);
+                    showPopup('success', `Successfully verified ${successCount} shipment${successCount > 1 ? 's' : ''}!`);
                 } else {
                     showPopup('warning', `${successCount} shipment${successCount > 1 ? 's' : ''} verified successfully,  ${failedCount} failed to verify.`);
                 }
-                
+
                 // Clear selections after successful operation
                 setSelectedShipments(new Set());
             } else {
@@ -1656,8 +1669,8 @@ const ShipmentManagement = () => {
         }
 
         // Check if any selected shipments are in protected stages
-        const protectedShipments = shipments.filter(s =>    
-            selectedShipments.has(s._id || s.id) && 
+        const protectedShipments = shipments.filter(s =>
+            selectedShipments.has(s._id || s.id) &&
             ['In Transit', 'Dispatched', 'Completed'].includes(s.status)
         );
 
@@ -1699,7 +1712,7 @@ const ShipmentManagement = () => {
                 setSelectedShipments(new Set());
 
                 if (failedCount === 0) {
-                    showPopup('success', `Successfully deleted ${successCount} shipment${successCount > 1 ? 's' : ''}! Associated parcels have been reset.`);
+                    showPopup('success', `Successfully deleted ${successCount} shipment${successCount > 1 ? 's' : ''}! `);
                 } else {
                     showPopup('warning', `${successCount} shipment${successCount > 1 ? 's' : ''} deleted successfully, ${failedCount} failed to delete.`);
                 }
@@ -1858,7 +1871,7 @@ const ShipmentManagement = () => {
         }
         // Route-based actions for In Transit, Dispatched, and Completed statuses
         else if (['In Transit', 'Dispatched', 'Completed'].includes(shipment.status)) {
-            
+
             // Check if this branch is part of the shipment route
             if (!branchPosition) {
                 return (
@@ -1924,25 +1937,25 @@ const ShipmentManagement = () => {
                     );
                 }
             }
-            
+
             // INTERMEDIATE BRANCH ACTIONS
             else if (branchPosition === 'intermediate') {
                 return (
                     <div className="text-center text-gray-500 text-sm">
-                        {}
+                        { }
                         <div className="px-3 py-2 bg-blue-100 text-blue-800 rounded-lg text-xs">
                             In Progress
                         </div>
                     </div>
                 );
             }
-            
+
             // LAST BRANCH ACTIONS  
             else if (branchPosition === 'last') {
                 if (['In Transit', 'Dispatched'].includes(shipment.status)) {
                     return (
                         <div className="text-center text-gray-500 text-sm">
-                            {}
+                            { }
                             <button
                                 onClick={() => handleFinishDelivery(shipmentId)}
                                 disabled={isProcessing}
@@ -1964,7 +1977,7 @@ const ShipmentManagement = () => {
             // Default status display with vehicle info
             return (
                 <div className="text-center text-gray-500 text-sm">
-                    {}
+                    { }
                     {shipment.assignedVehicle && (
                         <div className="text-xs text-gray-600 mt-1 space-y-1">
                             {(shipment.assignedVehicle.vehicleId || shipment.assignedVehicle.registrationNo) && (
@@ -1981,7 +1994,7 @@ const ShipmentManagement = () => {
                 </div>
             );
         }
-        
+
         // Default fallback
         else {
             return (
@@ -2061,15 +2074,15 @@ const ShipmentManagement = () => {
                                     <div>
                                         <h3 className="text-xl font-semibold text-gray-900">
                                             {!vehicleSelectionModal.step ? 'Assign Vehicle to Shipment' :
-                                             vehicleSelectionModal.step === 'manual' ? 'Manual Vehicle Assignment' :
-                                             vehicleSelectionModal.step === 'smart' ? 'Smart Vehicle Assignment' :
-                                             'Confirm Vehicle Assignment'}
+                                                vehicleSelectionModal.step === 'manual' ? 'Manual Vehicle Assignment' :
+                                                    vehicleSelectionModal.step === 'smart' ? 'Smart Vehicle Assignment' :
+                                                        'Confirm Vehicle Assignment'}
                                         </h3>
                                         <p className="text-sm text-gray-600">
                                             {!vehicleSelectionModal.step ? 'Choose manual entry or smart search' :
-                                             vehicleSelectionModal.step === 'manual' ? 'Enter vehicle registration number' :
-                                             vehicleSelectionModal.step === 'smart' ? 'Using 3-step search algorithm' :
-                                             'Review and confirm the found vehicle'}
+                                                vehicleSelectionModal.step === 'manual' ? 'Enter vehicle registration number' :
+                                                    vehicleSelectionModal.step === 'smart' ? 'Using 3-step search algorithm' :
+                                                        'Review and confirm the found vehicle'}
                                         </p>
                                     </div>
                                 </div>
@@ -2101,11 +2114,10 @@ const ShipmentManagement = () => {
                                         </div>
                                         <div className="flex items-center justify-between">
                                             <span className="text-gray-600 font-medium">Delivery Type:</span>
-                                            <span className={`px-3 py-1 rounded-full text-sm font-semibold ${
-                                                vehicleSelectionModal.deliveryType === 'express' 
-                                                    ? 'bg-purple-100 text-purple-800' 
+                                            <span className={`px-3 py-1 rounded-full text-sm font-semibold ${vehicleSelectionModal.deliveryType === 'express'
+                                                    ? 'bg-purple-100 text-purple-800'
                                                     : 'bg-blue-100 text-blue-800'
-                                            }`}>
+                                                }`}>
                                                 {vehicleSelectionModal.deliveryType?.toUpperCase()}
                                             </span>
                                         </div>
@@ -2371,7 +2383,7 @@ const ShipmentManagement = () => {
                                                 Transport Required
                                             </h4>
                                             <p className="text-sm text-amber-700 mb-3">
-                                                This vehicle is currently at <strong>{smartSearchResult.vehicle.currentLocation}</strong> and needs to be 
+                                                This vehicle is currently at <strong>{smartSearchResult.vehicle.currentLocation}</strong> and needs to be
                                                 transported to <strong>{smartSearchResult.vehicle.sourceLocation}</strong>.
                                             </p>
                                             <p className="text-sm text-amber-700">
@@ -2390,7 +2402,7 @@ const ShipmentManagement = () => {
                                             <p className="text-sm text-blue-700 mb-4">
                                                 Select parcel groups to collect along the route. Each group goes to the same destination.
                                             </p>
-                                            
+
                                             <div className="space-y-4">
                                                 {smartSearchResult.availableParcelGroups.map((group, index) => (
                                                     <div key={index} className="bg-white rounded-lg p-4 border border-blue-200">
@@ -2416,7 +2428,7 @@ const ShipmentManagement = () => {
                                                                 </span>
                                                             </div>
                                                         </div>
-                                                        
+
                                                         <div className="grid grid-cols-2 gap-4 mb-3 text-sm">
                                                             <div className="bg-gray-50 rounded p-2">
                                                                 <span className="text-gray-600">Total Weight:</span>
@@ -2462,7 +2474,7 @@ const ShipmentManagement = () => {
                                                             <div>
                                                                 <span className="text-green-700">Total Additional Weight:</span>
                                                                 <span className="font-semibold text-green-800 ml-2">
-                                                                    {selectedParcelGroups.reduce((total, index) => 
+                                                                    {selectedParcelGroups.reduce((total, index) =>
                                                                         total + smartSearchResult.availableParcelGroups[index].totalWeight, 0
                                                                     ).toFixed(1)} kg
                                                                 </span>
@@ -2470,7 +2482,7 @@ const ShipmentManagement = () => {
                                                             <div>
                                                                 <span className="text-green-700">Total Additional Volume:</span>
                                                                 <span className="font-semibold text-green-800 ml-2">
-                                                                    {selectedParcelGroups.reduce((total, index) => 
+                                                                    {selectedParcelGroups.reduce((total, index) =>
                                                                         total + smartSearchResult.availableParcelGroups[index].totalVolume, 0
                                                                     ).toFixed(2)} m³
                                                                 </span>
@@ -2633,7 +2645,7 @@ const ShipmentManagement = () => {
                                                 <p className="text-sm text-gray-600 mb-6">
                                                     Found {vehicleSelectionModal.enhancedResult.availableParcelGroups.totalParcels} parcels that can be carried along the route.
                                                 </p>
-                                                
+
                                                 {/* Enhanced Parcel Groups Table with Better Spacing */}
                                                 <div className="bg-white rounded-lg border border-green-200 overflow-hidden shadow-sm">
                                                     <div className="overflow-x-auto">
@@ -2663,9 +2675,9 @@ const ShipmentManagement = () => {
                                                                         <td className="px-6 py-4">
                                                                             <div className="flex items-center gap-2">
                                                                                 <div className="w-16 bg-gray-200 rounded-full h-2">
-                                                                                    <div 
-                                                                                        className="bg-green-500 h-2 rounded-full" 
-                                                                                        style={{width: `${Math.min((group.totalWeight / vehicleSelectionModal.enhancedResult.vehicle.capableWeight) * 100, 100)}%`}}
+                                                                                    <div
+                                                                                        className="bg-green-500 h-2 rounded-full"
+                                                                                        style={{ width: `${Math.min((group.totalWeight / vehicleSelectionModal.enhancedResult.vehicle.capableWeight) * 100, 100)}%` }}
                                                                                     ></div>
                                                                                 </div>
                                                                                 <span className="text-xs text-gray-500">
@@ -2805,7 +2817,7 @@ const ShipmentManagement = () => {
                                         {(() => {
                                             const result = vehicleSelectionModal.enhancedResult;
                                             let parcelGroups = null;
-                                            
+
                                             // Try different possible data structures
                                             if (result.availableParcelGroups?.parcelGroups) {
                                                 parcelGroups = result.availableParcelGroups.parcelGroups;
@@ -2818,9 +2830,9 @@ const ShipmentManagement = () => {
                                             } else if (result.parcelGroups) {
                                                 parcelGroups = result.parcelGroups;
                                             }
-                                            
+
                                             return parcelGroups && Object.keys(parcelGroups).length > 0 ? (
-                                                <div className="space-y-6">                                                    
+                                                <div className="space-y-6">
                                                     {Object.entries(parcelGroups).map(([groupId, group]) => (
                                                         <div key={groupId} className={selectedParcelGroups[groupId] ? 'border-2 rounded-xl p-6 transition-all duration-200 border-blue-500 bg-gradient-to-r from-blue-50 to-indigo-50 shadow-lg' : 'border-2 rounded-xl p-6 transition-all duration-200 border-gray-200 bg-white hover:border-gray-300 hover:shadow-md'}>
                                                             <div className="flex items-start justify-between mb-4">
@@ -2862,7 +2874,7 @@ const ShipmentManagement = () => {
                                                                     </div>
                                                                 </div>
                                                             </div>
-                                                            
+
                                                             {selectedParcelGroups[groupId] && group.parcels && (
                                                                 <div className="mt-5 pt-5 border-t border-blue-200">
                                                                     <h6 className="font-semibold text-sm text-gray-800 mb-4 flex items-center gap-2">
@@ -3091,11 +3103,10 @@ const ShipmentManagement = () => {
                                         </div>
                                         <div className="flex items-center justify-between">
                                             <span className="text-gray-600 font-medium">Delivery Type:</span>
-                                            <span className={`px-3 py-1 rounded-full text-sm font-semibold ${
-                                                vehicleAssignmentModal.deliveryType === 'express' 
-                                                    ? 'bg-purple-100 text-purple-800' 
+                                            <span className={`px-3 py-1 rounded-full text-sm font-semibold ${vehicleAssignmentModal.deliveryType === 'express'
+                                                    ? 'bg-purple-100 text-purple-800'
                                                     : 'bg-blue-100 text-blue-800'
-                                            }`}>
+                                                }`}>
                                                 {vehicleAssignmentModal.deliveryType?.toUpperCase()}
                                             </span>
                                         </div>
@@ -3153,7 +3164,7 @@ const ShipmentManagement = () => {
                                                 <span className="font-medium">Regional Search:</span> Find vehicles from nearby centers
                                             </div>
                                         </div>
-                                        
+
                                         <div className="flex items-start gap-3">
                                             <div className="w-6 h-6 bg-amber-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
                                                 <span className="text-xs font-bold text-amber-700">3</span>
@@ -3231,9 +3242,9 @@ const ShipmentManagement = () => {
                                                 Transport Required
                                             </h4>
                                             <p className="text-sm text-blue-700">
-                                                This vehicle is currently at <strong>{foundVehicle.vehicle.currentLocation}</strong> and needs to be 
-                                                transported to <strong>{foundVehicle.vehicle.sourceLocation}</strong>. A reverse shipment will be 
-                                                created to bring the vehicle to the source center, and any available parcels along the route 
+                                                This vehicle is currently at <strong>{foundVehicle.vehicle.currentLocation}</strong> and needs to be
+                                                transported to <strong>{foundVehicle.vehicle.sourceLocation}</strong>. A reverse shipment will be
+                                                created to bring the vehicle to the source center, and any available parcels along the route
                                                 will be included to optimize efficiency.
                                             </p>
                                         </div>
@@ -3249,7 +3260,7 @@ const ShipmentManagement = () => {
                                             <Package className="w-6 h-6 text-amber-600" />
                                             <h4 className="text-lg font-semibold text-amber-800">Parcels Found for Reverse Shipment</h4>
                                         </div>
-                                        
+
                                         <div className="mb-4 p-3 bg-amber-100 rounded-lg">
                                             <p className="text-sm text-amber-700">
                                                 {foundParcels.parcels && foundParcels.parcels.length > 0 ? (
@@ -3261,7 +3272,7 @@ const ShipmentManagement = () => {
                                                     <>
                                                         <strong>No suitable parcels found</strong> for the route from {foundParcels.fromCenter} to {foundParcels.toCenter}.
                                                         {foundParcels.message && (
-                                                            <><br/><em>{foundParcels.message}</em></>
+                                                            <><br /><em>{foundParcels.message}</em></>
                                                         )}
                                                     </>
                                                 )}
@@ -3271,7 +3282,7 @@ const ShipmentManagement = () => {
                                         {foundParcels.parcels && foundParcels.parcels.length > 0 && (
                                             <div className="space-y-3">
                                                 <h5 className="font-medium text-amber-800 border-b border-amber-300 pb-2">Parcel Summary</h5>
-                                                
+
                                                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
                                                     <div className="p-3 bg-white rounded-lg border border-amber-200">
                                                         <div className="text-amber-600 text-xs uppercase tracking-wide">Total Parcels</div>
@@ -3562,7 +3573,7 @@ const ShipmentManagement = () => {
                                 <div className="bg-green-50 rounded-lg p-6 mb-4">
                                     <h3 className="text-lg font-semibold text-green-800 mb-2">Automated Parcel Search</h3>
                                     <p className="text-green-700 text-sm">
-                                        This feature will automatically search for unassigned parcels on the same route 
+                                        This feature will automatically search for unassigned parcels on the same route
                                         and add them to your standard shipment if capacity constraints are met.
                                     </p>
                                 </div>
@@ -3617,7 +3628,7 @@ const ShipmentManagement = () => {
             {addMoreParcelsModal.isOpen && (
                 <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
                     <div className="bg-white rounded-2xl p-8 max-w-6xl w-full max-h-[95vh] overflow-y-auto shadow-2xl border border-gray-200">
-                        
+
                         {/* Step 1: Selection */}
                         {addMoreParcelsModal.step === 'selection' && (
                             <>
@@ -3636,11 +3647,11 @@ const ShipmentManagement = () => {
 
                                 <div className="text-center py-4">
                                     <p className="text-gray-600 mb-8">Choose how you want to add more parcels to this shipment:</p>
-                                    
+
                                     <div className="grid md:grid-cols-2 gap-6">
                                         {/* Manual Assignment Option */}
                                         <div className="bg-blue-50 rounded-xl p-6 border-2 border-blue-200 hover:border-blue-400 transition-colors cursor-pointer"
-                                             onClick={() => setAddMoreParcelsModal(prev => ({ ...prev, step: 'manual' }))}>
+                                            onClick={() => setAddMoreParcelsModal(prev => ({ ...prev, step: 'manual' }))}>
                                             <div className="text-blue-600 mb-4">
                                                 <Edit className="w-12 h-12 mx-auto" />
                                             </div>
@@ -3659,7 +3670,7 @@ const ShipmentManagement = () => {
 
                                         {/* Smart Assignment Option */}
                                         <div className="bg-green-50 rounded-xl p-6 border-2 border-green-200 hover:border-green-400 transition-colors cursor-pointer"
-                                             onClick={() => setAddMoreParcelsModal(prev => ({ ...prev, step: 'smart' }))}>
+                                            onClick={() => setAddMoreParcelsModal(prev => ({ ...prev, step: 'smart' }))}>
                                             <div className="text-green-600 mb-4">
                                                 <Zap className="w-12 h-12 mx-auto" />
                                             </div>
@@ -3958,11 +3969,10 @@ const ShipmentManagement = () => {
 
             {/* Popup Messages */}
             {popup && (
-                <div className={`fixed top-4 right-4 p-6 rounded-xl shadow-2xl z-50 flex items-start gap-3 min-w-[350px] max-w-[500px] border-l-4 ${
-                        popup.type === 'success' ? 'bg-green-50 border-green-400 text-green-800' :
+                <div className={`fixed top-4 right-4 p-6 rounded-xl shadow-2xl z-50 flex items-start gap-3 min-w-[350px] max-w-[500px] border-l-4 ${popup.type === 'success' ? 'bg-green-50 border-green-400 text-green-800' :
                         popup.type === 'error' ? 'bg-red-50 border-red-400 text-red-800' :
-                        popup.type === 'warning' ? 'bg-yellow-50 border-yellow-400 text-yellow-800' :
-                        'bg-blue-50 border-blue-400 text-blue-800'
+                            popup.type === 'warning' ? 'bg-yellow-50 border-yellow-400 text-yellow-800' :
+                                'bg-blue-50 border-blue-400 text-blue-800'
                     }`}>
                     <div className="flex-shrink-0 mt-0.5">
                         {popup.type === 'success' && <CheckCircle className="w-6 h-6 text-green-600" />}
@@ -3973,8 +3983,8 @@ const ShipmentManagement = () => {
                     <div className="flex-1">
                         <div className="font-semibold mb-1">
                             {popup.type === 'success' ? 'Success' :
-                             popup.type === 'error' ? 'Error' :
-                             popup.type === 'warning' ? 'Warning' : 'Information'}
+                                popup.type === 'error' ? 'Error' :
+                                    popup.type === 'warning' ? 'Warning' : 'Information'}
                         </div>
                         <div className="text-sm whitespace-pre-line leading-relaxed">
                             {popup.message}
@@ -4033,6 +4043,56 @@ const ShipmentManagement = () => {
                     >
                         Refresh
                     </button>
+                    <button
+                        onClick={PaxelLogisticsWorkflow}
+                        className="flex items-center gap-2 px-6 py-3 bg-cyan-600 text-white rounded-lg shadow-md hover:bg-cyan-700 focus:outline-none focus:ring-2 focus:ring-cyan-400 focus:ring-offset-1 font-semibold animate-breathe transition-all duration-300"
+                    >
+
+                        How Assign Vehicles?
+                    </button>
+
+                    <style>
+                        {`
+    @keyframes breathe {
+      0%, 100% {
+        transform: scale(1);
+        box-shadow: 0 0 0 0 rgba(6, 182, 212, 0.7);
+      }
+      50% {
+        transform: scale(1.03);
+        box-shadow: 0 0 12px 4px rgba(6, 182, 212, 0.5);
+      }
+    }
+    .animate-breathe {
+      animation: breathe 3s ease-in-out infinite;
+    }
+  `}
+                    </style>
+                    <button
+                        onClick={PaxelAddMoreParcels}
+                        className="flex items-center gap-2 px-6 py-3 bg-cyan-600 text-white rounded-lg shadow-md hover:bg-cyan-700 focus:outline-none focus:ring-2 focus:ring-cyan-400 focus:ring-offset-1 font-semibold animate-breathe transition-all duration-300"
+                    >
+
+                        How Add More Parcels?
+                    </button>
+
+                    <style>
+                        {`
+    @keyframes breathe {
+      0%, 100% {
+        transform: scale(1);
+        box-shadow: 0 0 0 0 rgba(6, 182, 212, 0.7);
+      }
+      50% {
+        transform: scale(1.03);
+        box-shadow: 0 0 12px 4px rgba(6, 182, 212, 0.5);
+      }
+    }
+    .animate-breathe {
+      animation: breathe 3s ease-in-out infinite;
+    }
+  `}
+                    </style>
                 </div>
             </div>
 
@@ -4190,9 +4250,9 @@ const ShipmentManagement = () => {
                                                                     <div className="flex">
                                                                         <span className="text-gray-600 w-36">Created By Center:</span>
                                                                         <span className="font-medium text-gray-800">
-                                                                            {shipment.createdByCenter?.location || 
-                                                                             getCenterNameSync(shipment.createdByCenter) || 
-                                                                             'N/A'}
+                                                                            {shipment.createdByCenter?.location ||
+                                                                                getCenterNameSync(shipment.createdByCenter) ||
+                                                                                'N/A'}
                                                                         </span>
                                                                     </div>
                                                                     <div className="flex">
@@ -4224,24 +4284,24 @@ const ShipmentManagement = () => {
                                                                         <div className="space-y-1 text-sm">
                                                                             {shipment.assignedVehicle.vehicleId && (
                                                                                 <div>
-                                                                                    <span className="text-blue-700 font-medium">Vehicle ID:</span> 
+                                                                                    <span className="text-blue-700 font-medium">Vehicle ID:</span>
                                                                                     <span className="ml-2 text-gray-800">{shipment.assignedVehicle.vehicleId}</span>
                                                                                 </div>
                                                                             )}
                                                                             {shipment.assignedVehicle.registrationNo && (
                                                                                 <div>
-                                                                                    <span className="text-blue-700 font-medium">Registration No:</span> 
+                                                                                    <span className="text-blue-700 font-medium">Registration No:</span>
                                                                                     <span className="ml-2 text-gray-800">{shipment.assignedVehicle.registrationNo}</span>
                                                                                 </div>
                                                                             )}
                                                                             {(shipment.assignedVehicle.currentBranch || shipment.assignedVehicle.currentLocation) && (
                                                                                 <div>
-                                                                                    <span className="text-blue-700 font-medium">Current Location:</span> 
+                                                                                    <span className="text-blue-700 font-medium">Current Location:</span>
                                                                                     <span className="ml-2 text-gray-800">
-                                                                                        {shipment.assignedVehicle.currentBranch?.location || 
-                                                                                         shipment.assignedVehicle.currentBranch?.branchName ||
-                                                                                         shipment.assignedVehicle.currentLocation ||
-                                                                                         'N/A'}
+                                                                                        {shipment.assignedVehicle.currentBranch?.location ||
+                                                                                            shipment.assignedVehicle.currentBranch?.branchName ||
+                                                                                            shipment.assignedVehicle.currentLocation ||
+                                                                                            'N/A'}
                                                                                     </span>
                                                                                 </div>
                                                                             )}
@@ -4254,25 +4314,25 @@ const ShipmentManagement = () => {
                                                                         <div className="space-y-1 text-sm">
                                                                             {shipment.assignedDriver.name && (
                                                                                 <div>
-                                                                                    <span className="text-blue-700 font-medium">Name:</span> 
+                                                                                    <span className="text-blue-700 font-medium">Name:</span>
                                                                                     <span className="ml-2 text-gray-800">{shipment.assignedDriver.name}</span>
                                                                                 </div>
                                                                             )}
                                                                             {shipment.assignedDriver.driverId && (
                                                                                 <div>
-                                                                                    <span className="text-blue-700 font-medium">Driver ID:</span> 
+                                                                                    <span className="text-blue-700 font-medium">Driver ID:</span>
                                                                                     <span className="ml-2 text-gray-800">{shipment.assignedDriver.driverId}</span>
                                                                                 </div>
                                                                             )}
                                                                             {shipment.assignedDriver.contactNo && (
                                                                                 <div>
-                                                                                    <span className="text-blue-700 font-medium">Contact:</span> 
+                                                                                    <span className="text-blue-700 font-medium">Contact:</span>
                                                                                     <span className="ml-2 text-gray-800">{shipment.assignedDriver.contactNo}</span>
                                                                                 </div>
                                                                             )}
                                                                             {shipment.assignedDriver.licenseId && (
                                                                                 <div>
-                                                                                    <span className="text-blue-700 font-medium">License ID:</span> 
+                                                                                    <span className="text-blue-700 font-medium">License ID:</span>
                                                                                     <span className="ml-2 text-gray-800">{shipment.assignedDriver.licenseId}</span>
                                                                                 </div>
                                                                             )}
@@ -4303,24 +4363,24 @@ const ShipmentManagement = () => {
                                                                     className="flex items-center gap-2 text-blue-600 hover:text-blue-800 font-medium"
                                                                 >
                                                                     {expandedParcelId === (shipment._id || shipment.id) ? 'Hide Details' : 'View Details'}
-                                                                    {expandedParcelId === (shipment._id || shipment.id) ? 
-                                                                        <ChevronUp className="w-4 h-4" /> : 
+                                                                    {expandedParcelId === (shipment._id || shipment.id) ?
+                                                                        <ChevronUp className="w-4 h-4" /> :
                                                                         <ChevronDown className="w-4 h-4" />
                                                                     }
                                                                 </button>
                                                             </div>
-                                                            
+
                                                             {/* Basic parcel summary always visible */}
                                                             <div className="text-sm text-gray-600 mb-2">
                                                                 <span className="font-medium">Parcel IDs:</span> {
-                                                                    shipment.parcels && shipment.parcels.length > 0 
-                                                                        ? shipment.parcels.map((p, index) => 
+                                                                    shipment.parcels && shipment.parcels.length > 0
+                                                                        ? shipment.parcels.map((p, index) =>
                                                                             p.parcelId || p._id || p.id || `Parcel-${index + 1}`
-                                                                          ).join(', ')
+                                                                        ).join(', ')
                                                                         : 'No parcels'
                                                                 }
                                                             </div>
-                                                            
+
                                                             {/* Detailed parcel information - collapsible */}
                                                             {expandedParcelId === (shipment._id || shipment.id) && (
                                                                 <div className="space-y-4 mt-4">
@@ -4329,9 +4389,9 @@ const ShipmentManagement = () => {
                                                                             // Check if parcel is fully populated with actual parcel data
                                                                             // A populated parcel should have fields like parcelId, trackingNo, etc.
                                                                             // An unpopulated parcel will only have _id field
-                                                                            const isFullyPopulated = typeof parcel === 'object' && parcel !== null && 
+                                                                            const isFullyPopulated = typeof parcel === 'object' && parcel !== null &&
                                                                                 (parcel.parcelId || parcel.trackingNo || parcel.itemType || Object.keys(parcel).length > 1);
-                                                                            
+
                                                                             if (!isFullyPopulated) {
                                                                                 // If not populated, show a message about unpopulated data
                                                                                 return (
@@ -4342,34 +4402,36 @@ const ShipmentManagement = () => {
                                                                                         <div className="text-sm text-yellow-600">
                                                                                             <p><strong>Parcel Reference:</strong> {typeof parcel === 'string' ? parcel : (parcel?._id || parcel?.id || 'Unknown')}</p>
                                                                                             <p className="mt-2 italic bg-yellow-100 p-2 rounded">
-                                                                                                 <strong>API Issue:</strong> Parcel details are not populated. The backend API needs to use .populate(&apos;parcels&apos;) to show detailed parcel information.
+                                                                                                <strong>API Issue:</strong> Parcel details are not populated. The backend API needs to use .populate(&apos;parcels&apos;) to show detailed parcel information.
                                                                                             </p>
                                                                                         </div>
                                                                                     </div>
                                                                                 );
                                                                             }
-                                                                            
+
                                                                             // If populated, show full parcel details based on parcel schema
                                                                             return (
                                                                                 <div key={parcel._id || parcel.id || index} className="bg-white rounded-lg p-4 border border-gray-200">
                                                                                     <h5 className="font-semibold text-blue-700 mb-3">
                                                                                         Parcel #{index + 1} {parcel.parcelId && `(${parcel.parcelId})`}
                                                                                     </h5>
-                                                                            
+
                                                                                     <div className="grid md:grid-cols-2 gap-4">
                                                                                         {/* Basic Parcel Information */}
                                                                                         <div className="space-y-2">
                                                                                             <h6 className="font-medium text-gray-800 border-b pb-1">Basic Information</h6>
                                                                                             <div className="text-sm space-y-1">
                                                                                                 <div><span className="text-gray-600">Parcel ID:</span> <span className="font-medium">{parcel.parcelId || 'N/A'}</span></div>
+                                                                                                <div><span className="text-gray-600">From:</span> <span className="font-medium">{parcel.from.location || 'N/A'}</span></div>
+                                                                                                <div><span className="text-gray-600">To:</span> <span className="font-medium">{parcel.to.location || 'N/A'}</span></div>
                                                                                                 <div><span className="text-gray-600">Tracking No:</span> <span className="font-medium">{parcel.trackingNo || 'N/A'}</span></div>
-                                                                                                <div><span className="text-gray-600">QR Code:</span> 
+                                                                                                <div><span className="text-gray-600">QR Code:</span>
                                                                                                     {parcel.qrCodeNo ? (
                                                                                                         parcel.qrCodeNo.startsWith('data:image/') ? (
                                                                                                             <div className="mt-2">
-                                                                                                                <img 
-                                                                                                                    src={parcel.qrCodeNo} 
-                                                                                                                    alt="QR Code" 
+                                                                                                                <img
+                                                                                                                    src={parcel.qrCodeNo}
+                                                                                                                    alt="QR Code"
                                                                                                                     className="w-16 h-16 border border-gray-300 rounded"
                                                                                                                 />
                                                                                                             </div>
@@ -4383,11 +4445,10 @@ const ShipmentManagement = () => {
                                                                                                 <div><span className="text-gray-600">Item Type:</span> <span className="font-medium">{parcel.itemType || 'N/A'}</span></div>
                                                                                                 <div><span className="text-gray-600">Item Size:</span> <span className="font-medium">{parcel.itemSize || 'N/A'}</span></div>
                                                                                                 <div><span className="text-gray-600">Shipping Method:</span> <span className="font-medium">{parcel.shippingMethod || 'N/A'}</span></div>
-                                                                                                <div><span className="text-gray-600">Status:</span> 
-                                                                                                    <span className={`ml-2 px-2 py-1 text-xs rounded-full ${
-                                                                                                        parcel.status === 'ArrivedAtCollectionCenter' ? 'bg-green-100 text-green-800' :
-                                                                                                        'bg-gray-100 text-gray-800'
-                                                                                                    }`}>
+                                                                                                <div><span className="text-gray-600">Status:</span>
+                                                                                                    <span className={`ml-2 px-2 py-1 text-xs rounded-full ${parcel.status === 'ArrivedAtCollectionCenter' ? 'bg-green-100 text-green-800' :
+                                                                                                            'bg-gray-100 text-gray-800'
+                                                                                                        }`}>
                                                                                                         {parcel.status || 'N/A'}
                                                                                                     </span>
                                                                                                 </div>
@@ -4401,8 +4462,7 @@ const ShipmentManagement = () => {
                                                                                                 <div><span className="text-gray-600">Submitting Type:</span> <span className="font-medium">{parcel.submittingType || 'N/A'}</span></div>
                                                                                                 <div><span className="text-gray-600">Receiving Type:</span> <span className="font-medium">{parcel.receivingType || 'N/A'}</span></div>
                                                                                                 <div><span className="text-gray-600">Special Instructions:</span> <span className="font-medium">{parcel.specialInstructions || 'None'}</span></div>
-                                                                                                <div><span className="text-gray-600">Pickup Date:</span> <span className="font-medium">{parcel.pickupInformation?.pickupDate ? new Date(parcel.pickupInformation.pickupDate).toLocaleDateString() : 'N/A'}</span></div>
-                                                                                                <div><span className="text-gray-600">Pickup Time:</span> <span className="font-medium">{parcel.pickupInformation?.pickupTime || 'N/A'}</span></div>
+
                                                                                             </div>
                                                                                         </div>
                                                                                     </div>
@@ -4486,29 +4546,29 @@ const ShipmentManagement = () => {
                     </div>
                     <div className="mt-2 flex gap-2">
                         {/* Only show Bulk Verify for Pending status or All status with pending shipments selected */}
-                        {(statusFilter === 'Pending' || (statusFilter === 'All' && 
-                          shipments.some(s => selectedShipments.has(s._id || s.id) && s.status === 'Pending'))) && (
-                            <button
-                                onClick={handleBulkVerify}
-                                className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 flex items-center gap-2"
-                            >
-                                <CheckCircle className="w-4 h-4" />
-                                Bulk Verify
-                            </button>
-                        )}
+                        {(statusFilter === 'Pending' || (statusFilter === 'All' &&
+                            shipments.some(s => selectedShipments.has(s._id || s.id) && s.status === 'Pending'))) && (
+                                <button
+                                    onClick={handleBulkVerify}
+                                    className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 flex items-center gap-2"
+                                >
+                                    <CheckCircle className="w-4 h-4" />
+                                    Bulk Verify
+                                </button>
+                            )}
                         {/* Only show Bulk Delete if there are deletable shipments (Pending or Verified) */}
-                        {shipments.some(s => 
-                            selectedShipments.has(s._id || s.id) && 
+                        {shipments.some(s =>
+                            selectedShipments.has(s._id || s.id) &&
                             ['Pending', 'Verified'].includes(s.status)
                         ) && (
-                            <button
-                                onClick={handleBulkDelete}
-                                className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 flex items-center gap-2"
-                            >
-                                <X className="w-4 h-4" />
-                                Bulk Delete
-                            </button>
-                        )}
+                                <button
+                                    onClick={handleBulkDelete}
+                                    className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 flex items-center gap-2"
+                                >
+                                    <X className="w-4 h-4" />
+                                    Bulk Delete
+                                </button>
+                            )}
                     </div>
                 </div>
             )}
@@ -4559,13 +4619,12 @@ const ShipmentManagement = () => {
                                 <button
                                     onClick={executeConfirmedAction}
                                     disabled={confirmationModal.processing}
-                                    className={`px-6 py-2.5 text-white rounded-lg focus:outline-none focus:ring-2 transition-all disabled:opacity-50 flex items-center gap-2 ${
-                                        confirmationModal.type === 'verify' 
-                                            ? 'bg-green-600 hover:bg-green-700 focus:ring-green-200' 
-                                            : confirmationModal.type === 'delete' 
-                                            ? 'bg-red-600 hover:bg-red-700 focus:ring-red-200'
-                                            : 'bg-blue-600 hover:bg-blue-700 focus:ring-blue-200'
-                                    }`}
+                                    className={`px-6 py-2.5 text-white rounded-lg focus:outline-none focus:ring-2 transition-all disabled:opacity-50 flex items-center gap-2 ${confirmationModal.type === 'verify'
+                                            ? 'bg-green-600 hover:bg-green-700 focus:ring-green-200'
+                                            : confirmationModal.type === 'delete'
+                                                ? 'bg-red-600 hover:bg-red-700 focus:ring-red-200'
+                                                : 'bg-blue-600 hover:bg-blue-700 focus:ring-blue-200'
+                                        }`}
                                 >
                                     {confirmationModal.processing && (
                                         <Loader className="w-4 h-4 animate-spin" />
