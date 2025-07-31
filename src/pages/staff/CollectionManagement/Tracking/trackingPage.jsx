@@ -75,7 +75,7 @@ const TrackingPage = () => {
         setTrackingResult(null);
 
         try {
-            const response = await fetch(`http://localhost:8000/parcels/track/${trackingNumber}`, {
+            const response = await fetch(`${import.meta.env.VITE_API_URL}/parcels/track/${trackingNumber}`, {
                 method: 'GET',
                 headers: {
                     'Content-Type': 'application/json',
