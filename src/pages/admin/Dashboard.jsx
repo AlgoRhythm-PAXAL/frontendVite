@@ -160,11 +160,11 @@ const Dashboard = () => {
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-6">
         <div className="flex flex-col gap-2">
           <SectionTitle title="Dashboard" />
-          {admin && (
+          {/* {admin && (
             <p className="text-gray-600 text-sm">
               Welcome back, <span className="font-medium text-Primary">{admin.name}</span>
             </p>
-          )}
+          )} */}
         </div>
         <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4">
           {/* Connection Status */}
