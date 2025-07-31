@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Package, ArrowLeft, Calendar } from 'lucide-react';
+import { getUserCenter, clearAuthData } from '../../../../utils/auth';
 
 const ParcelListPage = () => {
     const { type, date } = useParams();
@@ -39,12 +40,15 @@ const ParcelListPage = () => {
     const fetchParcels = useCallback(async () => {
         try {
             setLoading(true);
-            const userCenter = localStorage.getItem('userCenter');
+            const userCenter = getUserCenter();
             
-            // Check if userCenter exists
+            // Check if userCenter exists and is valid
             if (!userCenter) {
-                console.error('User center not found in localStorage');
-                setError('User center not found. Please log in again.');
+                console.error('User center not found or invalid in localStorage');
+                console.log('Clearing corrupted localStorage...');
+                clearAuthData();
+                
+                setError('Invalid session data. Please log in again.');
                 setLoading(false);
                 return;
             }
