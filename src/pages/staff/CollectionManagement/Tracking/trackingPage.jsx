@@ -75,13 +75,17 @@ const TrackingPage = () => {
         setTrackingResult(null);
 
         try {
-            const response = await fetch(`${import.meta.env.VITE_API_URL}/parcels/track/${trackingNumber}`, {
+            const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/parcels/track/${trackingNumber}`, {
                 method: 'GET',
                 headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${localStorage.getItem('token')}`
-                }
+                    'Content-Type': 'application/json'
+                },
+                credentials: 'include' 
             });
+            const contentType = response.headers.get('content-type');
+            if (!contentType || !contentType.includes('application/json')) {
+                throw new Error('Server returned non-JSON response. Please check if the API endpoint is correct.');
+            }
 
             if (response.ok) {
                 const data = await response.json();
@@ -93,13 +97,18 @@ const TrackingPage = () => {
                 showNotificationMessage(errorData.message || 'Parcel not found', 'error');
             }
         } catch (err) {
-            showNotificationMessage('Error searching for parcel. Please try again.', 'error');
             console.error('Tracking error:', err);
+            if (err.message.includes('Failed to fetch')) {
+                showNotificationMessage('Network error. Please check your internet connection and try again.', 'error');
+            } else if (err.message.includes('non-JSON response')) {
+                showNotificationMessage('Server error. Please try again later or contact support.', 'error');
+            } else {
+                showNotificationMessage('Error searching for parcel. Please try again.', 'error');
+            }
         } finally {
             setLoading(false);
         }
     };
-
     const handleKeyPress = (e) => {
         if (e.key === 'Enter') {
             handleSearch();
