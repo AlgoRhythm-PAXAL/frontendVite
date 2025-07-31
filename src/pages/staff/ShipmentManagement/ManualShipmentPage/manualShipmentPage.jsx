@@ -67,6 +67,7 @@ const B2BShipmentCreationPage = () => {
     const [branches, setBranches] = useState([]);
     const [routeCalculated, setRouteCalculated] = useState(false);
     const [arrivalCalculated, setArrivalCalculated] = useState(false);
+    // const [finalRouteSets, setFinalRouteSets] = useState([]);
     const [routeInfo, setRouteInfo] = useState({
         route: [],
         totalDistance: 0,
@@ -88,6 +89,8 @@ const B2BShipmentCreationPage = () => {
     const [successMessage, setSuccessMessage] = useState('');
     const [errorMessage, setErrorMessage] = useState('');
     const [showNotification, setShowNotification] = useState(false);
+    const [staffInfo, setStaffInfo] = useState({});
+    const [staffBranchId, setStaffBranchId] = useState(null);
 
     // Fetch all parcels that are not assigned to a shipment
     const fetchUnassignedParcels = async () => {
@@ -131,6 +134,28 @@ const B2BShipmentCreationPage = () => {
     //     }
     // };
 
+    const fetchStaffInfo = useCallback(async () => {
+        try {
+            const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/staff/ui/get-staff-information`, {
+                credentials: 'include'
+            });
+
+            if (!response.ok) {
+                throw new Error(`Failed to fetch staff info: ${response.status}`);
+            }
+
+            const data = await response.json();
+            console.log('Fetched staff info:', data);
+            setStaffInfo(data);
+            setStaffBranchId(data.branchId?._id);
+            return data.branchId?._id;
+        } catch (err) {
+            console.error('Error fetching staff info:', err);
+            setError('Failed to fetch staff information');
+            return null;
+        }
+    }, []);
+
     // Fetch all branches for dropdown selections
     const fetchBranches = async () => {
         try {
@@ -157,28 +182,28 @@ const B2BShipmentCreationPage = () => {
     // Filter parcels based on selected filters
     const filterParcels = useCallback(() => {
         let filtered = [...parcels];
-        
+
         if (filters.to) {
             filtered = filtered.filter(parcel => Object.values(parcel.to).includes(filters.to));
         }
         if (filters.size) {
             // Case-insensitive comparison for size
-            filtered = filtered.filter(parcel => 
-                parcel.itemSize && 
+            filtered = filtered.filter(parcel =>
+                parcel.itemSize &&
                 parcel.itemSize.toLowerCase() === filters.size.toLowerCase()
             );
         }
         if (filters.itemType) {
             // Case-insensitive comparison for item type
-            filtered = filtered.filter(parcel => 
-                parcel.itemType && 
+            filtered = filtered.filter(parcel =>
+                parcel.itemType &&
                 parcel.itemType.toLowerCase() === filters.itemType.toLowerCase()
             );
         }
         if (filters.shippingMethod) {
             // Case-insensitive comparison for shipping method
-            filtered = filtered.filter(parcel => 
-                parcel.shippingMethod && 
+            filtered = filtered.filter(parcel =>
+                parcel.shippingMethod &&
                 parcel.shippingMethod.toLowerCase() === filters.shippingMethod.toLowerCase()
             );
         }
@@ -190,7 +215,7 @@ const B2BShipmentCreationPage = () => {
     useEffect(() => {
         fetchUnassignedParcels();
         fetchBranches();
-       
+        fetchStaffInfo();
     }, []);
 
     // Update filtered parcels when parcels or filters change
@@ -297,7 +322,7 @@ const B2BShipmentCreationPage = () => {
             setSuccessMessage('');
         }
         setShowNotification(true);
-        
+
         // Auto-hide after 5 seconds
         setTimeout(() => {
             setShowNotification(false);
@@ -317,10 +342,20 @@ const B2BShipmentCreationPage = () => {
             return;
         }
 
+        setRouteInfo(prev => ({
+            ...prev, // keep existing values
+            route: shipmentData.sourceCenter,
+            totalDistance: 0,
+            totalTime: 0,
+            arrivalTimes: []
+        }));
         // Get unique destination center IDs
         const uniqueCenterIds = [...new Set(shipmentParcels.map(parcel => parcel.to._id))];
         console.log('Available centers:', uniqueCenterIds);
         console.log('All branches:', branches);
+
+        console.log("Selected SOurce Branch:", shipmentData.sourceCenter);
+        console.log("Route info after Sourcr Selection:", routeInfo);
         setAvailableCenters(uniqueCenterIds);
         setRouteSequence({}); // Reset route sequence for new modal
         setShowRouteModal(true);
@@ -348,21 +383,21 @@ const B2BShipmentCreationPage = () => {
     // Handle sequence number input
     const handleSequenceChange = (centerId, sequence) => {
         const newSequence = { ...routeSequence };
-        
+
         // Remove this sequence number from other centers
         Object.keys(newSequence).forEach(key => {
             if (newSequence[key] === parseInt(sequence)) {
                 delete newSequence[key];
             }
         });
-        
+
         // Set new sequence for this center
         if (sequence && sequence !== '') {
             newSequence[centerId] = parseInt(sequence);
         } else {
             delete newSequence[centerId];
         }
-        
+
         setRouteSequence(newSequence);
     };
 
@@ -374,7 +409,7 @@ const B2BShipmentCreationPage = () => {
     // Generate route order based on sequence numbers
     const generateRouteOrder = () => {
         const sortedEntries = Object.entries(routeSequence).sort((a, b) => a[1] - b[1]);
-        return sortedEntries.map(([centerId]) => 
+        return sortedEntries.map(([centerId]) =>
             branches.find(branch => branch._id === centerId)
         ).filter(Boolean);
     };
@@ -383,9 +418,9 @@ const B2BShipmentCreationPage = () => {
     const isRouteComplete = () => {
         const sequenceValues = Object.values(routeSequence);
         const uniqueSequences = new Set(sequenceValues);
-        return sequenceValues.length === availableCenters.length && 
-               uniqueSequences.size === availableCenters.length &&
-               sequenceValues.every(seq => seq >= 1 && seq <= availableCenters.length);
+        return sequenceValues.length === availableCenters.length &&
+            uniqueSequences.size === availableCenters.length &&
+            sequenceValues.every(seq => seq >= 1 && seq <= availableCenters.length);
     };
 
     // Finalize route
@@ -394,16 +429,24 @@ const B2BShipmentCreationPage = () => {
             const orderedRoute = generateRouteOrder();
             const sourceCenter = branches.find(b => b._id === shipmentData.sourceCenter);
             setFinalizedRoute([sourceCenter, ...orderedRoute]);
-            
+
             // Calculate route distance
             const routeIds = orderedRoute.map(center => center._id);
             const totalDistance = calculateRouteDistance(routeIds);
-            setRouteInfo({
+            // setRouteInfo({
+            //     route: routeIds,
+            //     totalDistance,
+            //     totalTime: 0,
+            //     arrivalTimes: []
+            // });
+            setRouteInfo(prev => ({
+                ...prev, // keep existing values
                 route: routeIds,
                 totalDistance,
                 totalTime: 0,
                 arrivalTimes: []
-            });
+            }));
+
             setRouteCalculated(true);
             setArrivalCalculated(false);
             setShowRouteModal(false);
@@ -417,7 +460,7 @@ const B2BShipmentCreationPage = () => {
         const usedNumbers = Object.entries(routeSequence)
             .filter(([centerId]) => centerId !== currentCenterId)
             .map(([, sequence]) => sequence);
-        
+
         return Array.from({ length: availableCenters.length }, (_, i) => i + 1)
             .filter(num => !usedNumbers.includes(num));
     };
@@ -437,7 +480,7 @@ const B2BShipmentCreationPage = () => {
         const route = routeInfo.route;
         const deliveryType = shipmentData.deliveryType;
         const bufferConfig = bufferTimeConfig[deliveryType];
-        
+
         if (!bufferConfig) {
             showNotificationMessage('Invalid delivery type for smart calculation', 'error');
             return;
@@ -459,7 +502,7 @@ const B2BShipmentCreationPage = () => {
         for (let i = 0; i < route.length; i++) {
             const currentCenterId = route[i];
             const currentBranch = branches.find(b => b._id === currentCenterId);
-            
+
             if (!currentBranch) continue;
 
             let travelTime = 0;
@@ -474,7 +517,7 @@ const B2BShipmentCreationPage = () => {
                 // Travel from previous destination
                 const previousBranch = branches.find(b => b._id === route[i - 1]);
                 travelTime = districtTimeMatrix[previousBranch?.location]?.[currentBranch.location] || 0;
-                
+
                 // Determine buffer time based on position
                 if (i === route.length - 1) {
                     // Last destination
@@ -505,7 +548,7 @@ const B2BShipmentCreationPage = () => {
             arrivalTimes: arrivalTimes
         }));
         setArrivalCalculated(true);
-        
+
         console.log('Smart arrival times calculated:', {
             totalTime: cumulativeTime,
             arrivalTimes,
@@ -534,7 +577,7 @@ const B2BShipmentCreationPage = () => {
         for (let i = 0; i < route.length; i++) {
             const currentCenterId = route[i];
             const currentBranch = branches.find(b => b._id === currentCenterId);
-            
+
             if (!currentBranch) continue;
 
             const cumulativeTime = (i + 1) * timePerSegment;
@@ -556,7 +599,7 @@ const B2BShipmentCreationPage = () => {
             arrivalTimes: arrivalTimes
         }));
         setArrivalCalculated(true);
-        
+
         console.log('Simple arrival times calculated:', {
             totalTime,
             arrivalTimes,
@@ -588,6 +631,192 @@ const B2BShipmentCreationPage = () => {
     };
 
     // Create shipment
+    // const createShipment = async () => {
+    //     if (shipmentParcels.length === 0) {
+    //         showNotificationMessage('Please add at least one parcel to shipment', 'error');
+    //         return;
+    //     }
+
+    //     if (!routeCalculated || !arrivalCalculated) {
+    //         showNotificationMessage('Please calculate route and arrival times before creating shipment', 'error');
+    //         return;
+    //     }
+
+    //     if (!shipmentData.sourceCenter) {
+    //         showNotificationMessage('Please select a source center', 'error');
+    //         return;
+    //     }
+
+    //     setLoading(true);
+
+    //     try {
+    //         // Prepare parcel IDs
+    //         const parcelIds = shipmentParcels.map(parcel => parcel._id);
+
+    //         // Transform arrival times to match schema format
+    //         const transformedArrivalTimes = routeInfo.arrivalTimes.map(arrivalTime => ({
+    //             center: arrivalTime.center,
+    //             time: arrivalTime.cumulativeTime
+    //         }));
+
+    //         console.log("My Sample Console Log: ", routeInfo.route);
+
+    //         setFinalRouteSets(shipmentData.sourceCenter, ...routeInfo.route);
+
+
+    //         console.log("After getting the source center: ", finalRouteSets);
+
+    //         // Prepare shipment data according to B2BShipment schema
+    //         // Note: shipmentId will be generated by the backend
+    //         const shipmentPayload = {
+    //             deliveryType: shipmentData.deliveryType,
+    //             sourceCenter: shipmentData.sourceCenter,
+    //             route: finalRouteSets,
+    //             totalTime: routeInfo.totalTime,
+    //             arrivalTimes: transformedArrivalTimes,
+    //             totalDistance: routeInfo.totalDistance,
+    //             totalWeight: shipmentSummary.weight,
+    //             totalVolume: shipmentSummary.volume,
+    //             parcelCount: shipmentSummary.count,
+    //             parcels: parcelIds,
+    //             status: 'Pending',
+    //             createdByCenter: shipmentData.sourceCenter, // Using source center as created by center
+    //             createdByStaff: staffInfo._id,
+    //             confirmed: false,
+    //             createdAt: new Date()
+    //         };
+
+    //         console.log('=== FRONTEND SHIPMENT CREATION ===');
+    //         // console.log('Shipment payload being sent:', JSON.stringify(shipmentPayload, null, 2));
+    //         // console.log('Delivery Type:', shipmentPayload.deliveryType);
+    //         // console.log('Source Center:', shipmentPayload.sourceCenter);
+    //         // console.log('Parcels count:', shipmentPayload.parcels.length);
+
+    //         console.log('Final Data Set which send:', shipmentPayload);
+    //         const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/shipments/create`, {
+    //             method: 'POST',
+    //             headers: {
+    //                 'Content-Type': 'application/json'
+    //             },
+    //             credentials: 'include', // Include cookies for staff authentication
+    //             body: JSON.stringify(shipmentPayload)
+    //         });
+
+    //         if (!response.ok) {
+    //             const errorData = await response.json();
+    //             throw new Error(errorData.message || 'Failed to create shipment');
+    //         }
+
+    //         const result = await response.json();
+    //         console.log('Shipment created successfully:', result);
+
+    //         const createdShipmentId = result.shipment?.shipmentId || 'Unknown';
+    //         showNotificationMessage(`Shipment created successfully! Shipment ID: ${createdShipmentId}`, 'success');
+
+    //         // Navigate after a short delay to allow user to see the success message
+    //         setTimeout(() => {
+    //             navigate('/staff/shipment-management/parcel-table-page');
+    //         }, 2000);
+    //     } catch (err) {
+    //         console.error('Error creating shipment:', err);
+    //         showNotificationMessage(`Failed to create shipment: ${err.message}`, 'error');
+    //     } finally {
+    //         setLoading(false);
+    //     }
+    // };
+
+    // Create shipment
+    // const createShipment = async () => {
+    //     if (shipmentParcels.length === 0) {
+    //         showNotificationMessage('Please add at least one parcel to shipment', 'error');
+    //         return;
+    //     }
+
+    //     if (!routeCalculated || !arrivalCalculated) {
+    //         showNotificationMessage('Please calculate route and arrival times before creating shipment', 'error');
+    //         return;
+    //     }
+
+    //     if (!shipmentData.sourceCenter) {
+    //         showNotificationMessage('Please select a source center', 'error');
+    //         return;
+    //     }
+
+    //     setLoading(true);
+
+    //     try {
+    //         // Prepare parcel IDs
+    //         const parcelIds = shipmentParcels.map(parcel => parcel._id);
+
+    //         // Transform arrival times to match schema format
+    //         const transformedArrivalTimes = routeInfo.arrivalTimes.map(arrivalTime => ({
+    //             center: arrivalTime.center,
+    //             time: arrivalTime.cumulativeTime
+    //         }));
+
+    //         console.log("My Sample Console Log: ", routeInfo.route);
+
+    //         // Fix: Create the complete route array directly instead of using state
+    //         const completeRoute = [shipmentData.sourceCenter, ...routeInfo.route];
+
+    //         console.log("Complete route array: ", completeRoute);
+
+    //         // Prepare shipment data according to B2BShipment schema
+    //         // Note: shipmentId will be generated by the backend
+    //         const shipmentPayload = {
+    //             deliveryType: shipmentData.deliveryType,
+    //             sourceCenter: shipmentData.sourceCenter,
+    //             route: completeRoute, // Use the directly created array
+    //             totalTime: routeInfo.totalTime,
+    //             arrivalTimes: transformedArrivalTimes,
+    //             totalDistance: routeInfo.totalDistance,
+    //             totalWeight: shipmentSummary.weight,
+    //             totalVolume: shipmentSummary.volume,
+    //             parcelCount: shipmentSummary.count,
+    //             parcels: parcelIds,
+    //             status: 'Pending',
+    //             createdByCenter: shipmentData.sourceCenter, // Using source center as created by center
+    //             createdByStaff: staffInfo._id,
+    //             confirmed: false,
+    //             createdAt: new Date()
+    //         };
+
+    //         console.log('=== FRONTEND SHIPMENT CREATION ===');
+    //         console.log('Final Data Set which send:', shipmentPayload);
+
+    //         const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/shipments/create`, {
+    //             method: 'POST',
+    //             headers: {
+    //                 'Content-Type': 'application/json'
+    //             },
+    //             credentials: 'include', // Include cookies for staff authentication
+    //             body: JSON.stringify(shipmentPayload)
+    //         });
+
+    //         if (!response.ok) {
+    //             const errorData = await response.json();
+    //             throw new Error(errorData.message || 'Failed to create shipment');
+    //         }
+
+    //         const result = await response.json();
+    //         console.log('Shipment created successfully:', result);
+
+    //         const createdShipmentId = result.shipment?.shipmentId || 'Unknown';
+    //         showNotificationMessage(`Shipment created successfully! Shipment ID: ${createdShipmentId}`, 'success');
+
+    //         // Navigate after a short delay to allow user to see the success message
+    //         setTimeout(() => {
+    //             navigate('/staff/shipment-management/parcel-table-page');
+    //         }, 2000);
+    //     } catch (err) {
+    //         console.error('Error creating shipment:', err);
+    //         showNotificationMessage(`Failed to create shipment: ${err.message}`, 'error');
+    //     } finally {
+    //         setLoading(false);
+    //     }
+    // };
+
+    // Create shipment
     const createShipment = async () => {
         if (shipmentParcels.length === 0) {
             showNotificationMessage('Please add at least one parcel to shipment', 'error');
@@ -609,19 +838,33 @@ const B2BShipmentCreationPage = () => {
         try {
             // Prepare parcel IDs
             const parcelIds = shipmentParcels.map(parcel => parcel._id);
-            
+
             // Transform arrival times to match schema format
-            const transformedArrivalTimes = routeInfo.arrivalTimes.map(arrivalTime => ({
-                center: arrivalTime.center,
-                time: arrivalTime.cumulativeTime
-            }));
+            // Add source center with time 0 first, then add all other arrival times
+            const transformedArrivalTimes = [
+                {
+                    center: shipmentData.sourceCenter,
+                    time: 0
+                },
+                ...routeInfo.arrivalTimes.map(arrivalTime => ({
+                    center: arrivalTime.center,
+                    time: arrivalTime.cumulativeTime
+                }))
+            ];
+
+            console.log("My Sample Console Log: ", routeInfo.route);
+
+            // Fix: Create the complete route array directly instead of using state
+            const completeRoute = [shipmentData.sourceCenter, ...routeInfo.route];
+
+            console.log("Complete route array: ", completeRoute);
 
             // Prepare shipment data according to B2BShipment schema
             // Note: shipmentId will be generated by the backend
             const shipmentPayload = {
                 deliveryType: shipmentData.deliveryType,
                 sourceCenter: shipmentData.sourceCenter,
-                route: routeInfo.route,
+                route: completeRoute, // Use the directly created array
                 totalTime: routeInfo.totalTime,
                 arrivalTimes: transformedArrivalTimes,
                 totalDistance: routeInfo.totalDistance,
@@ -631,20 +874,17 @@ const B2BShipmentCreationPage = () => {
                 parcels: parcelIds,
                 status: 'Pending',
                 createdByCenter: shipmentData.sourceCenter, // Using source center as created by center
-            //    createdByStaff: staffInfo.name,
+                createdByStaff: staffInfo._id,
                 confirmed: false,
                 createdAt: new Date()
             };
 
             console.log('=== FRONTEND SHIPMENT CREATION ===');
-            console.log('Shipment payload being sent:', JSON.stringify(shipmentPayload, null, 2));
-            console.log('Delivery Type:', shipmentPayload.deliveryType);
-            console.log('Source Center:', shipmentPayload.sourceCenter);
-            console.log('Parcels count:', shipmentPayload.parcels.length);
+            console.log('Final Data Set which send:', shipmentPayload);
 
             const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/shipments/create`, {
                 method: 'POST',
-                headers: { 
+                headers: {
                     'Content-Type': 'application/json'
                 },
                 credentials: 'include', // Include cookies for staff authentication
@@ -658,10 +898,10 @@ const B2BShipmentCreationPage = () => {
 
             const result = await response.json();
             console.log('Shipment created successfully:', result);
-            
+
             const createdShipmentId = result.shipment?.shipmentId || 'Unknown';
             showNotificationMessage(`Shipment created successfully! Shipment ID: ${createdShipmentId}`, 'success');
-            
+
             // Navigate after a short delay to allow user to see the success message
             setTimeout(() => {
                 navigate('/staff/shipment-management/parcel-table-page');
@@ -673,8 +913,6 @@ const B2BShipmentCreationPage = () => {
             setLoading(false);
         }
     };
-
-
     const getBranchName = (branchId) => {
         if (!branchId) return 'Unknown';
         const branch = branches.find(b => b._id === branchId);
@@ -684,15 +922,14 @@ const B2BShipmentCreationPage = () => {
 
     return (
         <div className="p-6 bg-gray-50 min-h-screen">
-            
+
 
             {/* Beautiful Notification */}
             {showNotification && (
-                <div className={`fixed top-4 right-4 z-50 p-4 rounded-lg shadow-lg border-l-4 transform transition-all duration-300 ease-in-out ${
-                    successMessage 
-                        ? 'bg-green-50 border-green-400 text-green-800' 
-                        : 'bg-red-50 border-red-400 text-red-800'
-                }`}>
+                <div className={`fixed top-4 right-4 z-50 p-4 rounded-lg shadow-lg border-l-4 transform transition-all duration-300 ease-in-out ${successMessage
+                    ? 'bg-green-50 border-green-400 text-green-800'
+                    : 'bg-red-50 border-red-400 text-red-800'
+                    }`}>
                     <div className="flex items-center">
                         <div className="flex-shrink-0">
                             {successMessage ? (
@@ -717,11 +954,10 @@ const B2BShipmentCreationPage = () => {
                                     setSuccessMessage('');
                                     setErrorMessage('');
                                 }}
-                                className={`inline-flex rounded-md p-1.5 focus:outline-none focus:ring-2 focus:ring-offset-2 ${
-                                    successMessage 
-                                        ? 'text-green-500 hover:bg-green-100 focus:ring-green-600' 
-                                        : 'text-red-500 hover:bg-red-100 focus:ring-red-600'
-                                }`}
+                                className={`inline-flex rounded-md p-1.5 focus:outline-none focus:ring-2 focus:ring-offset-2 ${successMessage
+                                    ? 'text-green-500 hover:bg-green-100 focus:ring-green-600'
+                                    : 'text-red-500 hover:bg-red-100 focus:ring-red-600'
+                                    }`}
                             >
                                 <span className="sr-only">Dismiss</span>
                                 <svg className="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
@@ -750,7 +986,7 @@ const B2BShipmentCreationPage = () => {
                 <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
                     <div className="bg-white rounded-lg p-6 max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
                         <h2 className="text-xl font-semibold mb-4">Create Route Sequence</h2>
-                        
+
                         {/* Starting Center */}
                         <div className="mb-6 p-4 bg-green-50 rounded-lg border border-green-200">
                             <h3 className="text-lg font-medium mb-2 text-green-800">Starting Center</h3>
@@ -769,7 +1005,7 @@ const B2BShipmentCreationPage = () => {
                             <p className="text-sm text-gray-600 mb-4">
                                 Assign sequence numbers (1 to {availableCenters.length}) to create your route:
                             </p>
-                            
+
                             <div className="space-y-3">
                                 {availableCenters.map((centerId) => (
                                     <div key={centerId} className="flex items-center justify-between p-3 border border-gray-200 rounded-lg hover:bg-gray-50">
@@ -831,7 +1067,7 @@ const B2BShipmentCreationPage = () => {
                                 <RotateCcw className="w-4 h-4 mr-1" />
                                 Reset
                             </button>
-                            
+
                             <div className="flex gap-2">
                                 <button
                                     onClick={() => setShowRouteModal(false)}
@@ -842,11 +1078,10 @@ const B2BShipmentCreationPage = () => {
                                 <button
                                     onClick={finalizeRoute}
                                     disabled={!isRouteComplete()}
-                                    className={`flex items-center px-4 py-2 rounded-md transition-colors ${
-                                        isRouteComplete()
-                                            ? 'bg-green-600 text-white hover:bg-green-700'
-                                            : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                                    }`}
+                                    className={`flex items-center px-4 py-2 rounded-md transition-colors ${isRouteComplete()
+                                        ? 'bg-green-600 text-white hover:bg-green-700'
+                                        : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                                        }`}
                                 >
                                     <Check className="w-4 h-4 mr-1" />
                                     Finalize Route
@@ -862,12 +1097,12 @@ const B2BShipmentCreationPage = () => {
                 <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
                     <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
                         <h2 className="text-xl font-semibold mb-4">Calculate Arrival Times</h2>
-                        
+
                         <div className="mb-6">
                             <label className="block text-sm font-medium text-gray-700 mb-3">
                                 Select Calculation Method:
                             </label>
-                            
+
                             <div className="space-y-3">
                                 <label className="flex items-center">
                                     <input
@@ -883,7 +1118,7 @@ const B2BShipmentCreationPage = () => {
                                 <p className="text-xs text-gray-500 ml-6">
                                     Uses delivery type, buffer times, and travel time matrix
                                 </p>
-                                
+
                                 <label className="flex items-center">
                                     <input
                                         type="radio"
@@ -910,8 +1145,8 @@ const B2BShipmentCreationPage = () => {
                                 </p>
                                 {shipmentData.deliveryType && (
                                     <div className="text-xs text-blue-600 mt-1">
-                                        Buffer Times: First={bufferTimeConfig[shipmentData.deliveryType]?.first}h, 
-                                        Intermediate={bufferTimeConfig[shipmentData.deliveryType]?.intermediate}h, 
+                                        Buffer Times: First={bufferTimeConfig[shipmentData.deliveryType]?.first}h,
+                                        Intermediate={bufferTimeConfig[shipmentData.deliveryType]?.intermediate}h,
                                         Last={bufferTimeConfig[shipmentData.deliveryType]?.last}h
                                     </div>
                                 )}
@@ -952,11 +1187,10 @@ const B2BShipmentCreationPage = () => {
                             <button
                                 onClick={processArrivalTimeCalculation}
                                 disabled={arrivalTimeMethod === 'smart' && !shipmentData.deliveryType}
-                                className={`px-4 py-2 rounded-md transition-colors ${
-                                    (arrivalTimeMethod === 'smart' && !shipmentData.deliveryType)
-                                        ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                                        : 'bg-blue-600 text-white hover:bg-blue-700'
-                                }`}
+                                className={`px-4 py-2 rounded-md transition-colors ${(arrivalTimeMethod === 'smart' && !shipmentData.deliveryType)
+                                    ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                                    : 'bg-blue-600 text-white hover:bg-blue-700'
+                                    }`}
                             >
                                 Calculate
                             </button>
@@ -1091,8 +1325,8 @@ const B2BShipmentCreationPage = () => {
                                 ))}
                             </select>
                         </div>
-                       
-                        
+
+
                         {/* Summary */}
                         <div className="mb-4 p-3 bg-gray-50 rounded-md">
                             <div className="text-sm font-medium">Shipment Summary</div>
@@ -1163,8 +1397,8 @@ const B2BShipmentCreationPage = () => {
                                 <div className="bg-gray-50 p-3 rounded-md">
                                     <div className="text-sm font-medium text-gray-700">Total Time</div>
                                     <div className="text-lg font-semibold">
-                                        {routeInfo.totalTime ? 
-                                            `${Math.floor(routeInfo.totalTime)}h ${Math.round((routeInfo.totalTime - Math.floor(routeInfo.totalTime)) * 60)}m` 
+                                        {routeInfo.totalTime ?
+                                            `${Math.floor(routeInfo.totalTime)}h ${Math.round((routeInfo.totalTime - Math.floor(routeInfo.totalTime)) * 60)}m`
                                             : 'Not calculated'
                                         }
                                     </div>
@@ -1206,7 +1440,7 @@ const B2BShipmentCreationPage = () => {
                                                     const travelMinutes = Math.round((arrivalTime.travelTime - travelHours) * 60);
                                                     const bufferHours = Math.floor(arrivalTime.bufferTime);
                                                     const bufferMinutes = Math.round((arrivalTime.bufferTime - bufferHours) * 60);
-                                                    
+
                                                     return (
                                                         <tr key={arrivalTime.center}>
                                                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
@@ -1309,11 +1543,10 @@ const B2BShipmentCreationPage = () => {
                                                                     {parcel.itemSize || 'N/A'}
                                                                 </td>
                                                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 capitalize">
-                                                                    <span className={`px-2 py-1 text-xs font-medium rounded-full ${
-                                                                        parcel.shippingMethod?.toLowerCase() === 'express' 
-                                                                        ? 'bg-purple-100 text-purple-800' 
+                                                                    <span className={`px-2 py-1 text-xs font-medium rounded-full ${parcel.shippingMethod?.toLowerCase() === 'express'
+                                                                        ? 'bg-purple-100 text-purple-800'
                                                                         : 'bg-blue-100 text-blue-800'
-                                                                    }`}>
+                                                                        }`}>
                                                                         {parcel.shippingMethod || 'N/A'}
                                                                     </span>
                                                                 </td>
@@ -1347,9 +1580,9 @@ const B2BShipmentCreationPage = () => {
                                                                                             <span className="text-gray-600 w-36">QR Code:</span>
                                                                                             <div className="font-medium text-gray-800">
                                                                                                 {parcel.qrCodeNo && parcel.qrCodeNo.startsWith('data:image') ? (
-                                                                                                    <img 
-                                                                                                        src={parcel.qrCodeNo} 
-                                                                                                        alt="QR Code" 
+                                                                                                    <img
+                                                                                                        src={parcel.qrCodeNo}
+                                                                                                        alt="QR Code"
                                                                                                         className="w-16 h-16 object-contain border border-gray-200 rounded"
                                                                                                     />
                                                                                                 ) : (
@@ -1482,11 +1715,10 @@ const B2BShipmentCreationPage = () => {
                                                                 {parcel.itemSize || 'N/A'}
                                                             </td>
                                                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 capitalize">
-                                                                <span className={`px-2 py-1 text-xs font-medium rounded-full ${
-                                                                    parcel.shippingMethod?.toLowerCase() === 'express' 
-                                                                    ? 'bg-purple-100 text-purple-800' 
+                                                                <span className={`px-2 py-1 text-xs font-medium rounded-full ${parcel.shippingMethod?.toLowerCase() === 'express'
+                                                                    ? 'bg-purple-100 text-purple-800'
                                                                     : 'bg-blue-100 text-blue-800'
-                                                                }`}>
+                                                                    }`}>
                                                                     {parcel.shippingMethod || 'N/A'}
                                                                 </span>
                                                             </td>
@@ -1520,9 +1752,9 @@ const B2BShipmentCreationPage = () => {
                                                                                         <span className="text-gray-600 w-36">QR Code:</span>
                                                                                         <div className="font-medium text-gray-800">
                                                                                             {parcel.qrCodeNo && parcel.qrCodeNo.startsWith('data:image') ? (
-                                                                                                <img 
-                                                                                                    src={parcel.qrCodeNo} 
-                                                                                                    alt="QR Code" 
+                                                                                                <img
+                                                                                                    src={parcel.qrCodeNo}
+                                                                                                    alt="QR Code"
                                                                                                     className="w-16 h-16 object-contain border border-gray-200 rounded"
                                                                                                 />
                                                                                             ) : (
